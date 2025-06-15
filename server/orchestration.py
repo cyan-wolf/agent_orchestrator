@@ -142,10 +142,41 @@ prepare_helper_agents()
 agent = prepare_agent()
 config: RunnableConfig = {"configurable": {"thread_id": "1"}}
 
-def invoke_agent(user_input: str) -> str:
+
+def invoke_agent(user_input: str) -> dict:
     # Run the agent
     res = agent.invoke(
         {"messages": [{"role": "user", "content": user_input}]},
         config,
     )
-    return res["messages"][-1].content
+    return res
+
+
+def get_latest_agent_msg(agent_response: dict) -> str:
+    return agent_response["messages"][-1].content
+
+
+def run_debug_prompt_loop():
+    while True:
+        try:
+            user_input = input("user> ")
+            if user_input.lower() in ["quit", "exit", "q"]:
+                print("Goodbye!")
+                break
+
+            resp = invoke_agent(user_input)
+            message = get_latest_agent_msg(resp)
+
+            for m in resp["messages"]:
+                print(type(m))
+                print(m.content)
+
+            # print(f"AI> {message}")
+
+        except Exception as ex:
+            print(f"error: {ex}")
+            break
+
+
+if __name__ == "__main__":
+    run_debug_prompt_loop()
