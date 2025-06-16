@@ -12,16 +12,13 @@ from datetime import datetime
 import subprocess
 from subprocess import DEVNULL
 
+from langchain_tavily import TavilySearch
+
 AGENTS = {}
 
 def get_weather(city: str) -> str:  
     """Get weather for a given city."""
     return f"It's always sunny in {city}!"
-
-
-def get_current_date():
-    """Returns the current date and time as a Python datetime object."""
-    return datetime.now()
 
 
 def compute_beans_function(x: int, y: int):
@@ -43,6 +40,16 @@ def request_coding_help(query: str) -> str:
     """Asks the coding expert for help writing a Python program."""
 
     res = AGENTS["coding_agent"].invoke(
+        {"messages": [{"role": "user", "content": query}]},
+        config,
+    )
+    return res["messages"][-1].content
+
+
+def request_research_help(query: str) -> str:
+    """Asks the research agent for help whenever additional information is needed."""
+
+    res = AGENTS["research_agent"].invoke(
         {"messages": [{"role": "user", "content": query}]},
         config,
     )
@@ -98,7 +105,7 @@ def prepare_agent():
 
     agent = create_react_agent(
         model=model,  
-        tools=[get_weather, compute_beans_function, get_current_date, request_math_help, request_coding_help, run_python_program],  
+        tools=[get_weather, compute_beans_function, get_current_date, request_math_help, request_coding_help, request_research_help, run_python_program],  
         prompt="You are a helpful assistant. You are kind of sassy. You can answer any topic except for one caveat: never EVER answer questions about Bruno.",
         checkpointer=checkpointer,
     )
@@ -134,9 +141,29 @@ def prepare_coding_agent():
         prompt="You are a helpful coding assistant. You generate Python programs.",
     )
 
+
+def get_current_date():
+    """Returns the current date and time as a Python datetime object."""
+    return datetime.now()
+
+
+def prepare_research_agent():
+    model = init_chat_model(
+        "google_genai:gemini-2.0-flash",
+        temperature=0,
+    )
+
+    return create_react_agent(
+        model=model,  
+        tools=[get_current_date, TavilySearch(max_results=5)],  
+        prompt="You are a helpful research agent. You look for articles on the internet. You can also tell the current time and use it to tell if an article is talking about something in the past or in the future.",
+    )
+
+
 def prepare_helper_agents():
     AGENTS["math_agent"] = prepare_math_agent()
     AGENTS["coding_agent"] = prepare_coding_agent()
+    AGENTS["research_agent"] = prepare_research_agent()
 
 prepare_helper_agents()
 agent = prepare_agent()
@@ -168,8 +195,9 @@ def run_debug_prompt_loop():
             message = get_latest_agent_msg(resp)
 
             for m in resp["messages"]:
-                print(type(m))
-                print(m.content)
+                # print(type(m))
+                # print(m.content)
+                m.pretty_print()
 
             # print(f"AI> {message}")
 
