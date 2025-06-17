@@ -12,7 +12,7 @@ from langchain_tavily import TavilySearch
 from langchain_core.language_models.chat_models import BaseChatModel
 from langgraph.graph.graph import CompiledGraph
 
-from server.tools import generic_tools, code_runner
+from tools import generic_tools, code_runner
 
 def get_latest_agent_msg(agent_response: dict) -> str:
     return agent_response["messages"][-1].content
@@ -67,6 +67,8 @@ class AgentManager:
 
         def request_coding_help(query: str) -> str:
             """Asks the coding expert for help running a Python program."""
+
+            print(f"LOG: {query}")
 
             res = invoke_agent(self.agents["coding_agent"], self.config, query)
             return get_latest_agent_msg(res)
