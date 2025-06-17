@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-import orchestration
+from agents import AgentManager, get_latest_agent_msg
 
 app = FastAPI()
 
@@ -13,8 +13,9 @@ async def root():
 class UserRequest(BaseModel):
     user_message: str
 
+AGENT_MANAGER = AgentManager()
 
 @app.post("/")
 async def recieve_user_input(user_req: UserRequest):
-    resp = orchestration.invoke_agent(user_req.user_message)
-    return {"message": resp}
+    resp = AGENT_MANAGER.invoke_with_text(user_req.user_message)
+    return {"message": get_latest_agent_msg(resp)}
