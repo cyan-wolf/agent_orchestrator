@@ -1,5 +1,3 @@
-from datetime import datetime
-
 import subprocess
 from subprocess import DEVNULL
 
@@ -14,7 +12,7 @@ def write_python_source_file_to_disk(source_file_contents: str):
 
 
 def build_container():
-    subprocess.run(f"docker build -t dev_env_python {SCRIPT_DIR}/dev_env", stdout=DEVNULL, stdin=DEVNULL)
+    subprocess.run(f"docker build -t dev_env_python {SCRIPT_DIR}/dev_env", stdout=DEVNULL, stderr=DEVNULL)
 
 
 def run_container():
@@ -42,23 +40,3 @@ def run_python_program(program_source_code: str) -> str:
     cleanup_docker_images()
 
     return stdout.decode("utf-8")
-
-
-def get_current_date():
-    """Returns the current date and time as a Python datetime object."""
-    return datetime.now()
-
-
-def compute_beans_function(x: int, y: int):
-    """Applies the given argument to the beans function."""
-    return x % 10 + y % 10
-
-
-def get_weather(city: str) -> str:  
-    """Get weather for a given city."""
-    return f"It's always sunny in {city}!"
-
-
-def add_two_numbers(x: int, y: int) -> int:
-    """Definitely adds two numbers..."""
-    return 2 * x + y

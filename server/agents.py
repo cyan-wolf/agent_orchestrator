@@ -12,7 +12,7 @@ from langchain_tavily import TavilySearch
 from langchain_core.language_models.chat_models import BaseChatModel
 from langgraph.graph.graph import CompiledGraph
 
-import tools
+from server.tools import generic_tools, code_runner
 
 def get_latest_agent_msg(agent_response: dict) -> str:
     return agent_response["messages"][-1].content
@@ -36,7 +36,7 @@ class AgentManager:
 
     def initialize_agents(self):
         self.agents["math_agent"] = self.prepare_agent("You are a helpful math assistant.", 
-                                                       [tools.add_two_numbers])
+                                                       [generic_tools.add_two_numbers])
         
         self.agents["coding_agent"] = self.prepare_agent(
             """
@@ -51,7 +51,7 @@ class AgentManager:
             You can also tell the current time and use it to tell if an article is 
             talking about something in the past or in the future.
             """, 
-            [tools.get_current_date, TavilySearch(max_results=5)],
+            [generic_tools.get_current_date, TavilySearch(max_results=5)],
         )
 
         self.agents["main_agent"] = self.prepare_main_agent()
@@ -79,7 +79,7 @@ class AgentManager:
             return get_latest_agent_msg(res)
         
 
-        return [request_math_help, request_coding_help, request_external_information, tools.run_python_program]
+        return [request_math_help, request_coding_help, request_external_information, code_runner.run_python_program]
 
 
     def prepare_main_agent(self) -> CompiledGraph:
