@@ -12,7 +12,7 @@ from langchain_tavily import TavilySearch
 from langchain_core.language_models.chat_models import BaseChatModel
 from langgraph.graph.graph import CompiledGraph
 
-from tools import generic_tools, code_runner
+from tools import generic_tools, code_runner, image_generator
 
 def get_latest_agent_msg(agent_response: dict) -> str:
     return agent_response["messages"][-1].content
@@ -53,6 +53,12 @@ class AgentManager:
             """, 
             [generic_tools.get_current_date, TavilySearch(max_results=5)],
         )
+        self.agents["writer_agent"] = self.prepare_agent(
+            """
+            You are a writer. You receive requests to write textual content such as poems, stories, scripts.
+            """,
+            [],
+        )
 
         self.agents["main_agent"] = self.prepare_main_agent()
 
@@ -65,8 +71,8 @@ class AgentManager:
             return get_latest_agent_msg(res)
 
 
-        def request_coding_help(query: str) -> str:
-            """Asks the coding expert for help running a Python program."""
+        def request_code(query: str) -> str:
+            """Asks the coding expert for a Python program that satisfies the given query."""
 
             print(f"LOG: {query}")
 
@@ -81,7 +87,30 @@ class AgentManager:
             return get_latest_agent_msg(res)
         
 
-        return [request_math_help, request_coding_help, request_external_information, code_runner.run_python_program]
+        def request_content_generation(query: str, content_type: str) -> str:
+            """
+            Asks the content generation tool for some content. This could be text or an image.
+            The content type must be specified, it can be any of the following:
+                - text
+                - image
+            """
+            if content_type == "image":
+                # TODO: This just shows the image using a Python library. 
+                # Figure out what to do with the image, as it must be given to the client somehow.
+                image_generator.generate_image(query)
+                return "successfully generated and showed image to user"
+            
+            elif content_type == "text":
+                resp = invoke_agent(self.agents["writer_agent"], self.config, query)
+                return get_latest_agent_msg(resp)
+            else:
+                return f"error: unknown content type '{content_type}'"
+        
+
+        return [
+            request_math_help, request_code, request_external_information, 
+            request_content_generation,
+            code_runner.run_python_program]
 
 
     def prepare_main_agent(self) -> CompiledGraph:
