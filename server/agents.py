@@ -41,10 +41,11 @@ class AgentManager:
         
         self.agents["coding_agent"] = self.prepare_agent(
             """
-            You are a helpful coding assistant. 
-            Create a Python program based on the given query.
+            You are a helpful coding assistant. You only work with Python, no other programming language.
+            Always add comments and type annotations to any Python code you run.
             """, 
-            [],
+            [code_runner.run_python_program, self.prepare_switch_back_to_supervisor_tool()],
+            checkpointer=InMemorySaver(),
         )
         self.agents["research_agent"] = self.prepare_agent(
             """
@@ -65,6 +66,8 @@ class AgentManager:
             """
             You are a helpful assistant. You are kind of sassy. 
             You can answer any topic except for one caveat: never EVER answer questions about Bruno.
+
+            Don't hesitate to use the `switch_to_more_qualified_agent` tool.
             """,
             self.prepare_supervisor_agent_tools(),
             checkpointer=InMemorySaver(),
@@ -81,14 +84,22 @@ class AgentManager:
             return get_latest_agent_msg(res)
 
 
-        def request_code(query: str) -> str:
-            """Asks the coding expert for a Python program that satisfies the given query."""
+        def switch_to_more_qualified_agent(agent_name: str) -> str:
+            """
+            Switches to the given agent.
 
-            print(f"LOG: {query}")
+            Possible agents:
+                - coding_agent
+            """
 
-            res = invoke_agent(self.agents["coding_agent"], self.config, query)
-            return get_latest_agent_msg(res)
+            print(f"LOG: {agent_name}")
 
+            if agent_name == "coding_agent":
+                self.agents["main_agent"] = self.agents[agent_name]
+                return "switched to coding agent!"
+            
+            else:
+                return f"unknown agent name '{agent_name}'"
 
         def request_external_information(query: str) -> str:
             """Asks the research agent for help whenever external information is needed, such as external websites or the current date."""
@@ -116,12 +127,20 @@ class AgentManager:
             else:
                 return f"error: unknown content type '{content_type}'"
         
-
         return [
-            request_math_help, request_code, request_external_information, 
-            request_content_generation,
-            code_runner.run_python_program]
+            request_math_help, request_external_information, 
+            request_content_generation, switch_to_more_qualified_agent
+        ]
     
+    def prepare_switch_back_to_supervisor_tool(self):
+        def switch_back_to_supervisor():
+            """
+            Switches back to the supervisor.
+            """
+            self.agents["main_agent"] = self.agents["supervisor_agent"]
+            return "switched back to supervisor"
+        
+        return switch_back_to_supervisor
 
     def prepare_default_chat_model(self) -> BaseChatModel:
         return init_chat_model(
