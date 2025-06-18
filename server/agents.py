@@ -3,6 +3,7 @@ load_dotenv()
 
 from langchain.chat_models import init_chat_model
 from langgraph.prebuilt import create_react_agent
+from langgraph.types import Checkpointer
 from langgraph.checkpoint.memory import InMemorySaver
 
 from langchain_core.runnables.config import RunnableConfig
@@ -60,10 +61,19 @@ class AgentManager:
             [],
         )
 
-        self.agents["main_agent"] = self.prepare_main_agent()
+        self.agents["supervisor_agent"] = self.prepare_agent(
+            """
+            You are a helpful assistant. You are kind of sassy. 
+            You can answer any topic except for one caveat: never EVER answer questions about Bruno.
+            """,
+            self.prepare_supervisor_agent_tools(),
+            checkpointer=InMemorySaver(),
+        )
+
+        self.agents["main_agent"] = self.agents["supervisor_agent"]
 
 
-    def prepare_main_agent_tools(self):
+    def prepare_supervisor_agent_tools(self):
         def request_math_help(query: str) -> str:
             """Asks the math expert for help."""
 
@@ -111,17 +121,6 @@ class AgentManager:
             request_math_help, request_code, request_external_information, 
             request_content_generation,
             code_runner.run_python_program]
-
-
-    def prepare_main_agent(self) -> CompiledGraph:
-        agent = create_react_agent(
-            model=self.prepare_default_chat_model(),  
-            tools=self.prepare_main_agent_tools(),  
-            prompt="You are a helpful assistant. You are kind of sassy. You can answer any topic except for one caveat: never EVER answer questions about Bruno.",
-            checkpointer=InMemorySaver(),
-        )
-
-        return agent
     
 
     def prepare_default_chat_model(self) -> BaseChatModel:
@@ -131,7 +130,7 @@ class AgentManager:
         )
 
 
-    def prepare_agent(self, master_prompt: str, tools: list, model: BaseChatModel | None = None) -> CompiledGraph:
+    def prepare_agent(self, master_prompt: str, tools: list, model: BaseChatModel | None = None, checkpointer: Checkpointer = None) -> CompiledGraph:
         if model is None:
             model = self.prepare_default_chat_model()
 
@@ -139,6 +138,7 @@ class AgentManager:
             model=model,  
             tools=tools,  
             prompt=master_prompt,
+            checkpointer=checkpointer,
         )
 
 
