@@ -16,15 +16,10 @@ from langgraph.graph.graph import CompiledGraph
 
 from tools import generic_tools, code_runner, image_generator
 
-def get_latest_agent_msg(agent_response: dict) -> str:
-    return agent_response["messages"][-1].content
+from tracing import trace, Tracer, MessageTrace
 
-def invoke_agent(agent: CompiledGraph, config: RunnableConfig, user_input: str) -> dict:
-    res = agent.invoke(
-        {"messages": [{"role": "user", "content": user_input}]},
-        config,
-    )
-    return res
+def get_latest_agent_msg(agent_response: dict) -> BaseMessage:
+    return agent_response["messages"][-1]
 
 class AgentManager:
     def __init__(self):
@@ -33,7 +28,7 @@ class AgentManager:
         config: RunnableConfig = {"configurable": {"thread_id": "1"}}
         self.config = config
 
-        self.message_history: list[BaseMessage] = []
+        self.tracer = Tracer()
 
         self.initialize_agents()
 
@@ -82,9 +77,7 @@ class AgentManager:
     def prepare_supervisor_agent_tools(self):
         def request_math_help(query: str) -> str:
             """Asks the math expert for help."""
-
-            res = invoke_agent(self.agents["math_agent"], self.config, query)
-            return get_latest_agent_msg(res)
+            return self.invoke_agent(self.agents["math_agent"], query)
 
 
         def switch_to_more_qualified_agent(agent_name: str) -> str:
@@ -106,9 +99,7 @@ class AgentManager:
 
         def request_external_information(query: str) -> str:
             """Asks the research agent for help whenever external information is needed, such as external websites or the current date."""
-
-            res = invoke_agent(self.agents["research_agent"], self.config, query)
-            return get_latest_agent_msg(res)
+            return self.invoke_agent(self.agents["research_agent"], query)
         
 
         def request_content_generation(query: str, content_type: str) -> str:
@@ -127,8 +118,7 @@ class AgentManager:
                 return "successfully generated and showed image to user"
             
             elif content_type == "text":
-                resp = invoke_agent(self.agents["writer_agent"], self.config, query)
-                return get_latest_agent_msg(resp)
+                return self.invoke_agent(self.agents["writer_agent"], query)
             else:
                 return f"error: unknown content type '{content_type}'"
         
@@ -164,7 +154,16 @@ class AgentManager:
             prompt=master_prompt,
             checkpointer=checkpointer,
         )
+    
+    def invoke_agent(self, agent: CompiledGraph, user_input: str) -> str:
+        res = agent.invoke(
+            {"messages": [{"role": "user", "content": user_input}]},
+            self.config,
+        )
+        message = get_latest_agent_msg(res)
+        self.tracer.add(MessageTrace(message))
+        return str(message.content)
 
 
-    def invoke_with_text(self, user_input: str) -> dict:
-        return invoke_agent(self.agents["main_agent"], self.config, user_input)
+    def invoke_main_with_text(self, user_input: str) -> str:
+        return self.invoke_agent(self.agents["main_agent"], user_input)

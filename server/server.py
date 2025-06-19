@@ -17,5 +17,5 @@ AGENT_MANAGER = AgentManager()
 
 @app.post("/")
 async def recieve_user_input(user_req: UserRequest):
-    resp = AGENT_MANAGER.invoke_with_text(user_req.user_message)
-    return {"message": get_latest_agent_msg(resp)}
+    resp = AGENT_MANAGER.invoke_main_with_text(user_req.user_message)
+    return {"message": resp}

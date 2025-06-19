@@ -10,15 +10,11 @@ def run_debug_prompt_loop():
                 print("Goodbye!")
                 break
 
-            resp = agent_manager.invoke_with_text(user_input)
-            message = get_latest_agent_msg(resp)
+            response = agent_manager.invoke_main_with_text(user_input)
+            print(f"AI> {response}")
 
-            for m in resp["messages"]:
-                # print(type(m))
-                # print(m.content)
-                m.pretty_print()
-
-            # print(f"AI> {message}")
+            for t in agent_manager.tracer.get_history():
+                print(t)
 
         except Exception as ex:
             print(f"error: {ex}")
