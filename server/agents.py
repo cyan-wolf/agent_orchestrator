@@ -3,6 +3,7 @@ load_dotenv()
 
 from langchain.chat_models import init_chat_model
 from langgraph.prebuilt import create_react_agent
+from langchain_core.messages import BaseMessage
 from langgraph.types import Checkpointer
 from langgraph.checkpoint.memory import InMemorySaver
 
@@ -31,6 +32,8 @@ class AgentManager:
 
         config: RunnableConfig = {"configurable": {"thread_id": "1"}}
         self.config = config
+
+        self.message_history: list[BaseMessage] = []
 
         self.initialize_agents()
 
@@ -118,7 +121,9 @@ class AgentManager:
             if content_type == "image":
                 # TODO: This just shows the image using a Python library. 
                 # Figure out what to do with the image, as it must be given to the client somehow.
-                image_generator.generate_image(query)
+                image_base64 = image_generator.generate_image(query)
+                print(f"IMAGE: '{image_base64}'")
+
                 return "successfully generated and showed image to user"
             
             elif content_type == "text":
