@@ -20,9 +20,9 @@ def _get_image_base64(response: BaseMessage):
     return image_block["image_url"].get("url").split(",")[-1]
 
 
-def generate_image(query: str):
+def generate_image(query: str) -> str:
     """
-    Generates an image based on the specified query.
+    Generates an image based on the specified query. Returns the base64 encoded image.
     """
     message = {
         "role": "user",
@@ -34,13 +34,16 @@ def generate_image(query: str):
         generation_config=dict(response_modalities=["TEXT", "IMAGE"]),
     )
 
-    image_base64 = _get_image_base64(response)
+    image_base64: str = _get_image_base64(response)
     decoded = base64.b64decode(image_base64)
 
     byte_stream = BytesIO(decoded)
     image = Image.open(byte_stream)
 
+    # Temporary side effect
     image.show()
+
+    return image_base64
 
 if __name__ == "__main__":
     generate_image(input("user> "))
