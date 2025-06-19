@@ -1,4 +1,4 @@
-from agents import AgentManager, get_latest_agent_msg
+from server.agents import AgentManager
 
 def run_debug_prompt_loop():
     agent_manager = AgentManager()
@@ -19,7 +19,3 @@ def run_debug_prompt_loop():
         except Exception as ex:
             print(f"error: {ex}")
             break
-
-
-if __name__ == "__main__":
-    run_debug_prompt_loop()

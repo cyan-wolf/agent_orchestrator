@@ -9,14 +9,14 @@ from langgraph.checkpoint.memory import InMemorySaver
 
 from langchain_core.runnables.config import RunnableConfig
 
-from langchain_tavily import TavilySearch
-
 from langchain_core.language_models.chat_models import BaseChatModel
 from langgraph.graph.graph import CompiledGraph
 
-from tools import generic_tools, code_runner, image_generator
+from langchain_tavily import TavilySearch
 
-from tracing import trace, Tracer, MessageTrace
+from server.tools import generic_tools, code_runner, control_flow
+
+from server.tracing import Tracer, MessageTrace
 
 def get_latest_agent_msg(agent_response: dict) -> BaseMessage:
     return agent_response["messages"][-1]
@@ -35,14 +35,14 @@ class AgentManager:
 
     def initialize_agents(self):
         self.agents["math_agent"] = self.prepare_agent("You are a helpful math assistant.", 
-                                                       [generic_tools.add_two_numbers])
+                                                       [])
         
         self.agents["coding_agent"] = self.prepare_agent(
             """
             You are a helpful coding assistant. You only work with Python, no other programming language.
             Always add comments and type annotations to any Python code you run.
             """, 
-            [code_runner.run_python_program, self.prepare_switch_back_to_supervisor_tool()],
+            [code_runner.prepare_run_python_program_tool(self), control_flow.prepare_switch_back_to_supervisor_tool(self)],
             checkpointer=InMemorySaver(),
         )
         self.agents["research_agent"] = self.prepare_agent(
@@ -51,7 +51,8 @@ class AgentManager:
             You can also tell the current time and use it to tell if an article is 
             talking about something in the past or in the future.
             """, 
-            [generic_tools.get_current_date, TavilySearch(max_results=5)],
+            # TODO: I need to trace the Tavily search tool      vvvvvvvvvvvvvvvvvvvvvvvvvvv
+            [generic_tools.prepare_get_current_date_tool(self), TavilySearch(max_results=5)],
         )
         self.agents["writer_agent"] = self.prepare_agent(
             """
@@ -67,75 +68,12 @@ class AgentManager:
 
             Don't hesitate to use the `switch_to_more_qualified_agent` tool.
             """,
-            self.prepare_supervisor_agent_tools(),
+            control_flow.prepare_supervisor_agent_tools(self),
             checkpointer=InMemorySaver(),
         )
 
         self.agents["main_agent"] = self.agents["supervisor_agent"]
 
-
-    def prepare_supervisor_agent_tools(self):
-        def request_math_help(query: str) -> str:
-            """Asks the math expert for help."""
-            return self.invoke_agent(self.agents["math_agent"], query)
-
-
-        def switch_to_more_qualified_agent(agent_name: str) -> str:
-            """
-            Switches to the given agent.
-
-            Possible agents:
-                - coding_agent
-            """
-
-            print(f"LOG: {agent_name}")
-
-            if agent_name == "coding_agent":
-                self.agents["main_agent"] = self.agents[agent_name]
-                return "switched to coding agent!"
-            
-            else:
-                return f"unknown agent name '{agent_name}'"
-
-        def request_external_information(query: str) -> str:
-            """Asks the research agent for help whenever external information is needed, such as external websites or the current date."""
-            return self.invoke_agent(self.agents["research_agent"], query)
-        
-
-        def request_content_generation(query: str, content_type: str) -> str:
-            """
-            Asks the content generation tool for some content. This could be text or an image.
-            The content type must be specified, it can be any of the following:
-                - text
-                - image
-            """
-            if content_type == "image":
-                # TODO: This just shows the image using a Python library. 
-                # Figure out what to do with the image, as it must be given to the client somehow.
-                image_base64 = image_generator.generate_image(query)
-                print(f"IMAGE: '{image_base64}'")
-
-                return "successfully generated and showed image to user"
-            
-            elif content_type == "text":
-                return self.invoke_agent(self.agents["writer_agent"], query)
-            else:
-                return f"error: unknown content type '{content_type}'"
-        
-        return [
-            request_math_help, request_external_information, 
-            request_content_generation, switch_to_more_qualified_agent
-        ]
-    
-    def prepare_switch_back_to_supervisor_tool(self):
-        def switch_back_to_supervisor():
-            """
-            Switches back to the supervisor.
-            """
-            self.agents["main_agent"] = self.agents["supervisor_agent"]
-            return "switched back to supervisor"
-        
-        return switch_back_to_supervisor
 
     def prepare_default_chat_model(self) -> BaseChatModel:
         return init_chat_model(

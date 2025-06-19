@@ -3,6 +3,8 @@ from subprocess import DEVNULL
 
 import os
 
+from server.tracing import trace
+
 SCRIPT_PATH = os.path.realpath(__file__)
 SCRIPT_DIR = "\\".join(SCRIPT_PATH.split("\\")[:-1])
 
@@ -33,26 +35,27 @@ def cleanup_docker_images():
         raise Exception("could not clean up images")
 
 
-def run_python_program(program_source_code: str) -> str:
-    """This tool takes the contents of a Python source file as an argument. Then, the tool 
-        automatically runs the file and returns the program's output.
-    """
-    try:
-        print("WARNING: calling run file tool")
+def prepare_run_python_program_tool(agent_manager):
+    @trace(agent_manager.tracer)
+    def run_python_program(program_source_code: str) -> str:
+        """This tool takes the contents of a Python source file as an argument. Then, the tool 
+            automatically runs the file and returns the program's output.
+        """
+        try:
+            print("WARNING: calling run file tool")
 
-        write_python_source_file_to_disk(program_source_code)
+            write_python_source_file_to_disk(program_source_code)
 
-        print("LOG: WROTE PYTHON SOURCE FILE")
+            print("LOG: WROTE PYTHON SOURCE FILE")
 
-        build_container()
-        stdout = run_container()
+            build_container()
+            stdout = run_container()
 
-        cleanup_docker_images()
+            cleanup_docker_images()
 
-        return stdout.decode("utf-8")
+            return stdout.decode("utf-8")
 
-    except Exception as ex:
-        return f"error: {ex}"
-
-if __name__ == "__main__":
-    print(run_python_program("print('test')"))
+        except Exception as ex:
+            return f"error: {ex}"
+        
+    return run_python_program
