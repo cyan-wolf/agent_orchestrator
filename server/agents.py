@@ -21,6 +21,32 @@ from server.tracing import Tracer, MessageTrace
 def get_latest_agent_msg(agent_response: dict) -> BaseMessage:
     return agent_response["messages"][-1]
 
+
+class Agent:
+    def __init__(self, name: str, master_prompt: str, tools: list, model: BaseChatModel | None = None, checkpointer: Checkpointer = None):
+        self.name = name
+        self.graph = self.prepare_agent_graph(master_prompt, tools, model, checkpointer)
+
+
+    def prepare_default_chat_model(self) -> BaseChatModel:
+        return init_chat_model(
+            "google_genai:gemini-2.0-flash",
+            temperature=0,
+        )
+
+
+    def prepare_agent_graph(self, master_prompt: str, tools: list, model: BaseChatModel | None = None, checkpointer: Checkpointer = None) -> CompiledGraph:
+        if model is None:
+            model = self.prepare_default_chat_model()
+
+        return create_react_agent(
+            model=model,  
+            tools=tools,  
+            prompt=master_prompt,
+            checkpointer=checkpointer,
+        )
+
+
 class AgentManager:
     def __init__(self):
         self.agents = {}
@@ -34,34 +60,35 @@ class AgentManager:
 
 
     def initialize_agents(self):
-        self.agents["math_agent"] = self.prepare_agent("You are a helpful math assistant.", 
-                                                       [])
-        
-        self.agents["coding_agent"] = self.prepare_agent(
+        self.register_agent(Agent("math_agent", "You are a helpful math assistant.", []))
+
+        self.register_agent(Agent("coding_agent", 
             """
             You are a helpful coding assistant. You only work with Python, no other programming language.
             Always add comments and type annotations to any Python code you run.
             """, 
             [code_runner.prepare_run_python_program_tool(self), control_flow.prepare_switch_back_to_supervisor_tool(self)],
-            checkpointer=InMemorySaver(),
-        )
-        self.agents["research_agent"] = self.prepare_agent(
+            checkpointer=InMemorySaver()
+        ))
+
+        self.register_agent(Agent("research_agent",  
             """
             You are a helpful research agent. You look for articles on the internet. 
             You can also tell the current time and use it to tell if an article is 
             talking about something in the past or in the future.
             """, 
             # TODO: I need to trace the Tavily search tool      vvvvvvvvvvvvvvvvvvvvvvvvvvv
-            [generic_tools.prepare_get_current_date_tool(self), TavilySearch(max_results=5)],
-        )
-        self.agents["writer_agent"] = self.prepare_agent(
+            [generic_tools.prepare_get_current_date_tool(self), TavilySearch(max_results=5)]
+        ))
+
+        self.register_agent(Agent("writer_agent", 
             """
             You are a writer. You receive requests to write textual content such as poems, stories, scripts.
             """,
-            [],
-        )
+            []
+        ))
 
-        self.agents["supervisor_agent"] = self.prepare_agent(
+        self.register_agent(Agent("supervisor_agent", 
             """
             You are a helpful assistant. You are kind of sassy. 
             You can answer any topic except for one caveat: never EVER answer questions about Bruno.
@@ -69,32 +96,18 @@ class AgentManager:
             Don't hesitate to use the `switch_to_more_qualified_agent` tool.
             """,
             control_flow.prepare_supervisor_agent_tools(self),
-            checkpointer=InMemorySaver(),
-        )
+            checkpointer=InMemorySaver()
+        ))
 
         self.agents["main_agent"] = self.agents["supervisor_agent"]
+ 
+
+    def register_agent(self, agent: Agent):
+        self.agents[agent.name] = agent
 
 
-    def prepare_default_chat_model(self) -> BaseChatModel:
-        return init_chat_model(
-            "google_genai:gemini-2.0-flash",
-            temperature=0,
-        )
-
-
-    def prepare_agent(self, master_prompt: str, tools: list, model: BaseChatModel | None = None, checkpointer: Checkpointer = None) -> CompiledGraph:
-        if model is None:
-            model = self.prepare_default_chat_model()
-
-        return create_react_agent(
-            model=model,  
-            tools=tools,  
-            prompt=master_prompt,
-            checkpointer=checkpointer,
-        )
-    
-    def invoke_agent(self, agent: CompiledGraph, user_input: str) -> str:
-        res = agent.invoke(
+    def invoke_agent(self, agent: Agent, user_input: str) -> str:
+        res = agent.graph.invoke(
             {"messages": [{"role": "user", "content": user_input}]},
             self.config,
         )
