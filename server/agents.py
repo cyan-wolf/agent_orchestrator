@@ -24,11 +24,17 @@ def get_latest_agent_msg(agent_response: dict) -> BaseMessage:
 
 class Agent:
     def __init__(self, name: str, master_prompt: str, tools: list, model: BaseChatModel | None = None, checkpointer: Checkpointer = None):
+        """
+        Initializes an agent.
+        """
         self.name = name
         self.graph = self.prepare_agent_graph(master_prompt, tools, model, checkpointer)
 
 
     def prepare_default_chat_model(self) -> BaseChatModel:
+        """
+        Prepares a default chat model for an agent.
+        """
         return init_chat_model(
             "google_genai:gemini-2.0-flash",
             temperature=0,
@@ -36,6 +42,9 @@ class Agent:
 
 
     def prepare_agent_graph(self, master_prompt: str, tools: list, model: BaseChatModel | None = None, checkpointer: Checkpointer = None) -> CompiledGraph:
+        """
+        Prepares the graph that the agent uses for control flow.
+        """
         if model is None:
             model = self.prepare_default_chat_model()
 
@@ -49,6 +58,9 @@ class Agent:
 
 class AgentManager:
     def __init__(self):
+        """
+        Initializes an agent manager.
+        """
         self.agents = {}
 
         config: RunnableConfig = {"configurable": {"thread_id": "1"}}
@@ -60,6 +72,10 @@ class AgentManager:
 
 
     def initialize_agents(self):
+        """
+        Initializes and registers several agents.
+        """
+
         self.register_agent(Agent("math_agent", "You are a helpful math assistant.", []))
 
         self.register_agent(Agent("coding_agent", 
@@ -103,10 +119,18 @@ class AgentManager:
  
 
     def register_agent(self, agent: Agent):
+        """
+        Registers the given agent to the agent manager. Allows the agent to be 
+        called by other agents using its name.
+        """
         self.agents[agent.name] = agent
 
 
     def invoke_agent(self, agent: Agent, user_input: str) -> str:
+        """
+        Invokes the given agent using the provided user input.
+        """
+
         res = agent.graph.invoke(
             {"messages": [{"role": "user", "content": user_input}]},
             self.config,
@@ -117,4 +141,8 @@ class AgentManager:
 
 
     def invoke_main_with_text(self, user_input: str) -> str:
+        """
+        Invokes the agent that is currently designated to be the main agent.
+        """
+
         return self.invoke_agent(self.agents["main_agent"], user_input)
