@@ -48,33 +48,3 @@ def trace(tracer: Tracer):
         
         return wrapper
     return trace_decorator
-
-
-# def add_factory(tracer: Tracer):
-#     @trace(tracer)
-#     def addition_tool(x, y):
-#         """Hello"""
-#         return x + y
-    
-#     return addition_tool
-
-# def sub_factory(tracer: Tracer):
-#     @trace(tracer)
-#     def subtration_tool(x, y):
-#         """Subtracts"""
-#         return x - y
-    
-#     return subtration_tool
-
-
-# if __name__ == "__main__":
-#     tracer = Tracer()
-
-#     add = add_factory(tracer)
-#     sub = sub_factory(tracer)
-
-#     add(1, 2)
-#     sub(10, 5)
-
-#     for tr in tracer.get_history():
-#         print(tr)
