@@ -14,7 +14,7 @@ def run_debug_prompt_loop():
             print(f"AI> {response}")
 
             for t in agent_manager.tracer.get_history():
-                print(t)
+                print(t.as_json())
 
         except Exception as ex:
             print(f"error: {ex}")

@@ -1,19 +1,44 @@
 import inspect
 from functools import wraps
 from datetime import datetime
-from langchain_core.messages import BaseMessage
+import json
 
 class Trace:
     def __init__(self):
         self.time = datetime.now()
 
-class MessageTrace(Trace):
-    def __init__(self, message: BaseMessage):
+    def trace_type(self) -> str:
+        return "unknown"
+    
+    def as_json(self) -> str:
+        return json.dumps({ "type": self.trace_type(), **self.__dict__ }, default=str)
+
+class AIMessageTrace(Trace):
+    def __init__(self, by: str, content: str, as_main_agent: bool = False):
         super().__init__()
-        self.message = message
+        self.by = by
+        self.content = content
+        self.as_main_agent = as_main_agent
 
     def __repr__(self) -> str:
-        return f"{self.time} (message): {self.message.content}"
+        return f"{self.time} (message): {self.content} by {self.by}, is_main_agent: {self.as_main_agent}"
+    
+    def trace_type(self) -> str:
+        return "ai_message"
+
+
+class HumanMessageTrace(Trace):
+    def __init__(self, username: str, content: str):
+        super().__init__()
+        self.username = username
+        self.content = content
+
+    def __repr__(self) -> str:
+        return f"{self.time} (human_message): {self.username} prompted '{self.content}'"
+    
+    def trace_type(self) -> str:
+        return "human_message"
+
 
 class ToolTrace(Trace):
     def __init__(self, name: str, bound_arguments: dict, ret_val):
@@ -24,6 +49,9 @@ class ToolTrace(Trace):
 
     def __repr__(self) -> str:
         return f"{self.time} (tool): `{self.name}` `{self.bound_arguments}` -> `{self.ret_val}`"
+    
+    def trace_type(self) -> str:
+        return "tool"
 
 class Tracer:
     def __init__(self):

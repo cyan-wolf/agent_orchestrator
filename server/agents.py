@@ -16,7 +16,7 @@ from langchain_tavily import TavilySearch
 
 from server.tools import generic_tools, code_runner, control_flow
 
-from server.tracing import Tracer, MessageTrace
+from server.tracing import Tracer, AIMessageTrace, HumanMessageTrace
 
 def get_latest_agent_msg(agent_response: dict) -> BaseMessage:
     return agent_response["messages"][-1]
@@ -126,7 +126,7 @@ class AgentManager:
         self.agents[agent.name] = agent
 
 
-    def invoke_agent(self, agent: Agent, user_input: str) -> str:
+    def invoke_agent(self, agent: Agent, user_input: str, as_main_agent: bool = False) -> str:
         """
         Invokes the given agent using the provided user input.
         """
@@ -136,13 +136,15 @@ class AgentManager:
             self.config,
         )
         message = get_latest_agent_msg(res)
-        self.tracer.add(MessageTrace(message))
-        return str(message.content)
+        content = str(message.content)
+        self.tracer.add(AIMessageTrace(agent.name, content, as_main_agent=as_main_agent))
+        return content
 
 
     def invoke_main_with_text(self, user_input: str) -> str:
         """
         Invokes the agent that is currently designated to be the main agent.
         """
+        self.tracer.add(HumanMessageTrace("TEMP_USER", user_input))
 
-        return self.invoke_agent(self.agents["main_agent"], user_input)
+        return self.invoke_agent(self.agents["main_agent"], user_input, as_main_agent=True)
