@@ -1,5 +1,5 @@
 from langchain_tavily import TavilySearch
-from server.tracing import trace
+from ai.tracing import trace
 
 # TODO: This isn't working.
 def prepare_web_search_tool(agent_manager):

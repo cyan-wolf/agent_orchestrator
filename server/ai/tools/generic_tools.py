@@ -1,5 +1,5 @@
 from datetime import datetime
-from server.tracing import trace
+from ai.tracing import trace
 
 def prepare_get_current_date_tool(agent_manager):
     @trace(agent_manager.tracer)

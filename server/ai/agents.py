@@ -14,9 +14,8 @@ from langgraph.graph.graph import CompiledGraph
 
 from langchain_tavily import TavilySearch
 
-from server.tools import generic_tools, code_runner, control_flow
-
-from server.tracing import Tracer, AIMessageTrace, HumanMessageTrace
+from ai.tools import generic_tools, code_runner, control_flow
+from ai.tracing import Tracer, AIMessageTrace, HumanMessageTrace
 
 def get_latest_agent_msg(agent_response: dict) -> BaseMessage:
     return agent_response["messages"][-1]

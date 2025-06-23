@@ -1,4 +1,4 @@
-from server.orchestration import run_debug_prompt_loop
+from ai.orchestration import run_debug_prompt_loop
 
 def main():
     run_debug_prompt_loop()
