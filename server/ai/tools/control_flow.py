@@ -42,7 +42,7 @@ def prepare_supervisor_agent_tools(agent_manager):
             # TODO: This just shows the image using a Python library. 
             # Figure out what to do with the image, as it must be given to the client somehow.
             image_base64 = image_generator.generate_image(query)
-            agent_manager.tracer.add(ImageSideEffectTrace(image_base64))
+            agent_manager.tracer.add(ImageSideEffectTrace(base64_encoded_image=image_base64))
 
             return "successfully generated and showed image to user"
         

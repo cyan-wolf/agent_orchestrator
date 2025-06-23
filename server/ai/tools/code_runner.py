@@ -52,9 +52,9 @@ def prepare_run_python_program_tool(agent_manager):
             cleanup_docker_images()
 
             agent_manager.tracer.add(ProgramRunningSideEffectTrace(
-                program_source_code,
-                "Python",
-                program_stdout,
+                source_code=program_source_code,
+                language="Python",
+                output=program_stdout,
             ))
 
             return program_stdout

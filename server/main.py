@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-import json
+from typing import Sequence
 
+from ai.tracing import *
 from ai.agents import AgentManager
 
 app = FastAPI()
@@ -17,9 +18,8 @@ class UserRequest(BaseModel):
     user_message: str
 
 @app.get("/history")
-async def get_history() -> str:
-    hist = [t.as_json() for t in AGENT_MANAGER.tracer.get_history()]
-    return json.dumps(hist)
+async def get_history() -> Sequence[TraceUnion]:
+    return AGENT_MANAGER.tracer.get_history()
 
 
 @app.post("/")

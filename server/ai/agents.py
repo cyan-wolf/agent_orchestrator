@@ -136,7 +136,7 @@ class AgentManager:
         )
         message = get_latest_agent_msg(res)
         content = str(message.content)
-        self.tracer.add(AIMessageTrace(agent.name, content, as_main_agent=as_main_agent))
+        self.tracer.add(AIMessageTrace(agent_name=agent.name, content=content, is_main_agent=as_main_agent))
         return content
 
 
@@ -144,6 +144,6 @@ class AgentManager:
         """
         Invokes the agent that is currently designated to be the main agent.
         """
-        self.tracer.add(HumanMessageTrace("TEMP_USER", user_input))
+        self.tracer.add(HumanMessageTrace(username="TEMP_USER", content=user_input))
 
         return self.invoke_agent(self.agents["main_agent"], user_input, as_main_agent=True)
