@@ -1,9 +1,12 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+import json
 
-from ai.agents import AgentManager, get_latest_agent_msg
+from ai.agents import AgentManager
 
 app = FastAPI()
+
+AGENT_MANAGER = AgentManager()
 
 @app.get("/")
 async def root():
@@ -13,7 +16,11 @@ async def root():
 class UserRequest(BaseModel):
     user_message: str
 
-AGENT_MANAGER = AgentManager()
+@app.get("/history")
+async def get_history() -> str:
+    hist = [t.as_json() for t in AGENT_MANAGER.tracer.get_history()]
+    return json.dumps(hist)
+
 
 @app.post("/")
 async def recieve_user_input(user_req: UserRequest):

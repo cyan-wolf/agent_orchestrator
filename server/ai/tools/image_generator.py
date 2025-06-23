@@ -1,11 +1,6 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-import base64
-
-from PIL import Image
-from io import BytesIO
-
 from langchain_core.messages import BaseMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
 
@@ -35,14 +30,6 @@ def generate_image(query: str) -> str:
     )
 
     image_base64: str = _get_image_base64(response)
-    decoded = base64.b64decode(image_base64)
-
-    byte_stream = BytesIO(decoded)
-    image = Image.open(byte_stream)
-
-    # Temporary side effect
-    image.show()
-
     return image_base64
 
 if __name__ == "__main__":
