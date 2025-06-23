@@ -1,5 +1,5 @@
 from server.tools import image_generator
-from server.tracing import trace
+from server.tracing import trace, ImageSideEffectTrace
 
 def prepare_supervisor_agent_tools(agent_manager):
     @trace(agent_manager.tracer)
@@ -42,7 +42,7 @@ def prepare_supervisor_agent_tools(agent_manager):
             # TODO: This just shows the image using a Python library. 
             # Figure out what to do with the image, as it must be given to the client somehow.
             image_base64 = image_generator.generate_image(query)
-            print(f"IMAGE: '{image_base64}'")
+            agent_manager.tracer.add(ImageSideEffectTrace(image_base64))
 
             return "successfully generated and showed image to user"
         

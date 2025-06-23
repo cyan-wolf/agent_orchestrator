@@ -6,12 +6,13 @@ import json
 class Trace:
     def __init__(self):
         self.time = datetime.now()
+        self.type = self.get_trace_type()
 
-    def trace_type(self) -> str:
+    def get_trace_type(self) -> str:
         return "unknown"
     
     def as_json(self) -> str:
-        return json.dumps({ "type": self.trace_type(), **self.__dict__ }, default=str)
+        return json.dumps({ **self.__dict__ }, default=str)
 
 class AIMessageTrace(Trace):
     def __init__(self, by: str, content: str, as_main_agent: bool = False):
@@ -23,7 +24,7 @@ class AIMessageTrace(Trace):
     def __repr__(self) -> str:
         return f"{self.time} (message): {self.content} by {self.by}, is_main_agent: {self.as_main_agent}"
     
-    def trace_type(self) -> str:
+    def get_trace_type(self) -> str:
         return "ai_message"
 
 
@@ -36,7 +37,7 @@ class HumanMessageTrace(Trace):
     def __repr__(self) -> str:
         return f"{self.time} (human_message): {self.username} prompted '{self.content}'"
     
-    def trace_type(self) -> str:
+    def get_trace_type(self) -> str:
         return "human_message"
 
 
@@ -50,8 +51,41 @@ class ToolTrace(Trace):
     def __repr__(self) -> str:
         return f"{self.time} (tool): `{self.name}` `{self.bound_arguments}` -> `{self.ret_val}`"
     
-    def trace_type(self) -> str:
+    def get_trace_type(self) -> str:
         return "tool"
+    
+
+class SideEffectTrace(Trace):
+    def __init__(self):
+        super().__init__()
+        self.side_effect_type = self.get_side_effect_type()
+
+    def get_trace_type(self) -> str:
+        return "side_effect"
+    
+    def get_side_effect_type(self) -> str:
+        return "unknown"
+
+
+class ImageSideEffectTrace(SideEffectTrace):
+    def __init__(self, base64_encoded_image: str):
+        super().__init__()
+        self.base64_encoded_image = base64_encoded_image
+    
+    def get_side_effect_type(self) -> str:
+        return "image_generation"
+
+
+class ProgramRunningSideEffectTrace(SideEffectTrace):
+    def __init__(self, source_code: str, language: str, output: str):
+        super().__init__()
+        self.source_code = source_code
+        self.langauge = language
+        self.output = output
+
+    def get_side_effect_type(self) -> str:
+        return "program_running"
+
 
 class Tracer:
     def __init__(self):

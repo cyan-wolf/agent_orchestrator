@@ -3,7 +3,7 @@ from subprocess import DEVNULL
 
 import os
 
-from server.tracing import trace
+from server.tracing import trace, ProgramRunningSideEffectTrace
 
 SCRIPT_PATH = os.path.realpath(__file__)
 SCRIPT_DIR = "\\".join(SCRIPT_PATH.split("\\")[:-1])
@@ -46,14 +46,18 @@ def prepare_run_python_program_tool(agent_manager):
 
             write_python_source_file_to_disk(program_source_code)
 
-            print("LOG: WROTE PYTHON SOURCE FILE")
-
             build_container()
-            stdout = run_container()
+            program_stdout = run_container().decode("utf-8")
 
             cleanup_docker_images()
 
-            return stdout.decode("utf-8")
+            agent_manager.tracer.add(ProgramRunningSideEffectTrace(
+                program_source_code,
+                "Python",
+                program_stdout,
+            ))
+
+            return program_stdout
 
         except Exception as ex:
             return f"error: {ex}"
