@@ -1,53 +1,63 @@
 import inspect
 from functools import wraps
 from datetime import datetime
-from typing import Sequence
+from typing import Sequence, Literal
 
 from pydantic import BaseModel, Field
 
-class Trace(BaseModel):
+class TraceBase(BaseModel):
     time: datetime = Field(default_factory=datetime.now)
 
 
-class AIMessageTrace(Trace):
+class AIMessageTrace(TraceBase):
+    kind: Literal["ai_message"] = "ai_message"
     agent_name: str
     content: str
     is_main_agent: bool = Field(default=False)
 
 
-class HumanMessageTrace(Trace):
+class HumanMessageTrace(TraceBase):
+    kind: Literal["human_message"] = "human_message"
     username: str
     content: str
 
-class ToolTrace(Trace):
+
+class ToolTrace(TraceBase):
+    kind: Literal["tool"] = "tool"
     name: str
     bound_arguments: dict
     return_value: str
 
 
-class SideEffectTrace(Trace):
-    pass
+class SideEffectTraceBase(TraceBase):
+    kind: Literal["side_effect"] = "side_effect"
 
-class ImageSideEffectTrace(SideEffectTrace):
+
+class ImageSideEffectTrace(SideEffectTraceBase):
+    side_effect_kind: Literal["image_generation"] = "image_generation"
     base64_encoded_image: str
 
 
-class ProgramRunningSideEffectTrace(SideEffectTrace):
+class ProgramExecutionSideEffectTrace(SideEffectTraceBase):
+    side_effect_kind: Literal["program_execution"] = "program_execution"
     source_code: str 
     language: str
     output: str
 
 
-TraceUnion = AIMessageTrace | HumanMessageTrace | ToolTrace | SideEffectTrace
+SideEffectTrace = ImageSideEffectTrace | ProgramExecutionSideEffectTrace
+Trace = AIMessageTrace | HumanMessageTrace | ToolTrace | SideEffectTrace
+
+
 
 class Tracer:
     def __init__(self):
-        self.trace_list: list[TraceUnion] = []
+        self.trace_list: list[Trace] = []
 
-    def add(self, trace: TraceUnion):
+    def add(self, trace: Trace):
         self.trace_list.append(trace)
 
-    def get_history(self) -> Sequence[TraceUnion]:
+    def get_history(self) -> Sequence[Trace]:
         return self.trace_list.copy()
 
 

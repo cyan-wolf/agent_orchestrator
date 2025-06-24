@@ -18,7 +18,7 @@ class UserRequest(BaseModel):
     user_message: str
 
 @app.get("/history")
-async def get_history() -> Sequence[TraceUnion]:
+async def get_history() -> Sequence[Trace]:
     return AGENT_MANAGER.tracer.get_history()
 
 

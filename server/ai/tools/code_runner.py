@@ -3,7 +3,7 @@ from subprocess import DEVNULL
 
 import os
 
-from ai.tracing import trace, ProgramRunningSideEffectTrace
+from ai.tracing import trace, ProgramExecutionSideEffectTrace
 
 SCRIPT_PATH = os.path.realpath(__file__)
 SCRIPT_DIR = "\\".join(SCRIPT_PATH.split("\\")[:-1])
@@ -51,7 +51,7 @@ def prepare_run_python_program_tool(agent_manager):
 
             cleanup_docker_images()
 
-            agent_manager.tracer.add(ProgramRunningSideEffectTrace(
+            agent_manager.tracer.add(ProgramExecutionSideEffectTrace(
                 source_code=program_source_code,
                 language="Python",
                 output=program_stdout,
