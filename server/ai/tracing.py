@@ -6,7 +6,7 @@ from typing import Sequence, Literal
 from pydantic import BaseModel, Field
 
 class TraceBase(BaseModel):
-    time: datetime = Field(default_factory=datetime.now)
+    timestamp: float = Field(default_factory=lambda: datetime.now().timestamp())
 
 
 class AIMessageTrace(TraceBase):
