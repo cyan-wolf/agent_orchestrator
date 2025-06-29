@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import os
+from datetime import datetime
 
 import requests
 import json
@@ -10,16 +11,30 @@ import base64
 from PIL import Image
 from io import BytesIO
 
+import colorama
+colorama.init()
+
 SERVER_ROUTE = os.environ["DEV_SERVER_ROUTE"]
 
 def prompt_agent(user_input: str) -> dict:
-    resp = requests.post(SERVER_ROUTE, json={
+    resp = requests.post(f"{SERVER_ROUTE}/api/send-message", json={
         "user_message": user_input
     })
     return resp.json()
 
 
 def user_prompt_loop():
+    latest_timestamp: float = 0
+
+    try: 
+        history = get_message_history()
+        if len(history) > 0:
+            latest_timestamp = history[-1]["timestamp"]
+            pretty_print_messages(history)
+
+    except Exception as ex:
+        print(f"error: {ex}")
+
     while True:
         try:
             user_input = input("user> ")
@@ -27,9 +42,13 @@ def user_prompt_loop():
                 print("Goodbye!")
                 break
 
-            response = prompt_agent(user_input)
-            message = response['message']
-            print(f"AI> {message}")
+            _ = prompt_agent(user_input)
+
+            latest_messages = get_latest_messages(latest_timestamp)
+            latest_timestamp = latest_messages[-1]["timestamp"]
+
+            pretty_print_messages(latest_messages)
+
             write_history()
 
         except Exception as ex:
@@ -37,13 +56,44 @@ def user_prompt_loop():
             break
 
 
-def get_history_json() -> dict:
-    hist_json = requests.get(f"{SERVER_ROUTE}/history").json()
-    return hist_json
+def get_latest_messages(latest_timestamp: float) -> list:
+    return requests.get(f"{SERVER_ROUTE}/api/get-latest-messages/{latest_timestamp}").json()
+
+
+def pretty_print_messages(messages: list[dict]): 
+    pretty_message = ""
+
+    for message in messages:
+        if message["kind"] == "ai_message":
+            pretty_message = f"AI ({message["agent_name"]})> {message["content"]}"
+
+            if not message["is_main_agent"]:
+                pretty_message = f"{colorama.Fore.LIGHTBLACK_EX}{pretty_message}{colorama.Fore.RESET}"
+
+        elif message["kind"] == "human_message":
+            pretty_message = f"user ({message['username']})> {message['content']}"
+
+        elif message["kind"] == "side_effect" and message["side_effect_kind"] == "image_generation":
+            base64_encoded_image = message["base64_encoded_image"]
+            show_base64_encoded_image(base64_encoded_image)
+
+            # Do not show this message as text (as it's too long)
+            continue
+
+        else:
+            pretty_message = f"{colorama.Fore.LIGHTBLACK_EX}{message}{colorama.Fore.RESET}"
+
+        timestamp_date = datetime.fromtimestamp(message["timestamp"])
+        print(f"[{colorama.Fore.YELLOW}{timestamp_date}{colorama.Fore.RESET}] {pretty_message}\n")
+
+
+
+def get_message_history() -> list[dict]:
+    return requests.get(f"{SERVER_ROUTE}/api/history").json()
 
 
 def write_history():
-    history_json = get_history_json()
+    history_json = get_message_history()
     
     with open("hist.json", "w") as f:
         f.write(json.dumps(history_json, indent=4))
