@@ -1,58 +1,20 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-from langchain.chat_models import init_chat_model
-from langgraph.prebuilt import create_react_agent
 from langchain_core.messages import BaseMessage
-from langgraph.types import Checkpointer
 from langgraph.checkpoint.memory import InMemorySaver
 
 from langchain_core.runnables.config import RunnableConfig
-
-from langchain_core.language_models.chat_models import BaseChatModel
-from langgraph.graph.graph import CompiledGraph
 
 from langchain_tavily import TavilySearch
 
 from ai.tools import generic_tools, code_runner, control_flow
 from ai.tracing import Tracer, AIMessageTrace, HumanMessageTrace
 
+from ai.agent import Agent
+
 def get_latest_agent_msg(agent_response: dict) -> BaseMessage:
     return agent_response["messages"][-1]
-
-
-class Agent:
-    def __init__(self, name: str, master_prompt: str, tools: list, model: BaseChatModel | None = None, checkpointer: Checkpointer = None):
-        """
-        Initializes an agent.
-        """
-        self.name = name
-        self.graph = self.prepare_agent_graph(master_prompt, tools, model, checkpointer)
-
-
-    def prepare_default_chat_model(self) -> BaseChatModel:
-        """
-        Prepares a default chat model for an agent.
-        """
-        return init_chat_model(
-            "google_genai:gemini-2.0-flash",
-            temperature=0,
-        )
-
-
-    def prepare_agent_graph(self, master_prompt: str, tools: list, model: BaseChatModel | None = None, checkpointer: Checkpointer = None) -> CompiledGraph:
-        """
-        Prepares the graph that the agent uses for control flow.
-        """
-        if model is None:
-            model = self.prepare_default_chat_model()
-
-        return create_react_agent(
-            model=model,  
-            tools=tools,  
-            prompt=master_prompt,
-            checkpointer=checkpointer,
-        )
 
 
 class AgentManager:

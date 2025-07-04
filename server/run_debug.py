@@ -1,4 +1,4 @@
-from ai.agents import AgentManager
+from ai.agent_manager import AgentManager
 
 def run_debug_prompt_loop():
     agent_manager = AgentManager()

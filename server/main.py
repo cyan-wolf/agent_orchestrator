@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from typing import Sequence
 
 from ai.tracing import *
-from ai.agents import AgentManager
+from ai.agent_manager import AgentManager
 
 app = FastAPI()
 
