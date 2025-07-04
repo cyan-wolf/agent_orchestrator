@@ -10,7 +10,9 @@ dependencies = [
     "langchain-google-genai>=2.1.5",
     "langchain-tavily>=0.2.4",
     "langgraph>=0.4.8",
+    "passlib>=1.7.4",
     "pillow>=11.2.1",
+    "pyjwt>=2.10.1",
     "python-dotenv>=1.1.0",
     "uvicorn[standard]>=0.34.3",
 ]
