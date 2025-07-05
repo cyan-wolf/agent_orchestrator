@@ -4,11 +4,26 @@ export default function Login() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
 
-    function handleFormSubmit(e: React.FormEvent<HTMLFormElement>) {
+    async function handleFormSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
-        console.log(`usr: ${username}`);
-        // console.log(`pas: ${password}`);
+        // Needed for 'application/x-www-form-urlencoded'.
+        const formData = new URLSearchParams({
+            username, password
+        });
+
+        try {
+            await fetch("/api/token/", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: formData,
+            });
+        }
+        catch (err) {
+            console.log(err);
+        }
     }
 
     return (
