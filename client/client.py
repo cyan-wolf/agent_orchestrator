@@ -14,10 +14,45 @@ from io import BytesIO
 import colorama
 colorama.init()
 
+import getpass
+
 SERVER_ROUTE = os.environ["DEV_SERVER_ROUTE"]
 
+SESSION = requests.Session()
+
+
+def check_if_logged_in():
+    try:
+        resp = SESSION.get(f"{SERVER_ROUTE}/users/me")
+        resp.raise_for_status()
+        return True
+
+    except (requests.exceptions.HTTPError, requests.exceptions.RequestException) as _:
+        return False
+
+
+def login_using_credentials():
+    try:
+        username = input("username: ")
+        password = getpass.getpass("password: ", )
+
+        response = SESSION.post(f"{SERVER_ROUTE}/token/", data={
+            "username": username,
+            "password": password,
+        })
+        response.raise_for_status()
+
+        return True
+
+    except requests.exceptions.HTTPError as err:
+        print(f"HTTP error occurred: {err}")
+    except requests.exceptions.RequestException as err:
+        print(f"Other request error occurred: {err}")
+
+    return False
+
 def prompt_agent(user_input: str) -> dict:
-    resp = requests.post(f"{SERVER_ROUTE}/api/send-message", json={
+    resp = SESSION.post(f"{SERVER_ROUTE}/api/send-message", json={
         "user_message": user_input
     })
     return resp.json()
@@ -32,8 +67,10 @@ def user_prompt_loop():
             latest_timestamp = history[-1]["timestamp"]
             pretty_print_messages(history)
 
-    except Exception as ex:
-        print(f"error: {ex}")
+    except requests.exceptions.HTTPError as err:
+        print(f"HTTP error occurred: {err}")
+    except requests.exceptions.RequestException as err:
+        print(f"Other request error occurred: {err}")
 
     while True:
         try:
@@ -51,13 +88,16 @@ def user_prompt_loop():
 
             write_history()
 
-        except Exception as ex:
-            print(f"error: {ex}")
-            break
+        except requests.exceptions.HTTPError as err:
+            print(f"HTTP error occurred: {err}")
+        except requests.exceptions.RequestException as err:
+            print(f"Other request error occurred: {err}")
 
 
 def get_latest_messages(latest_timestamp: float) -> list:
-    return requests.get(f"{SERVER_ROUTE}/api/get-latest-messages/{latest_timestamp}").json()
+    resp =  SESSION.get(f"{SERVER_ROUTE}/api/get-latest-messages/{latest_timestamp}")
+    resp.raise_for_status()
+    return resp.json()
 
 
 def pretty_print_messages(messages: list[dict]): 
@@ -89,7 +129,9 @@ def pretty_print_messages(messages: list[dict]):
 
 
 def get_message_history() -> list[dict]:
-    return requests.get(f"{SERVER_ROUTE}/api/history").json()
+    resp = SESSION.get(f"{SERVER_ROUTE}/api/history")
+    resp.raise_for_status()
+    return resp.json()
 
 
 def write_history():
@@ -109,7 +151,10 @@ def show_base64_encoded_image(image_base64: str):
 
 
 def main():
-    user_prompt_loop()
+    could_login = login_using_credentials()
+
+    if could_login:
+        user_prompt_loop()
 
 
 if __name__ == "__main__":
