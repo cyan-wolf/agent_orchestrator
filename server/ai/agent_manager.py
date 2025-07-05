@@ -102,10 +102,10 @@ class AgentManager:
         return content
 
 
-    def invoke_main_with_text(self, user_input: str) -> str:
+    def invoke_main_with_text(self, username: str, user_input: str) -> str:
         """
         Invokes the agent that is currently designated to be the main agent.
         """
-        self.tracer.add(HumanMessageTrace(username="TEMP_USER", content=user_input))
+        self.tracer.add(HumanMessageTrace(username=username, content=user_input))
 
         return self.invoke_agent(self.agents["main_agent"], user_input, as_main_agent=True)

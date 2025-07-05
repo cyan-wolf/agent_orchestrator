@@ -10,7 +10,7 @@ def run_debug_prompt_loop():
                 print("Goodbye!")
                 break
 
-            response = agent_manager.invoke_main_with_text(user_input)
+            response = agent_manager.invoke_main_with_text("TEMP_USERNAME", user_input)
             print(f"AI> {response}")
 
             for t in agent_manager.tracer.get_history():
