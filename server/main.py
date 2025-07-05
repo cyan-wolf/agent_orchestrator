@@ -12,7 +12,19 @@ app = FastAPI()
 
 app.include_router(auth_router)
 
-AGENT_MANAGER = AgentManager()
+FAKE_AGENT_MANAGER_DB: dict[str, AgentManager] = {}
+
+def initialize_agent_manager_for_user(user: User):
+    FAKE_AGENT_MANAGER_DB[user.username] = AgentManager()
+
+def get_or_create_agent_manager(user: User) -> AgentManager:
+    username = user.username
+
+    if username not in FAKE_AGENT_MANAGER_DB:
+        initialize_agent_manager_for_user(user)
+
+    agent_manager = FAKE_AGENT_MANAGER_DB[user.username]
+    return agent_manager
 
 @app.get("/")
 async def root():
@@ -23,17 +35,24 @@ class UserRequest(BaseModel):
     user_message: str
 
 @app.get("/api/history")
-async def get_history(_current_user: Annotated[User, Depends(get_current_user)]) -> Sequence[Trace]:
-    return AGENT_MANAGER.tracer.get_history()
+async def get_history(current_user: Annotated[User, Depends(get_current_user)]) -> Sequence[Trace]:
+    agent_manager = get_or_create_agent_manager(current_user)
+    return agent_manager.tracer.get_history()
 
 
 @app.get("/api/get-latest-messages/{latest_timestamp}")
-async def get_latest_messages(latest_timestamp: float, _current_user: Annotated[User, Depends(get_current_user)]) -> Sequence[Trace]:
-    hist = AGENT_MANAGER.tracer.get_history()
+async def get_latest_messages(latest_timestamp: float, current_user: Annotated[User, Depends(get_current_user)]) -> Sequence[Trace]:
+    agent_manager = get_or_create_agent_manager(current_user)
+
+    hist = agent_manager.tracer.get_history()
+
     return [t for t in hist if t.timestamp > latest_timestamp]
 
 
 @app.post("/api/send-message")
 async def recieve_user_input(user_req: UserRequest, current_user: Annotated[User, Depends(get_current_user)]):
-    _resp = AGENT_MANAGER.invoke_main_with_text(current_user.username, user_req.user_message)
+    agent_manager = get_or_create_agent_manager(current_user)
+
+    _ = agent_manager.invoke_main_with_text(current_user.username, user_req.user_message)
+    
     return { "result": "finished processing" }
