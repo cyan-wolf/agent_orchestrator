@@ -86,7 +86,7 @@ class OAuth2PasswordBearerFromCookies(OAuth2):
                 return None
         return param
 
-oauth2_scheme = OAuth2PasswordBearerFromCookies(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearerFromCookies(tokenUrl="/api/token/")
 
 
 
