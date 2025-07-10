@@ -1,8 +1,11 @@
 import { useState } from "react";
+import { getCurrentUser } from "../../auth/user";
+import { useAuth } from "../../auth/useAuth";
 
 export default function Login() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const { login } = useAuth()!;
 
     async function handleFormSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -20,6 +23,17 @@ export default function Login() {
                 },
                 body: formData,
             });
+
+            const user = await getCurrentUser();
+            
+            if (user !== null) {
+                // Login the user.
+                login(user);
+            }
+            else {
+                // TODO: authentication was not successful
+            }
+
         }
         catch (err) {
             console.log(err);

@@ -57,6 +57,11 @@ class UserInDB(User):
     hashed_password: str
 
 
+class AuthCheck(BaseModel):
+    is_auth: bool
+    user: User | None
+
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class OAuth2PasswordBearerFromCookies(OAuth2):
@@ -86,7 +91,7 @@ class OAuth2PasswordBearerFromCookies(OAuth2):
                 return None
         return param
 
-oauth2_scheme = OAuth2PasswordBearerFromCookies(tokenUrl="/api/token/")
+oauth2_scheme = OAuth2PasswordBearerFromCookies(tokenUrl="/api/token/", auto_error=False)
 
 
 
@@ -124,7 +129,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     return encoded_jwt
 
 
-async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
+async def _get_curr_user_impl(token: Annotated[str, Depends(oauth2_scheme)], should_raise_credentials_exception: bool = True):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -134,15 +139,40 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username = payload.get("sub")
         if username is None:
-            raise credentials_exception
+            if should_raise_credentials_exception:
+                raise credentials_exception
+            else:
+                return None
+            
         token_data = TokenData(username=username)
     except InvalidTokenError:
-        raise credentials_exception
+        if should_raise_credentials_exception:
+            raise credentials_exception
+        else:
+            return None
     
     user = get_user(fake_users_db, username=token_data.username) # type: ignore
     if user is None:
-        raise credentials_exception
+        if should_raise_credentials_exception:
+            raise credentials_exception
+        else:
+            return None
     
+    return user
+
+
+async def check_user_auth(token: Annotated[str, Depends(oauth2_scheme)]) -> AuthCheck:
+    user = await _get_curr_user_impl(token, should_raise_credentials_exception=False)
+    
+    return AuthCheck(
+        is_auth=user is not None, 
+        user=user,
+    )
+
+
+async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> User:
+    user = await _get_curr_user_impl(token)
+    assert user is not None
     return user
 
 

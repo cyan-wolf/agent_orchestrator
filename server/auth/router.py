@@ -30,7 +30,22 @@ async def login_for_access_token(
     # Set HTTP-only cookie!
     response.set_cookie("access_token", f"Bearer {access_token}", httponly=True)
 
+    # TODO: try to remove this, 
+    # the client doesn't need the JWT token since it is set on a cookie
     return Token(access_token=access_token, token_type="bearer")
+
+
+@router.get("/api/auth-check/")
+async def auth_check(
+    auth_check: Annotated[AuthCheck, Depends(check_user_auth)],
+) -> AuthCheck:
+    return auth_check
+
+
+@router.get("/api/logout")
+async def logout(response: Response):
+    response.delete_cookie("access_token")
+    return { "message": "Successful logout" }
 
 
 @router.get("/api/users/me/", response_model=User)
