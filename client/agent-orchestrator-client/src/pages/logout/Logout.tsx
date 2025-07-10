@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../../auth/useAuth";
-import Loading from "../../loading/Loading";
+import Loading from "../../components/loading/Loading";
 
 export default function Logout() {
     const { user, logout, isLoading } = useAuth()!;
