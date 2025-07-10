@@ -5,7 +5,7 @@ import { useAuth } from "../../auth/useAuth";
 export default function Login() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const { login } = useAuth()!;
+    const { user, login } = useAuth()!;
 
     async function handleFormSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -40,7 +40,7 @@ export default function Login() {
         }
     }
 
-    return (
+    const toLoginView = (
         <>
             <h1>Login</h1>
             
@@ -64,4 +64,13 @@ export default function Login() {
             </form>
         </>
     );
+
+    const alreadyLoggedInView = (
+        <>
+            <h2>Login</h2>
+            <p>Already logged in!</p>
+        </>
+    );
+
+    return (user !== null) ? alreadyLoggedInView : toLoginView;
 }

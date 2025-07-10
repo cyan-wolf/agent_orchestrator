@@ -34,13 +34,13 @@ async def root():
 class UserRequest(BaseModel):
     user_message: str
 
-@app.get("/api/history")
+@app.get("/api/history/")
 async def get_history(current_user: Annotated[User, Depends(get_current_user)]) -> Sequence[Trace]:
     agent_manager = get_or_create_agent_manager(current_user)
     return agent_manager.tracer.get_history()
 
 
-@app.get("/api/get-latest-messages/{latest_timestamp}")
+@app.get("/api/get-latest-messages/{latest_timestamp}/")
 async def get_latest_messages(latest_timestamp: float, current_user: Annotated[User, Depends(get_current_user)]) -> Sequence[Trace]:
     agent_manager = get_or_create_agent_manager(current_user)
 
@@ -49,7 +49,7 @@ async def get_latest_messages(latest_timestamp: float, current_user: Annotated[U
     return [t for t in hist if t.timestamp > latest_timestamp]
 
 
-@app.post("/api/send-message")
+@app.post("/api/send-message/")
 async def recieve_user_input(user_req: UserRequest, current_user: Annotated[User, Depends(get_current_user)]):
     agent_manager = get_or_create_agent_manager(current_user)
 

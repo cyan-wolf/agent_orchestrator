@@ -11,6 +11,7 @@ import About from './pages/about/About';
 import Login from './pages/login/Login';
 import ProtectedRoute from './auth/ProtectedRoute';
 import Logout from './pages/logout/Logout';
+import Chat from './pages/chat/Chat';
 
 export default function App() {
   return (
@@ -24,6 +25,9 @@ export default function App() {
             <Link to="/about">About</Link>
           </li>
           <li>
+            <Link to="/chat">Chat</Link>
+          </li>
+          <li>
             <Link to="/login">Login</Link>
           </li>
           <li>
@@ -34,6 +38,8 @@ export default function App() {
       
       <Routes>
         <Route path="/about" element={<ProtectedRoute children={<About/>} />} />
+        <Route path="/chat" element={<ProtectedRoute children={<Chat/>} />} />
+
         <Route path="/login" element={<Login/>} />
         <Route path="/logout" element={<Logout />} />
         <Route path="/" element={<Home/>} />
