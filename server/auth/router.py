@@ -10,7 +10,7 @@ from fastapi.routing import APIRouter
 
 router = APIRouter()
 
-@router.post("/api/token/")
+@router.post("/api/token/", tags=["auth"])
 async def login_for_access_token(
     response: Response,
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
@@ -35,14 +35,14 @@ async def login_for_access_token(
     return Token(access_token=access_token, token_type="bearer")
 
 
-@router.get("/api/auth-check/")
+@router.get("/api/auth-check/", tags=["auth"])
 async def auth_check(
     auth_check: Annotated[AuthCheck, Depends(check_user_auth)],
 ) -> AuthCheck:
     return auth_check
 
 
-@router.get("/api/logout")
+@router.get("/api/logout", tags=["auth"])
 async def logout(response: Response):
     response.delete_cookie("access_token")
     return { "message": "Successful logout" }
