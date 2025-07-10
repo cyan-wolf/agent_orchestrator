@@ -1,11 +1,16 @@
 import { useState } from "react";
 import { getCurrentUser } from "../../auth/user";
 import { useAuth } from "../../auth/useAuth";
+import Loading from "../components/loading/Loading";
 
 export default function Login() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const { user, login } = useAuth()!;
+    const { isLoading, user, login } = useAuth()!;
+
+    if (isLoading) {
+        return <Loading />;
+    }
 
     async function handleFormSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();

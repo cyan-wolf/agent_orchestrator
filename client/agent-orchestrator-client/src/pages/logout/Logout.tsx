@@ -1,8 +1,13 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../../auth/useAuth";
+import Loading from "../components/loading/Loading";
 
 export default function Logout() {
-    const { user, logout } = useAuth()!;
+    const { user, logout, isLoading } = useAuth()!;
+
+    if (isLoading) {
+        return <Loading />;
+    }
 
     function handleButtonClick() {
         logout();

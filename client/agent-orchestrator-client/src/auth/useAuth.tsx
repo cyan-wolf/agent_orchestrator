@@ -4,6 +4,7 @@ import { getCurrentUser, type User } from "./user";
 
 type AuthData = {
     user: User | null,
+    isLoading: boolean,
     login: (data: User) => void,
     logout: () => void,
 };
@@ -12,12 +13,14 @@ const AuthContext = createContext<AuthData | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
         const fetchUser = async () => {
             const user = await getCurrentUser();
             setUser(user);
+            setIsLoading(false);
         };
         fetchUser();
     }, [navigate]);
@@ -37,6 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const value = {
         user,
+        isLoading,
         login,
         logout,
     };
