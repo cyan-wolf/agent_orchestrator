@@ -27,7 +27,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const login = (data: User) => {
         setUser(data);
-        navigate("/profile");
+        navigate("/chat");
     };
 
     const logout = () => {
