@@ -2,8 +2,9 @@ import { useState } from "react";
 import { getCurrentUser } from "../../auth/user";
 import { useAuth } from "../../auth/useAuth";
 import Loading from "../../components/loading/Loading";
+import { Button, Card, CardContent, Container, TextField, Typography } from "@mui/material";
 
-export default function Login() {
+const Login = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const { isLoading, user, login } = useAuth()!;
@@ -11,6 +12,7 @@ export default function Login() {
     if (isLoading) {
         return <Loading />;
     }
+
 
     async function handleFormSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -45,31 +47,7 @@ export default function Login() {
         }
     }
 
-    const toLoginView = (
-        <>
-            <h1>Login</h1>
-            
-            <form onSubmit={handleFormSubmit}>
-
-                <label htmlFor="login-username">Username: </label>
-                <input 
-                    type="text" 
-                    id="login-username"
-                    onChange={e => setUsername(e.target.value)}
-                />
-
-                <label htmlFor="login-password">Password: </label>
-                <input 
-                    type="password"
-                    id="login-password"
-                    onChange={e => setPassword(e.target.value)}
-                    />
-
-                <button type="submit">Login</button>
-            </form>
-        </>
-    );
-
+    // TODO: Make this look good.
     const alreadyLoggedInView = (
         <>
             <h2>Login</h2>
@@ -77,5 +55,37 @@ export default function Login() {
         </>
     );
 
+    const toLoginView = (
+        <form onSubmit={handleFormSubmit}>
+            <Container maxWidth="sm">
+                <Card>
+                    <CardContent>
+                        <Typography variant="h3" align="center">Log In</Typography>
+                        <TextField 
+                            label="Username"
+                            type="text"
+                            sx={{ display: "block" }}
+                            onChange={e => setUsername(e.target.value)}
+                        />
+                        <TextField 
+                            label="Password"
+                            type="password"
+                            sx={{ display: "block" }}
+                            onChange={e => setPassword(e.target.value)}
+                        />
+                        <Button
+                            sx={{ display: "block" }}
+                            type="submit"
+                        >
+                            Login
+                        </Button>
+                    </CardContent>
+                </Card>
+            </Container>
+        </form>
+    );
+
     return (user !== null) ? alreadyLoggedInView : toLoginView;
 }
+
+export default Login;
