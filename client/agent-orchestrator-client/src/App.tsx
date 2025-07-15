@@ -3,7 +3,6 @@ import './App.css';
 import {
   Routes,
   Route,
-  Link
 } from "react-router-dom";
 
 import Home from './pages/home/Home';
@@ -12,28 +11,19 @@ import Login from './pages/login/Login';
 import ProtectedRoute from './auth/ProtectedRoute';
 import Logout from './pages/logout/Logout';
 import Chat from './pages/chat/Chat';
+import NavBar from './components/nav/NavBar';
 
 export default function App() {
   return (
     <div>
       <nav>
-        <ul>
-          <li>
-            <Link to="/">Home</Link>
-          </li>
-          <li>
-            <Link to="/about">About</Link>
-          </li>
-          <li>
-            <Link to="/chat">Chat</Link>
-          </li>
-          <li>
-            <Link to="/login">Login</Link>
-          </li>
-          <li>
-            <Link to="/logout">Logout</Link>
-          </li>
-        </ul>
+        <NavBar pages={[
+          { to: "/", title: "Home" },
+          { to: "/chat", title: "Chat" },
+          { to: "/about", title: "About" },
+          { to: "/login", title: "Login" },
+          { to: "/logout", title: "Logout" },
+        ]} />
       </nav>
       
       <Routes>
