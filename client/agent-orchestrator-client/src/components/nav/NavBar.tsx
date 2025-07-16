@@ -1,6 +1,6 @@
 import { Box, Tab, Tabs } from "@mui/material";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 type NavPageInfo = {
     to: string,
@@ -12,19 +12,20 @@ type NavBarProps = {
 };
 
 const NavBar = (props: NavBarProps) => {
-    const [value, setValue] = useState("/");
+    const location = useLocation();
+    const [pageName, setPageName] = useState<string>(location.pathname);
     const navigate = useNavigate();
 
-    const handleChange = (event: React.SyntheticEvent, newValue: string) => {
-        setValue(newValue);
-        navigate(newValue);
+    const handlePageChange = (newPageName: string) => {
+        setPageName(newPageName);
+        navigate(newPageName);
     };
 
     return (
         <Box sx={{ width: '100%' }}>
         <Tabs
-            value={value}
-            onChange={handleChange}
+            value={pageName}
+            onChange={(_, newPageName) => handlePageChange(newPageName)}
             textColor="primary"
             indicatorColor="primary"
             aria-label="secondary tabs example"
