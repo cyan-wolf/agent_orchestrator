@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import type { Message } from "./message";
-import MessageComponent from "./components/Message";
 import Loading from "../../components/loading/Loading";
+import { Container, TextField, Typography } from "@mui/material";
+import MessageList from "./components/MessageList";
 
 export default function Chat() {
     const [userMessage, setUserMessage] = useState("");
@@ -56,26 +57,29 @@ export default function Chat() {
     }
 
     return (
-        <>
-            <h1>Chat</h1>
-            <div>
-                {messages.map(m => <MessageComponent message={m} key={m.timestamp} />)}
-            </div>
+        <Container>
+            <Typography variant="h3" align="center">Chat</Typography>
+
+            <MessageList messages={messages} />
+
             <form onSubmit={handleChatSubmit}>
-                {(waitingForServer) ? <Loading /> : <></>}
-                <input 
-                    type="text" 
-                    id="chat-user-message"
+                 {(waitingForServer) ? <Loading /> : <></>}
+                 <TextField 
+                    fullWidth
+                    // multiline 
+                    maxRows={4} 
+                    variant="outlined"
+                    placeholder="Type your message"
                     value={userMessage}
-                    readOnly={waitingForServer}
-                    onChange={e => setUserMessage(e.target.value)}
-                />
-                <button type="submit" 
-                    disabled={waitingForServer}
-                >
-                    Submit
-                </button>
-            </form>
-        </>
+                    onChange={(e) => setUserMessage(e.target.value)}
+                 />
+                 {/* TODO: Use MUI button. */}
+                 <button type="submit" 
+                     disabled={waitingForServer}
+                 >
+                     Submit
+                 </button>
+             </form>
+        </Container>
     );
 }

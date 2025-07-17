@@ -1,7 +1,7 @@
+import { CircularProgress } from "@mui/material";
 
 export default function Loading() {
-    // TODO: placeholder
     return (
-        <p>Loading...</p>
+        <CircularProgress style={{display: "block"}} />
     );
 }

@@ -1,3 +1,4 @@
+import { Box, Paper, Typography } from "@mui/material";
 import type { Message } from "../message";
 import Markdown from "react-markdown";
 
@@ -6,21 +7,36 @@ type MessageComponentProps = {
 };
 
 export default function MessageComponent({ message }: MessageComponentProps) {
-    const date = (new Date(message.timestamp * 1000)).toISOString();
+    // const date = (new Date(message.timestamp * 1000)).toISOString();
 
     let msgContent;
 
     if (message.kind === "ai_message") {
         msgContent = (
-            <div className="message-ai">
-                <p>{message.agent_name}:</p>
+            <Box>
+                <Typography 
+                    style={{
+                        fontWeight: (message.is_main_agent) ? "bold" : "normal"
+                    }} 
+                    component="span"
+                >
+                    {message.agent_name}
+                </Typography>
                 <Markdown>{message.content}</Markdown>
-            </div>
+            </Box>
         );
     }
     else if (message.kind === "human_message") {
         msgContent = (
-            <div className="message-human">{`${message.username}: ${message.content}`}</div>
+            <Box display="flex" justifyContent="flex-end">
+                <Paper style={{ maxWidth: "40%", padding: "8px" }}>
+                    <Typography style={{ wordBreak: "break-word" }}>
+                        <Typography style={{fontWeight: "bold"}} component="span">
+                            {message.username}
+                        </Typography>: {message.content}
+                    </Typography>
+                </Paper>
+            </Box>
         );
     }
     else if (message.kind === "side_effect" && message.side_effect_kind === "image_generation") {
@@ -30,10 +46,5 @@ export default function MessageComponent({ message }: MessageComponentProps) {
         msgContent = <code>{JSON.stringify(message)}</code>
     }
 
-    return (
-        <div>
-            <p>({date})</p>
-            <div>{msgContent}</div>
-        </div>
-    );
+    return msgContent;
 }
