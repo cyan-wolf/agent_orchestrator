@@ -7,8 +7,6 @@ type MessageComponentProps = {
 };
 
 export default function MessageComponent({ message }: MessageComponentProps) {
-    // const date = (new Date(message.timestamp * 1000)).toISOString();
-
     let msgContent;
 
     if (message.kind === "ai_message") {
@@ -20,7 +18,7 @@ export default function MessageComponent({ message }: MessageComponentProps) {
                     }} 
                     component="span"
                 >
-                    {message.agent_name}
+                    {message.agent_name}{(message.is_main_agent) ? "" : " (helper agent)"}
                 </Typography>
                 <Markdown>{message.content}</Markdown>
             </Box>
@@ -41,6 +39,33 @@ export default function MessageComponent({ message }: MessageComponentProps) {
     }
     else if (message.kind === "side_effect" && message.side_effect_kind === "image_generation") {
         msgContent = <p><img src={`data:image/jpeg;base64,${message.base64_encoded_image}`} width={"50%"} alt="AI generated image" /></p>
+    }
+    else if (message.kind === "tool") {
+        const dateObj = new Date(message.timestamp * 1000);
+        const date = dateObj.toLocaleDateString();
+        const time = dateObj.toLocaleTimeString();
+
+        const args = JSON.stringify(message.bound_arguments, null, 4);
+
+        const ToolLabel = ({ text }: { text: string }) => (
+            <Typography component="span" style={{ fontWeight: "bold" }}>
+                {text}
+            </Typography>
+        );
+
+        msgContent = (
+            <Paper>
+                <Typography><ToolLabel text="Called At:"/> {date} : {time}</Typography>
+                <Typography><ToolLabel text="Tool Name:"/> {message.name}</Typography>
+                <Typography>
+                    <ToolLabel text="Arguments:"/>
+                    <pre>
+                        <code>{args}</code>
+                    </pre>
+                </Typography>
+                <Typography><ToolLabel text="Return Value:"/> {message.return_value}</Typography>
+            </Paper>
+        );
     }
     else {
         msgContent = <code>{JSON.stringify(message)}</code>
