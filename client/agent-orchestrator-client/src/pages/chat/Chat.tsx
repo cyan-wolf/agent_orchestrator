@@ -8,7 +8,8 @@ export default function Chat() {
     const [userMessage, setUserMessage] = useState("");
     const [latestMsgTimestamp, setLatestMsgTimestamp] = useState(0.0);
     const [messages, setMessages] = useState<Message[]>([]);
-    const [waitingForServer, setWaitingForServer] = useState(false); 
+
+    const [waitingForServer, setWaitingForServer] = useState(true); 
 
     useEffect(() => {
         const fetchChatHistory = async () => {
@@ -16,6 +17,8 @@ export default function Chat() {
             const history = await resp.json();
 
             processMessages(history);
+
+            setWaitingForServer(false);
         };
         fetchChatHistory();
     }, []);

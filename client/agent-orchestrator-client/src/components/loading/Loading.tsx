@@ -1,7 +1,7 @@
-import { CircularProgress } from "@mui/material";
+import { LinearProgress } from "@mui/material";
 
 export default function Loading() {
     return (
-        <CircularProgress style={{display: "block"}} />
+        <LinearProgress style={{display: "block"}} />
     );
 }
