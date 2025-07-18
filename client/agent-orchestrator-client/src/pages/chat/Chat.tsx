@@ -58,6 +58,12 @@ export default function Chat() {
     }
 
     async function handleChatTextFieldKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+        // Do nothing if the client is waiting for the server to process the last message.
+        if (waitingForServer) {
+            e.preventDefault();
+            return;
+        }
+
         if (e.key === "Enter" && !e.shiftKey) {
             // Prevents cursor from moving to next line when pressing enter.
             e.preventDefault();
