@@ -34,9 +34,7 @@ export default function Chat() {
         processMessages(latestMessages);
     }
 
-    async function handleChatSubmit(e: React.FormEvent<HTMLFormElement>) {
-        e.preventDefault();
-
+    async function submitUserMessage() {
         setWaitingForServer(true);
         const resp = await fetch("/api/send-message/", {
             method: "POST",
@@ -56,30 +54,33 @@ export default function Chat() {
         await fetchNewestChatMessages();
     }
 
+    async function handleChatTextFieldKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+        if (e.key === "Enter" && !e.shiftKey) {
+            // Prevents cursor from moving to next line when pressing enter.
+            e.preventDefault();
+
+            submitUserMessage();
+        }
+    }
+
     return (
         <Container>
             <Typography variant="h3" align="center">Chat</Typography>
 
             <MessageList messages={messages} />
 
-            <form onSubmit={handleChatSubmit}>
-                 {(waitingForServer) ? <Loading /> : <></>}
-                 <TextField 
-                    fullWidth
-                    // multiline 
-                    maxRows={4} 
-                    variant="outlined"
-                    placeholder="Type your message"
-                    value={userMessage}
-                    onChange={(e) => setUserMessage(e.target.value)}
-                 />
-                 {/* TODO: Use MUI button. */}
-                 <button type="submit" 
-                     disabled={waitingForServer}
-                 >
-                     Submit
-                 </button>
-             </form>
+            {(waitingForServer) ? <Loading /> : <></>}
+
+            <TextField 
+                fullWidth
+                multiline 
+                maxRows={4} 
+                variant="outlined"
+                placeholder="Type your message"
+                value={userMessage}
+                onChange={(e) => setUserMessage(e.target.value)}
+                onKeyDown={handleChatTextFieldKeyDown}
+            />
         </Container>
     );
 }
