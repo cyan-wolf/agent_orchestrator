@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Message } from "./message";
 import Loading from "../../components/loading/Loading";
-import { Container, TextField, Typography } from "@mui/material";
+import { Box, Container, TextField, Typography } from "@mui/material";
 import MessageList from "./components/MessageList";
 
 export default function Chat() {
@@ -70,7 +70,13 @@ export default function Chat() {
         <Container>
             <Typography variant="h3" align="center">Chat</Typography>
 
-            <MessageList messages={messages} />
+            <Box
+                sx={{
+                    height: { xs: 'calc(100vh - 32px)', sm: '550px' }, // Responsive height
+                }}
+            >
+                <MessageList messages={messages} />
+            </Box>
 
             {(waitingForServer) ? <Loading /> : <></>}
 
