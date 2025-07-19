@@ -75,6 +75,7 @@ export default function MessageComponent({ message }: MessageComponentProps) {
             <Alert severity="info">
                 <AlertTitle variant="h6">Tool Call</AlertTitle>
 
+                <Typography><ToolLabel text="Called By: "/>{message.called_by}</Typography>
                 <Typography><ToolLabel text="Called At:"/> {date} : {time}</Typography>
                 <Typography><ToolLabel text="Tool Name:"/> {message.name}</Typography>
                 <Typography component="div">
@@ -88,6 +89,7 @@ export default function MessageComponent({ message }: MessageComponentProps) {
         );
     }
     else {
+        // Placeholder rendering.
         msgContent = <code>{JSON.stringify(message)}</code>
     }
 

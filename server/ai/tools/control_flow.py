@@ -2,12 +2,12 @@ from ai.tools import image_generator
 from ai.tracing import trace, ImageSideEffectTrace
 
 def prepare_supervisor_agent_tools(agent_manager):
-    @trace(agent_manager.tracer)
+    @trace(agent_manager)
     def request_math_help(query: str) -> str:
         """Asks the math expert for help."""
         return agent_manager.invoke_agent(agent_manager.agents["math_agent"], query)
 
-    @trace(agent_manager.tracer)
+    @trace(agent_manager)
     def switch_to_more_qualified_agent(agent_name: str) -> str:
         """
         Switches to the given agent.
@@ -15,9 +15,6 @@ def prepare_supervisor_agent_tools(agent_manager):
         Possible agents:
             - coding_agent
         """
-
-        print(f"LOG: {agent_name}")
-
         if agent_name == "coding_agent":
             agent_manager.agents["main_agent"] = agent_manager.agents[agent_name]
             return "switched to coding agent!"
@@ -25,12 +22,12 @@ def prepare_supervisor_agent_tools(agent_manager):
         else:
             return f"unknown agent name '{agent_name}'"
 
-    @trace(agent_manager.tracer)
+    @trace(agent_manager)
     def request_external_information(query: str) -> str:
         """Asks the research agent for help whenever external information is needed, such as external websites or the current date."""
         return agent_manager.invoke_agent(agent_manager.agents["research_agent"], query)
     
-    @trace(agent_manager.tracer)
+    @trace(agent_manager)
     def request_content_generation(query: str, content_type: str) -> str:
         """
         Asks the content generation tool for some content. This could be text or an image.
@@ -39,8 +36,6 @@ def prepare_supervisor_agent_tools(agent_manager):
             - image
         """
         if content_type == "image":
-            # TODO: This just shows the image using a Python library. 
-            # Figure out what to do with the image, as it must be given to the client somehow.
             image_base64 = image_generator.generate_image(query)
             agent_manager.tracer.add(ImageSideEffectTrace(base64_encoded_image=image_base64))
 
@@ -57,7 +52,7 @@ def prepare_supervisor_agent_tools(agent_manager):
     ]
 
 def prepare_switch_back_to_supervisor_tool(agent_manager):
-    @trace(agent_manager.tracer)
+    @trace(agent_manager)
     def switch_back_to_supervisor():
         """
         Switches back to the supervisor.

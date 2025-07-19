@@ -36,7 +36,7 @@ def cleanup_docker_images():
 
 
 def prepare_run_python_program_tool(agent_manager):
-    @trace(agent_manager.tracer)
+    @trace(agent_manager)
     def run_python_program(program_source_code: str) -> str:
         """This tool takes the contents of a Python source file as an argument. Then, the tool 
             automatically runs the file and returns the program's output.

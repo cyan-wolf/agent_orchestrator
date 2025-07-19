@@ -17,6 +17,7 @@ type MessagePayload =
     }
     | {
         kind: "tool",
+        called_by: string,
         name: string,
         bound_arguments: object,
         return_value: string,

@@ -77,7 +77,12 @@ class AgentManager:
             checkpointer=InMemorySaver()
         ))
 
+        # "main_agent" is the agent that the user directly chats with.
         self.agents["main_agent"] = self.agents["supervisor_agent"]
+
+        # "current_agent" is the agent currently in control. This is 
+        # used to keep track of which agents call the tools.
+        self.agents["current_agent"] = self.agents["main_agent"]
  
 
     def register_agent(self, agent: Agent):
@@ -93,6 +98,10 @@ class AgentManager:
         Invokes the given agent using the provided user input.
         """
 
+        # Bookeeping to keep track of the agent currently in control.
+        prev_agent = self.agents["current_agent"]
+        self.agents["current_agent"] = agent
+
         res = agent.graph.invoke(
             {"messages": [{"role": "user", "content": user_input}]},
             self.config,
@@ -100,6 +109,10 @@ class AgentManager:
         message = get_latest_agent_msg(res)
         content = str(message.content)
         self.tracer.add(AIMessageTrace(agent_name=agent.name, content=content, is_main_agent=as_main_agent))
+
+        # `agent` is no longer in control.
+        self.agents["current_agent"] = prev_agent
+
         return content
 
 

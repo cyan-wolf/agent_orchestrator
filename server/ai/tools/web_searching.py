@@ -6,7 +6,7 @@ import json
 def prepare_web_search_tool(agent_manager):
     search_tool = TavilySearch(max_results=5)
 
-    @trace(agent_manager.tracer)
+    @trace(agent_manager)
     def perform_web_search(query: str) -> str:
         """
         Looks for information on the internet.

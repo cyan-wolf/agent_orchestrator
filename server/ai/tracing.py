@@ -24,6 +24,7 @@ class HumanMessageTrace(TraceBase):
 
 class ToolTrace(TraceBase):
     kind: Literal["tool"] = "tool"
+    called_by: str
     name: str
     bound_arguments: dict
     return_value: str
@@ -61,14 +62,21 @@ class Tracer:
         return self.trace_list.copy()
 
 
-def trace(tracer: Tracer):
+def trace(agent_manager):
     def trace_decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
             sig = inspect.signature(func)
             bound_args = sig.bind(*args, **kwargs)
             ret = func(*args, **kwargs)
-            tracer.add(ToolTrace(name=func.__name__, bound_arguments=bound_args.arguments, return_value=ret))
+            tracer: Tracer = agent_manager.tracer
+            tracer.add(ToolTrace(
+                # "current_agent" is the agent currently in control
+                called_by=agent_manager.agents["current_agent"].name,
+                name=func.__name__, 
+                bound_arguments=bound_args.arguments, 
+                return_value=ret,
+            ))
             return ret
         
         return wrapper
