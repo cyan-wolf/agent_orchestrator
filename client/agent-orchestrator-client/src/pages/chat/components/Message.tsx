@@ -1,4 +1,4 @@
-import { Box, Paper, Typography } from "@mui/material";
+import { Alert, AlertTitle, Box, Paper, Typography } from "@mui/material";
 import type { Message } from "../message";
 import Markdown from "react-markdown";
 
@@ -10,19 +10,37 @@ export default function MessageComponent({ message }: MessageComponentProps) {
     let msgContent;
 
     if (message.kind === "ai_message") {
-        msgContent = (
-            <Box>
-                <Typography 
-                    style={{
-                        fontWeight: (message.is_main_agent) ? "bold" : "normal"
-                    }} 
-                    component="span"
-                >
-                    {message.agent_name}{(message.is_main_agent) ? "" : " (helper agent)"}
-                </Typography>
-                <Markdown>{message.content}</Markdown>
-            </Box>
-        );
+        if (message.is_main_agent) {
+            msgContent = (
+                <Box>
+                    <Typography 
+                        style={{
+                            fontWeight: "bold"
+                        }} 
+                        component="span"
+                    >
+                        {message.agent_name}
+                    </Typography>
+                    <Markdown>{message.content}</Markdown>
+                </Box>
+            );
+        }
+        else {
+            msgContent = (
+                <Alert severity="info">
+                    <AlertTitle variant="h6">Helper Agent</AlertTitle>
+                    <Typography 
+                        component="span"
+                        style={{
+                            fontWeight: "bold"
+                        }} 
+                    >
+                        {message.agent_name}
+                    </Typography>
+                    <Markdown>{message.content}</Markdown>
+                </Alert>
+            );
+        }
     }
     else if (message.kind === "human_message") {
         msgContent = (
@@ -54,17 +72,19 @@ export default function MessageComponent({ message }: MessageComponentProps) {
         );
 
         msgContent = (
-            <Paper>
+            <Alert severity="info">
+                <AlertTitle variant="h6">Tool Call</AlertTitle>
+
                 <Typography><ToolLabel text="Called At:"/> {date} : {time}</Typography>
                 <Typography><ToolLabel text="Tool Name:"/> {message.name}</Typography>
-                <Typography>
+                <Typography component="div">
                     <ToolLabel text="Arguments:"/>
                     <pre>
                         <code>{args}</code>
                     </pre>
                 </Typography>
                 <Typography><ToolLabel text="Return Value:"/> {message.return_value}</Typography>
-            </Paper>
+            </Alert>
         );
     }
     else {
