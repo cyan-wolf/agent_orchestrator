@@ -8,10 +8,12 @@ from langchain_core.runnables.config import RunnableConfig
 
 from langchain_tavily import TavilySearch
 
-from ai.tools import generic_tools, code_runner, control_flow
+from ai.tools import generic_tools, code_runner, control_flow, web_searching
 from ai.tracing import Tracer, AIMessageTrace, HumanMessageTrace
 
 from ai.agent import Agent
+
+from datetime import datetime
 
 def get_latest_agent_msg(agent_response: dict) -> BaseMessage:
     return agent_response["messages"][-1]
@@ -45,17 +47,16 @@ class AgentManager:
             Always add comments and type annotations to any Python code you run.
             """, 
             [code_runner.prepare_run_python_program_tool(self), control_flow.prepare_switch_back_to_supervisor_tool(self)],
-            checkpointer=InMemorySaver()
+            checkpointer=InMemorySaver(),
         ))
 
         self.register_agent(Agent("research_agent",  
-            """
-            You are a helpful research agent. You look for articles on the internet. 
-            You can also tell the current time and use it to tell if an article is 
-            talking about something in the past or in the future.
+            f"""
+            You are a helpful research agent. Use the web search tool to look for information. 
+            The current date is {datetime.now()}.
             """, 
-            # TODO: I need to trace the Tavily search tool      vvvvvvvvvvvvvvvvvvvvvvvvvvv
-            [generic_tools.prepare_get_current_date_tool(self), TavilySearch(max_results=5)]
+            [web_searching.prepare_web_search_tool(self)],
+            checkpointer=InMemorySaver(),
         ))
 
         self.register_agent(Agent("writer_agent", 
