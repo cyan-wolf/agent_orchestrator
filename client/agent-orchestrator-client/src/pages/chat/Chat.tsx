@@ -95,6 +95,7 @@ export default function Chat() {
                 value={userMessage}
                 onChange={(e) => setUserMessage(e.target.value)}
                 onKeyDown={handleChatTextFieldKeyDown}
+                autoFocus
             />
         </Container>
     );
