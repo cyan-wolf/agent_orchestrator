@@ -9,9 +9,12 @@ from fastapi.security.utils import get_authorization_scheme_param
 from fastapi.openapi.models import OAuthFlows
 from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
-from pydantic import BaseModel
 
 import os
+
+from auth.models import AuthCheck, TokenData, User, UserInDB
+from db.models import UserTempDB
+from db.placeholder_db import TempDB, get_db
 
 class MissingEnvVarException(Exception): pass
 
@@ -26,40 +29,6 @@ def get_env_raise_if_none(var_name: str) -> str:
 SECRET_KEY = get_env_raise_if_none("AUTH_SECRET_KEY")
 ALGORITHM = get_env_raise_if_none("AUTH_ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
-
-fake_users_db = {
-    "johndoe": {
-        "username": "johndoe",
-        "full_name": "John Doe",
-        "email": "johndoe@example.com",
-        "hashed_password": "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW", # <--- unhashed test value is "secret"
-        "disabled": False,
-    }
-}
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-
-class TokenData(BaseModel):
-    username: str | None = None
-
-
-class User(BaseModel):
-    username: str
-    email: str | None = None
-    full_name: str | None = None
-    disabled: bool | None = None
-
-
-class UserInDB(User):
-    hashed_password: str
-
-
-class AuthCheck(BaseModel):
-    is_auth: bool
-    user: User | None
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -103,14 +72,16 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 
-def get_user(db, username: str):
-    if username in db:
-        user_dict = db[username]
-        return UserInDB(**user_dict)
+def get_user(db: UserTempDB, username: str) -> UserInDB | None:
+    if username in db.users:
+        user = db.users[username]
+        return user
+    else:
+        return None
+        
 
-
-def authenticate_user(fake_db, username: str, password: str):
-    user = get_user(fake_db, username)
+def authenticate_user(db: UserTempDB, username: str, password: str):
+    user = get_user(db, username)
     if not user:
         return False
     if not verify_password(password, user.hashed_password):
@@ -129,7 +100,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     return encoded_jwt
 
 
-async def _get_curr_user_impl(token: Annotated[str, Depends(oauth2_scheme)], should_raise_credentials_exception: bool = True):
+async def _get_curr_user_impl(token: Annotated[str, Depends(oauth2_scheme)], db: UserTempDB, should_raise_credentials_exception: bool = True):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -145,13 +116,14 @@ async def _get_curr_user_impl(token: Annotated[str, Depends(oauth2_scheme)], sho
                 return None
             
         token_data = TokenData(username=username)
+        user = get_user(db, username=username)
+
     except InvalidTokenError:
         if should_raise_credentials_exception:
             raise credentials_exception
         else:
             return None
-    
-    user = get_user(fake_users_db, username=token_data.username) # type: ignore
+
     if user is None:
         if should_raise_credentials_exception:
             raise credentials_exception
@@ -161,8 +133,8 @@ async def _get_curr_user_impl(token: Annotated[str, Depends(oauth2_scheme)], sho
     return user
 
 
-async def check_user_auth(token: Annotated[str, Depends(oauth2_scheme)]) -> AuthCheck:
-    user = await _get_curr_user_impl(token, should_raise_credentials_exception=False)
+async def check_user_auth(token: Annotated[str, Depends(oauth2_scheme)], db: Annotated[TempDB, Depends(get_db)]) -> AuthCheck:
+    user = await _get_curr_user_impl(token, db.user_db, should_raise_credentials_exception=False)
     
     return AuthCheck(
         is_auth=user is not None, 
@@ -170,8 +142,8 @@ async def check_user_auth(token: Annotated[str, Depends(oauth2_scheme)]) -> Auth
     )
 
 
-async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> User:
-    user = await _get_curr_user_impl(token)
+async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: Annotated[TempDB, Depends(get_db)]) -> User:
+    user = await _get_curr_user_impl(token, db.user_db)
     assert user is not None
     return user
 

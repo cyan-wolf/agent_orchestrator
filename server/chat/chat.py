@@ -4,10 +4,9 @@ import uuid
 from pydantic import BaseModel
 
 from ai.agent_manager import AgentManager
+from chat.models import Chat
 
 
-class Chat(BaseModel):
-    chat_id: str
 
 # username -> list of chats
 FAKE_CHAT_DB: dict[str, list[Chat]] = {}

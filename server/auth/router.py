@@ -4,9 +4,12 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, status, Response
 from fastapi.security import OAuth2PasswordRequestForm
 
+from fastapi.routing import APIRouter
+
 from auth.auth import *
 
-from fastapi.routing import APIRouter
+from auth.models import Token
+from db.placeholder_db import TempDB, get_db
 
 router = APIRouter()
 
@@ -14,8 +17,9 @@ router = APIRouter()
 async def login_for_access_token(
     response: Response,
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    db: Annotated[TempDB, Depends(get_db)]
 ) -> Token:
-    user = authenticate_user(fake_users_db, form_data.username, form_data.password)
+    user = authenticate_user(db.user_db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
