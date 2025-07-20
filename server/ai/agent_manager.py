@@ -6,9 +6,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 
 from langchain_core.runnables.config import RunnableConfig
 
-from langchain_tavily import TavilySearch
-
-from ai.tools import generic_tools, code_runner, control_flow, web_searching
+from ai.tools import code_runner, control_flow, web_searching
 from ai.tracing import Tracer, AIMessageTrace, HumanMessageTrace
 
 from ai.agent import Agent

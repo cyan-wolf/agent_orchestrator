@@ -10,5 +10,5 @@ class UserTempDB(BaseModel):
 
 
 class ChatTempDB(BaseModel):
-    # chat ID -> chat
-    chats: dict[str, Chat]
+    # username -> list of chats
+    chats: dict[str, list[Chat]]

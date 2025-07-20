@@ -9,26 +9,37 @@ from ai.agent_manager import AgentManager
 from ai.tracing import Trace
 from auth.auth import User, get_current_user
 from chat.chat import Chat, delete_chat, get_agent_manager_for_chat, get_chat_by_id, get_user_chat_list, initialize_chat
+from db.placeholder_db import TempDB, get_db
 
 router = APIRouter()
 
 @router.get("/api/chat/get-all-chats/", tags=["chat"])
-async def get_all_chats(current_user: Annotated[User, Depends(get_current_user)]) -> Sequence[Chat]:
+async def get_all_chats(
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[TempDB, Depends(get_db)],
+) -> Sequence[Chat]:
     username = current_user.username
-    return get_user_chat_list(username)
+    return get_user_chat_list(username, db.chat_db)
 
 
 @router.post("/api/chat/create/", tags=["chat"])
-async def create_new_chat(current_user: Annotated[User, Depends(get_current_user)]) -> Chat:
+async def create_new_chat(
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[TempDB, Depends(get_db)],
+) -> Chat:
     username = current_user.username
 
-    new_chat = initialize_chat(username)
+    new_chat = initialize_chat(username, db.chat_db)
     return new_chat
 
 
 @router.post("/api/chat/{chat_id}/delete/", tags=["chat"])
-async def delete_chat_with_id(chat_id: str, current_user: Annotated[User, Depends(get_current_user)]):
-    could_delete = delete_chat(current_user.username, chat_id)
+async def delete_chat_with_id(
+    chat_id: str, 
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[TempDB, Depends(get_db)],
+):
+    could_delete = delete_chat(current_user.username, chat_id, db.chat_db)
 
     if could_delete:
         return { "response": f"deleted chat {chat_id}" }
@@ -38,8 +49,12 @@ async def delete_chat_with_id(chat_id: str, current_user: Annotated[User, Depend
 
 
 @router.get("/api/chat/{chat_id}/history/", tags=["chat"])
-async def get_history(chat_id: str, current_user: Annotated[User, Depends(get_current_user)]) -> Sequence[Trace]:
-    if get_chat_by_id(current_user.username, chat_id) is None:
+async def get_history(
+    chat_id: str, 
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[TempDB, Depends(get_db)],
+ ) -> Sequence[Trace]:
+    if get_chat_by_id(current_user.username, chat_id, db.chat_db) is None:
         raise Exception("invalid chat ID")
 
     agent_manager = get_agent_manager_for_chat(chat_id)
@@ -47,8 +62,13 @@ async def get_history(chat_id: str, current_user: Annotated[User, Depends(get_cu
 
 
 @router.get("/api/chat/{chat_id}/get-latest-messages/{latest_timestamp}/", tags=["chat"])
-async def get_latest_messages(chat_id: str, latest_timestamp: float, current_user: Annotated[User, Depends(get_current_user)]) -> Sequence[Trace]:
-    if get_chat_by_id(current_user.username, chat_id) is None:
+async def get_latest_messages(
+    chat_id: str, 
+    latest_timestamp: float, 
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[TempDB, Depends(get_db)],
+) -> Sequence[Trace]:
+    if get_chat_by_id(current_user.username, chat_id, db.chat_db) is None:
         raise Exception("invalid chat ID")
 
     agent_manager = get_agent_manager_for_chat(chat_id)
@@ -61,8 +81,13 @@ class UserRequest(BaseModel):
     user_message: str
 
 @router.post("/api/chat/{chat_id}/send-message/", tags=["chat"])
-async def recieve_user_input(chat_id: str, user_req: UserRequest, current_user: Annotated[User, Depends(get_current_user)]):
-    if get_chat_by_id(current_user.username, chat_id) is None:
+async def recieve_user_input(
+    chat_id: str, 
+    user_req: UserRequest, 
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[TempDB, Depends(get_db)],
+):
+    if get_chat_by_id(current_user.username, chat_id, db.chat_db) is None:
         raise Exception("invalid chat ID")
 
     agent_manager = get_agent_manager_for_chat(chat_id)
