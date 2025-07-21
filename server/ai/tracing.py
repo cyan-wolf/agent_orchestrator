@@ -31,7 +31,7 @@ def trace(agent_manager):
                 called_by=agent_manager.agents["current_agent"].name,
                 name=func.__name__, 
                 bound_arguments=bound_args.arguments, 
-                return_value=ret,
+                return_value=str(ret),
             ))
             return ret
         
