@@ -31,14 +31,20 @@ class AgentManager:
 
         self.tracer = Tracer(serialized_version.history)
 
+        self.chat_summary = serialized_version.chat_summary
+
         self.initialize_agents()
 
     
     def to_serialized(self) -> SerializedAgentManager:
         return SerializedAgentManager(
             history=self.tracer.get_history(), 
-            chat_summary="TODO...",
+            chat_summary=self.chat_summary,
         )
+
+
+    def set_chat_summary(self, chat_summary: str):
+        self.chat_summary = chat_summary
 
 
     def initialize_agents(self):
@@ -74,11 +80,16 @@ class AgentManager:
         ))
 
         self.register_agent(Agent("supervisor_agent", 
-            """
+            f"""
             You are a helpful assistant. You are kind of sassy. 
             You can answer any topic except for one caveat: never EVER answer questions about Bruno.
 
             Don't hesitate to use the `switch_to_more_qualified_agent` tool.
+
+            Run the `summarize_chat` tool every 5 messages. This is very important.
+
+            Below is a summary of the previous chat you had with this user:
+            {self.chat_summary}
             """,
             control_flow.prepare_supervisor_agent_tools(self),
             checkpointer=InMemorySaver()
@@ -89,6 +100,7 @@ class AgentManager:
 
         # "current_agent" is the agent currently in control. This is 
         # used to keep track of which agents call the tools.
+        # this is currently broken vvv
         self.agents["current_agent"] = self.agents["main_agent"]
  
 
@@ -105,9 +117,11 @@ class AgentManager:
         Invokes the given agent using the provided user input.
         """
 
-        # Bookeeping to keep track of the agent currently in control.
-        prev_agent = self.agents["current_agent"]
-        self.agents["current_agent"] = agent
+        # This bookeeping breaks the agent switching tools; commented out for now.
+        # vvv
+        # # Bookeeping to keep track of the agent currently in control.
+        # prev_agent = self.agents["current_agent"]
+        # self.agents["current_agent"] = agent
 
         res = agent.graph.invoke(
             {"messages": [{"role": "user", "content": user_input}]},
@@ -117,8 +131,8 @@ class AgentManager:
         content = str(message.content)
         self.tracer.add(AIMessageTrace(agent_name=agent.name, content=content, is_main_agent=as_main_agent))
 
-        # `agent` is no longer in control.
-        self.agents["current_agent"] = prev_agent
+        # # `agent` is no longer in control.
+        # self.agents["current_agent"] = prev_agent
 
         return content
 
