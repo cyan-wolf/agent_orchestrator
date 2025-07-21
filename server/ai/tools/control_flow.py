@@ -1,5 +1,6 @@
+from ai.models import ImageSideEffectTrace
 from ai.tools import image_generator
-from ai.tracing import trace, ImageSideEffectTrace
+from ai.tracing import trace
 
 def prepare_supervisor_agent_tools(agent_manager):
     @trace(agent_manager)

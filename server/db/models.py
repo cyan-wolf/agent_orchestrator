@@ -1,7 +1,7 @@
 
 from pydantic import BaseModel
 from auth.models import UserInDB
-from chat.models import Chat
+from chat.models import ChatInDB
 
 
 class UserTempDB(BaseModel):
@@ -11,4 +11,4 @@ class UserTempDB(BaseModel):
 
 class ChatTempDB(BaseModel):
     # username -> list of chats
-    chats: dict[str, list[Chat]]
+    chats: dict[str, list[ChatInDB]]

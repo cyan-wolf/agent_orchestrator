@@ -1,14 +1,11 @@
-import base64
 from typing import Annotated, Sequence
-import uuid
 from fastapi import Depends
 from fastapi.routing import APIRouter
 from pydantic import BaseModel
 
-from ai.agent_manager import AgentManager
 from ai.tracing import Trace
 from auth.auth import User, get_current_user
-from chat.chat import Chat, delete_chat, get_agent_manager_for_chat, get_chat_by_id, get_user_chat_list, initialize_chat
+from chat.chat import Chat, delete_chat, get_agent_manager_for_chat, get_chat_by_id, get_user_chat_list, initialize_new_chat
 from db.placeholder_db import TempDB, get_db
 
 router = APIRouter()
@@ -19,7 +16,7 @@ async def get_all_chats(
     db: Annotated[TempDB, Depends(get_db)],
 ) -> Sequence[Chat]:
     username = current_user.username
-    return get_user_chat_list(username, db.chat_db)
+    return get_user_chat_list(username, db)
 
 
 @router.post("/api/chat/create/", tags=["chat"])
@@ -29,7 +26,7 @@ async def create_new_chat(
 ) -> Chat:
     username = current_user.username
 
-    new_chat = initialize_chat(username, db.chat_db)
+    new_chat = initialize_new_chat(username, db)
     return new_chat
 
 
@@ -39,7 +36,7 @@ async def delete_chat_with_id(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[TempDB, Depends(get_db)],
 ):
-    could_delete = delete_chat(current_user.username, chat_id, db.chat_db)
+    could_delete = delete_chat(current_user.username, chat_id, db)
 
     if could_delete:
         return { "response": f"deleted chat {chat_id}" }
@@ -54,11 +51,15 @@ async def get_history(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[TempDB, Depends(get_db)],
  ) -> Sequence[Trace]:
-    if get_chat_by_id(current_user.username, chat_id, db.chat_db) is None:
+    
+    chat = get_chat_by_id(current_user.username, chat_id, db)
+    if chat is None:
         raise Exception("invalid chat ID")
 
-    agent_manager = get_agent_manager_for_chat(chat_id)
-    return agent_manager.tracer.get_history()
+    agent_manager = get_agent_manager_for_chat(chat, db)
+    hist = agent_manager.tracer.get_history()
+
+    return hist
 
 
 @router.get("/api/chat/{chat_id}/get-latest-messages/{latest_timestamp}/", tags=["chat"])
@@ -68,10 +69,12 @@ async def get_latest_messages(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[TempDB, Depends(get_db)],
 ) -> Sequence[Trace]:
-    if get_chat_by_id(current_user.username, chat_id, db.chat_db) is None:
+    
+    chat = get_chat_by_id(current_user.username, chat_id, db)
+    if chat is None:
         raise Exception("invalid chat ID")
 
-    agent_manager = get_agent_manager_for_chat(chat_id)
+    agent_manager = get_agent_manager_for_chat(chat, db)
     hist = agent_manager.tracer.get_history()
 
     return [t for t in hist if t.timestamp > latest_timestamp]
@@ -87,11 +90,19 @@ async def recieve_user_input(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[TempDB, Depends(get_db)],
 ):
-    if get_chat_by_id(current_user.username, chat_id, db.chat_db) is None:
+    chat = get_chat_by_id(current_user.username, chat_id, db)
+    if chat is None:
         raise Exception("invalid chat ID")
 
-    agent_manager = get_agent_manager_for_chat(chat_id)
+    agent_manager = get_agent_manager_for_chat(chat, db)
 
     _ = agent_manager.invoke_main_with_text(current_user.username, user_req.user_message)
+
+    # Store the chat history by serializing the agent manager.
+    # This is for the placeholder storing functionality.
+    chat.agent_manager_serialization = agent_manager.to_serialized()
+
+    # Store the chat DB on disk everytime a message is sent (placeholder).
+    db.store_chat_db()
     
     return { "result": "finished processing" }

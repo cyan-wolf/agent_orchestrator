@@ -3,7 +3,8 @@ from subprocess import DEVNULL
 
 import os
 
-from ai.tracing import trace, ProgramExecutionSideEffectTrace
+from ai.models import ProgramExecutionSideEffectTrace
+from ai.tracing import trace
 
 SCRIPT_PATH = os.path.realpath(__file__)
 SCRIPT_DIR = "\\".join(SCRIPT_PATH.split("\\")[:-1])

@@ -1,4 +1,6 @@
 from dotenv import load_dotenv
+
+from ai.models import AIMessageTrace, HumanMessageTrace, SerializedAgentManager
 load_dotenv()
 
 from langchain_core.messages import BaseMessage
@@ -7,7 +9,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 from langchain_core.runnables.config import RunnableConfig
 
 from ai.tools import code_runner, control_flow, web_searching
-from ai.tracing import Tracer, AIMessageTrace, HumanMessageTrace
+from ai.tracing import Tracer
 
 from ai.agent import Agent
 
@@ -18,7 +20,7 @@ def get_latest_agent_msg(agent_response: dict) -> BaseMessage:
 
 
 class AgentManager:
-    def __init__(self):
+    def __init__(self, serialized_version: SerializedAgentManager):
         """
         Initializes an agent manager.
         """
@@ -27,9 +29,16 @@ class AgentManager:
         config: RunnableConfig = {"configurable": {"thread_id": "1"}}
         self.config = config
 
-        self.tracer = Tracer()
+        self.tracer = Tracer(serialized_version.history)
 
         self.initialize_agents()
+
+    
+    def to_serialized(self) -> SerializedAgentManager:
+        return SerializedAgentManager(
+            history=self.tracer.get_history(), 
+            chat_summary="TODO...",
+        )
 
 
     def initialize_agents(self):
