@@ -40,7 +40,10 @@ def initialize_new_chat(username: str, db: TempDB) -> Chat:
     new_chat = ChatInDB(chat_id=chat_id)
 
     # Initalize a runtime agent manager for the chat.
-    initialize_runtime_agent_manager_for_chat(new_chat, db)
+    am = initialize_runtime_agent_manager_for_chat(new_chat, db)
+
+    # Store the newly created agent manager in the chat.
+    new_chat.agent_manager_serialization = am.to_serialized()
 
     # Add the chat to the database.
     db.chat_db.chats.setdefault(username, []).append(new_chat)
@@ -67,5 +70,7 @@ def get_agent_manager_for_chat(chat: ChatInDB, db: TempDB) -> AgentManager:
     # Build a runtime agent manager using the serialized data in the chat.
     else:
         assert chat.agent_manager_serialization
+
         am = AgentManager(chat.agent_manager_serialization)
+
         return am
