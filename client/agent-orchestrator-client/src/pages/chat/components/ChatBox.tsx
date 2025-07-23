@@ -112,6 +112,8 @@ export default function ChatBox() {
     const { chatId } = useParams();
 
     return (
-        <ChatBoxDisplay chatId={chatId!} />
+        // Making the chat ID be part of the chat box display's key 
+        // guarantees that the display re-renders when the chat ID changes.
+        <ChatBoxDisplay chatId={chatId!} key={chatId} />
     );
 }
