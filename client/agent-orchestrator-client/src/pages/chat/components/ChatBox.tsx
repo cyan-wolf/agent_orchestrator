@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
 import type { Message } from "../message";
 import Loading from "../../../components/loading/Loading";
-import { Box, Container, TextField, Typography } from "@mui/material";
+import { Box, Container, TextField } from "@mui/material";
 import MessageList from "./MessageList";
+import { useParams } from "react-router-dom";
 
 type ChatBoxProps = {
     chatId: string
 };
 
-export default function ChatBox({ chatId }: ChatBoxProps) {
+function ChatBoxDisplay({ chatId }: ChatBoxProps) {
     const [userMessage, setUserMessage] = useState("");
     const [latestMsgTimestamp, setLatestMsgTimestamp] = useState(0.0);
     const [messages, setMessages] = useState<Message[]>([]);
@@ -25,7 +26,11 @@ export default function ChatBox({ chatId }: ChatBoxProps) {
             setWaitingForServer(false);
         };
         fetchChatHistory();
-    }, []);
+
+        // The dependency on chatId on useEffect is required so that 
+        // the component re-fetches the chat history whenever a parent component 
+        // changes the chat ID.
+    }, [chatId]);
 
     function processMessages(newMessages: Message[]) {
         if (newMessages.length > 0) {
@@ -78,8 +83,6 @@ export default function ChatBox({ chatId }: ChatBoxProps) {
 
     return (
         <Container>
-            <Typography variant="h3" align="center">Chat</Typography>
-
             <Box
                 sx={{
                     height: { xs: 'calc(100vh - 32px)', sm: '550px' }, // Responsive height
@@ -102,5 +105,13 @@ export default function ChatBox({ chatId }: ChatBoxProps) {
                 autoFocus
             />
         </Container>
+    );
+}
+
+export default function ChatBox() {
+    const { chatId } = useParams();
+
+    return (
+        <ChatBoxDisplay chatId={chatId!} />
     );
 }
