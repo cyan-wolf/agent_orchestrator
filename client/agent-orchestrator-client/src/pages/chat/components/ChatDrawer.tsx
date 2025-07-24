@@ -1,4 +1,4 @@
-import { Button } from '@mui/material';
+import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField } from '@mui/material';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -15,8 +15,63 @@ import Typography from '@mui/material/Typography';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+type NewChatConfirmationFormModalProps = {
+  isOpen: boolean
+  onSubmit: (chatData: NewChatData) => void,
+  onClose: () => void,
+};
+
+type NewChatData = {
+  chatName: string
+};
+
+function NewChatConfirmationFormModal({ isOpen, onSubmit, onClose }: NewChatConfirmationFormModalProps) {
+  const [chatName, setChatName] = useState("");
+
+  function validateFormSubmission(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+
+    if (chatName.trim().length > 0) {
+      onSubmit({ chatName: chatName.trim() });
+    }
+  }
+
+  return (
+    <>
+      <Dialog open={isOpen} onClose={onClose}>
+        <DialogTitle>Create New Chat</DialogTitle>
+        <DialogContent sx={{ paddingBottom: 0 }}>
+          <DialogContentText>
+            Enter a name for the chat.
+          </DialogContentText>
+          <form onSubmit={validateFormSubmission}>
+            <TextField
+              autoFocus
+              required
+              margin="dense"
+              id="name"
+              name="chat-name"
+              label="Chat Name"
+              type="text"
+              onChange={e => setChatName(e.target.value)}
+              slotProps={{ htmlInput: { pattern: "^.{1,10}$" } }}
+              fullWidth
+              variant="standard"
+            />
+            <DialogActions>
+              <Button onClick={onClose}>Cancel</Button>
+              <Button type="submit">Create</Button>
+            </DialogActions>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
 type ChatJson = {
-    chat_id: string
+    chat_id: string,
+    name: string,
 };
 
 type ChatSelectProps = {
@@ -34,7 +89,7 @@ function ChatSelectionList({ onSelectChat }: ChatSelectProps) {
             setChats(chatJson);
         };
         fetchChatIds();
-    }, []);
+    }, [chats]);
 
     return (
       <List>
@@ -44,8 +99,7 @@ function ChatSelectionList({ onSelectChat }: ChatSelectProps) {
               <ListItemIcon>
                 C
               </ListItemIcon>
-              {/* Placeholder text */}
-              <ListItemText primary={c.chat_id.slice(0, 5)} /> 
+              <ListItemText primary={c.name} /> 
             </ListItemButton>
           </ListItem>
         ))}
@@ -61,19 +115,33 @@ type ChatDrawerProps = {
 
 function ChatDrawer({ children }: ChatDrawerProps) {
   const navigate = useNavigate();
+  const [newChatModalOpen, setNewChatModalOpen] = useState(false);
 
   function handleChatSelect(chatId: string) {
       navigate(chatId);
   }
 
-  async function handleCreateNewChat() {
+  async function handleOpenModalForNewChat() {
+    setNewChatModalOpen(true);
+  }
+
+  async function handleCreatingNewChat({ chatName }: NewChatData) {
     const resp = await fetch("/api/chat/create/", {
-        method: "POST"
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: chatName
+        }),
     });
 
     const chatJson: ChatJson = await resp.json();
 
     handleChatSelect(chatJson.chat_id);
+
+    // Close the modal.
+    setNewChatModalOpen(false);
   }
 
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -103,7 +171,7 @@ function ChatDrawer({ children }: ChatDrawerProps) {
       <Button 
         sx={{ width: "100%" }}
         variant="contained"
-        onClick={handleCreateNewChat}
+        onClick={handleOpenModalForNewChat}
       >
         Create New Chat
       </Button>
@@ -177,6 +245,12 @@ function ChatDrawer({ children }: ChatDrawerProps) {
         <Toolbar />
         {children}
       </Box>
+
+      <NewChatConfirmationFormModal 
+        isOpen={newChatModalOpen} 
+        onSubmit={chatData => handleCreatingNewChat(chatData)} 
+        onClose={() => setNewChatModalOpen(false)}
+      />
     </Box>
   );
 }

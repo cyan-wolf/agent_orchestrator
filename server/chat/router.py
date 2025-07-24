@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from ai.tracing import Trace
 from auth.auth import User, get_current_user
 from chat.chat import Chat, delete_chat, get_agent_manager_for_chat, get_chat_by_id, get_user_chat_list, initialize_new_chat
+from chat.models import CreateNewChat
 from db.placeholder_db import TempDB, get_db
 
 router = APIRouter()
@@ -23,10 +24,11 @@ async def get_all_chats(
 async def create_new_chat(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[TempDB, Depends(get_db)],
+    new_chat_req_body: CreateNewChat,
 ) -> Chat:
     username = current_user.username
 
-    new_chat = initialize_new_chat(username, db)
+    new_chat = initialize_new_chat(username, db, new_chat_req_body.name)
     return new_chat
 
 

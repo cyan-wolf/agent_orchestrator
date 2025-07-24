@@ -34,10 +34,10 @@ def get_chat_by_id(username: str, chat_id: str, db: TempDB) -> ChatInDB | None:
     return None
 
 
-def initialize_new_chat(username: str, db: TempDB) -> Chat:
+def initialize_new_chat(username: str, db: TempDB, chat_name: str) -> Chat:
     chat_id = gen_chat_id()
     # Create a new chat.
-    new_chat = ChatInDB(chat_id=chat_id)
+    new_chat = ChatInDB(chat_id=chat_id, name=chat_name)
 
     # Initalize a runtime agent manager for the chat.
     am = initialize_runtime_agent_manager_for_chat(new_chat, db)
