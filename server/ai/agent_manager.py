@@ -24,7 +24,7 @@ class AgentManager:
         """
         Initializes an agent manager.
         """
-        self.agents = {}
+        self.agents: dict[str, Agent] = {}
 
         config: RunnableConfig = {"configurable": {"thread_id": "1"}}
         self.config = config
@@ -117,11 +117,9 @@ class AgentManager:
         Invokes the given agent using the provided user input.
         """
 
-        # This bookeeping breaks the agent switching tools; commented out for now.
-        # vvv
-        # # Bookeeping to keep track of the agent currently in control.
-        # prev_agent = self.agents["current_agent"]
-        # self.agents["current_agent"] = agent
+        # Bookeeping to keep track of the agent currently in control.
+        prev_agent = self.agents["current_agent"]
+        self.agents["current_agent"] = agent
 
         res = agent.graph.invoke(
             {"messages": [{"role": "user", "content": user_input}]},
@@ -131,8 +129,11 @@ class AgentManager:
         content = str(message.content)
         self.tracer.add(AIMessageTrace(agent_name=agent.name, content=content, is_main_agent=as_main_agent))
 
-        # # `agent` is no longer in control.
-        # self.agents["current_agent"] = prev_agent
+        # `agent` is no longer in control.
+        # If the "main agent" did not switch during agent invocation, then it is 
+        # safe to switch back to `prev_agent`.
+        if prev_agent.name == self.agents["main_agent"].name:
+            self.agents["current_agent"] = prev_agent
 
         return content
 
