@@ -75,10 +75,12 @@ type ChatJson = {
 };
 
 type ChatSelectProps = {
-    onSelectChat: (chatId: string) => void
+    onSelectChat: (chatId: string) => void,
+    // For forcing the chat list to re-render.
+    refreshTriggerToggle: boolean,
 };
 
-function ChatSelectionList({ onSelectChat }: ChatSelectProps) {
+function ChatSelectionList({ onSelectChat, refreshTriggerToggle }: ChatSelectProps) {
     const [chats, setChats] = useState<ChatJson[]>([]);
 
     useEffect(() => {
@@ -89,7 +91,7 @@ function ChatSelectionList({ onSelectChat }: ChatSelectProps) {
             setChats(chatJson);
         };
         fetchChatIds();
-    }, [chats]);
+    }, [refreshTriggerToggle]); // re-fetch the chats whenever the chat list is forced to "refresh"
 
     return (
       <List>
@@ -117,6 +119,9 @@ function ChatDrawer({ children }: ChatDrawerProps) {
   const navigate = useNavigate();
   const [newChatModalOpen, setNewChatModalOpen] = useState(false);
 
+  // Used for forcing the chat list to re-render.
+  const [chatListRefreshTriggerToggle, setChatListTriggerToggle] = useState(false);
+
   function handleChatSelect(chatId: string) {
       navigate(chatId);
   }
@@ -142,6 +147,10 @@ function ChatDrawer({ children }: ChatDrawerProps) {
 
     // Close the modal.
     setNewChatModalOpen(false);
+
+    // Refresh the chat list by forcing a prop change.
+    // This state variable is a boolean, and (prev => !prev) just toggles it.
+    setChatListTriggerToggle(prev => !prev);
   }
 
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -166,7 +175,10 @@ function ChatDrawer({ children }: ChatDrawerProps) {
     <div>
       <Toolbar />
       <Divider />
-      <ChatSelectionList onSelectChat={handleChatSelect} />
+      <ChatSelectionList 
+        onSelectChat={handleChatSelect} 
+        refreshTriggerToggle={chatListRefreshTriggerToggle} 
+      />
       <Divider />
       <Button 
         sx={{ width: "100%" }}
