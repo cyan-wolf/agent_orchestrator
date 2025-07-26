@@ -116,6 +116,13 @@ function ChatDrawer({ children }: ChatDrawerProps) {
   const drawer = (
     <div>
       <Toolbar />
+      <Button 
+        sx={{ width: "100%" }}
+        variant="outlined"
+        onClick={() => navigate("/")}
+      >
+        Go Back to Home
+      </Button>
       <Divider />
       <ChatSelectionList 
         onSelectChat={handleChatSelect} 
