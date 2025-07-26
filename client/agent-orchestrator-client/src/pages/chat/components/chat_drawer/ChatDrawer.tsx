@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import type { ChatJson, NewChatData } from './chat';
 import ChatSelectionList from './components/ChatSelectionList';
 import NewChatConfirmationFormModal from './components/NewChatConfirmationModal';
+import DeleteChatConfirmationModal from './components/DeleteChatModalConfirmation';
 
 const drawerWidth = 240;
 
@@ -27,11 +28,44 @@ function ChatDrawer({ children }: ChatDrawerProps) {
   const navigate = useNavigate();
   const [newChatModalOpen, setNewChatModalOpen] = useState(false);
 
+  const [chatDeleteModalChatId, setChatDeleteModalChatId] = useState<string | null>(null);
+  const [chatDeleteModalOpen, setChatDeleteModalOpen] = useState(false);
+
   // Used for forcing the chat list to re-render.
   const [chatListRefreshTriggerToggle, setChatListTriggerToggle] = useState(false);
 
   function handleChatSelect(chatId: string) {
+      // Change the URL to include the chat ID.
+      // React Router and the chat box UI automatically render the correct chat based on the URL.
       navigate(chatId);
+  }
+
+  function handleChatDeleteAttempt(chatId: string) {
+    setChatDeleteModalChatId(chatId);
+    setChatDeleteModalOpen(true);
+  }
+
+  async function handleActualChatDeletion(chatId: string) {
+    const resp = await fetch(`/api/chat/${chatId}/delete/`, {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    const respJson = await resp.json();
+
+    console.log(respJson);
+
+    closeChatDeleteModal();
+
+    // Refresh the chat list by forcing a prop change.
+    // This state variable is a boolean, and (prev => !prev) just toggles it.
+    setChatListTriggerToggle(prev => !prev);
+  }
+
+  function closeChatDeleteModal() {
+    setChatDeleteModalOpen(false);
+    setChatDeleteModalChatId(null);
   }
 
   async function handleOpenModalForNewChat() {
@@ -85,6 +119,7 @@ function ChatDrawer({ children }: ChatDrawerProps) {
       <Divider />
       <ChatSelectionList 
         onSelectChat={handleChatSelect} 
+        onTryDeleteChat={handleChatDeleteAttempt}
         refreshTriggerToggle={chatListRefreshTriggerToggle} 
       />
       <Divider />
@@ -170,6 +205,13 @@ function ChatDrawer({ children }: ChatDrawerProps) {
         isOpen={newChatModalOpen} 
         onSubmit={chatData => handleCreatingNewChat(chatData)} 
         onClose={() => setNewChatModalOpen(false)}
+      />
+
+      <DeleteChatConfirmationModal 
+        chatId={chatDeleteModalChatId!}
+        isOpen={chatDeleteModalOpen}
+        onChatDelete={handleActualChatDeletion}
+        onClose={closeChatDeleteModal}
       />
     </Box>
   );

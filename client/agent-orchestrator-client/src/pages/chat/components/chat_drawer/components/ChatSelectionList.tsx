@@ -8,6 +8,7 @@ import type { ChatJson } from '../chat';
 
 type ChatSelectProps = {
     onSelectChat: (chatId: string) => void,
+    onTryDeleteChat: (chatId: string) => void, 
     // For forcing the chat list to re-render.
     refreshTriggerToggle: boolean,
 };
@@ -15,7 +16,7 @@ type ChatSelectProps = {
 /**
  * Drawer list for selecting between available chats.
  */
-export default function ChatSelectionList({ onSelectChat, refreshTriggerToggle }: ChatSelectProps) {
+export default function ChatSelectionList({ onSelectChat, onTryDeleteChat, refreshTriggerToggle }: ChatSelectProps) {
     const [chats, setChats] = useState<ChatJson[]>([]);
 
     useEffect(() => {
@@ -32,11 +33,23 @@ export default function ChatSelectionList({ onSelectChat, refreshTriggerToggle }
       <List>
         {chats.map((c) => (
           <ListItem key={c.chat_id} disablePadding>
-            <ListItemButton onClick={() => onSelectChat(c.chat_id)}>
-              <ListItemIcon>
-                C
-              </ListItemIcon>
+            <ListItemButton 
+              onClick={() => onSelectChat(c.chat_id)}
+              sx={{
+                width: "80%"
+              }}
+            >
               <ListItemText primary={c.name} /> 
+            </ListItemButton>
+            <ListItemButton onClick={() => onTryDeleteChat(c.chat_id)}>
+              <ListItemIcon
+                sx={{
+                  display: "inline-block",
+                  textAlign: "center",
+                }}
+              >
+                X
+              </ListItemIcon>
             </ListItemButton>
           </ListItem>
         ))}
