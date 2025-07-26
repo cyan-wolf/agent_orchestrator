@@ -5,6 +5,7 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import { useEffect, useState } from 'react';
 import type { ChatJson } from '../chat';
+import { Tooltip } from '@mui/material';
 
 type ChatSelectProps = {
     onSelectChat: (chatId: string) => void,
@@ -41,16 +42,18 @@ export default function ChatSelectionList({ onSelectChat, onTryDeleteChat, refre
             >
               <ListItemText primary={c.name} /> 
             </ListItemButton>
-            <ListItemButton onClick={() => onTryDeleteChat(c.chat_id)}>
-              <ListItemIcon
-                sx={{
-                  display: "inline-block",
-                  textAlign: "center",
-                }}
-              >
-                X
-              </ListItemIcon>
-            </ListItemButton>
+            <Tooltip title="Delete Chat">
+              <ListItemButton onClick={() => onTryDeleteChat(c.chat_id)}>
+                <ListItemIcon
+                  sx={{
+                    display: "inline-block",
+                    textAlign: "center",
+                  }}
+                >
+                  X
+                </ListItemIcon>
+              </ListItemButton>
+            </Tooltip>
           </ListItem>
         ))}
       </List>
