@@ -12,7 +12,7 @@ import ProtectedRoute from './auth/ProtectedRoute';
 import Logout from './pages/logout/Logout';
 import Chat from './pages/chat/Chat';
 import NavBar from './components/nav/NavBar';
-import ChatBox from './pages/chat/components/ChatBox';
+import ChatBox from './pages/chat/components/chat_drawer/components/ChatBox';
 
 export default function App() {
   return (

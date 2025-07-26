@@ -1,4 +1,7 @@
 
+/**
+ * Message trace types from the API.
+ */
 export type Message = {
     timestamp: number,
 } & MessagePayload;

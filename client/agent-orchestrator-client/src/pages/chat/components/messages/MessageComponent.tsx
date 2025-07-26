@@ -1,11 +1,14 @@
 import { Alert, AlertTitle, Box, Paper, Typography } from "@mui/material";
-import type { Message } from "../message";
+import type { Message } from "./message";
 import Markdown from "react-markdown";
 
 type MessageComponentProps = {
     message: Message
 };
 
+/**
+ * Component for rendering a message from the API.
+ */
 export default function MessageComponent({ message }: MessageComponentProps) {
     let msgContent;
 

@@ -1,13 +1,16 @@
 import { Stack } from "@mui/material";
-import type { Message } from "../message";
-import MessageComponent from "./Message";
 import { useEffect, useRef } from "react";
+import type { Message } from "./message";
+import MessageComponent from "./MessageComponent";
 
 type MessageListProps = {
     messages: Message[]
 };
 
-const MessageList = ({ messages }: MessageListProps) => {
+/**
+ * Renders a message history as a vertical list of messages.
+ */
+export default function MessageList({ messages }: MessageListProps) {
     const lastMsg = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -30,5 +33,3 @@ const MessageList = ({ messages }: MessageListProps) => {
         </Stack>
     );
 };
-
-export default MessageList;

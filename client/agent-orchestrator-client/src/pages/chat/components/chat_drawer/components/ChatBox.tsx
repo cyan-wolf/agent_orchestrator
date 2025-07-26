@@ -1,14 +1,18 @@
 import { useEffect, useState } from "react";
-import type { Message } from "../message";
-import Loading from "../../../components/loading/Loading";
+import Loading from "../../../../../components/loading/Loading";
 import { Box, Container, TextField } from "@mui/material";
-import MessageList from "./MessageList";
 import { useParams } from "react-router-dom";
+import type { Message } from "../../messages/message";
+import MessageList from "../../messages/MessageList";
 
 type ChatBoxProps = {
     chatId: string
 };
 
+/**
+ * Displays the chat box UI that allows the user to enter messages
+ * and view the message history. Renders within the broader chat drawer UI.
+ */
 function ChatBoxDisplay({ chatId }: ChatBoxProps) {
     const [userMessage, setUserMessage] = useState("");
     const [latestMsgTimestamp, setLatestMsgTimestamp] = useState(0.0);
@@ -108,10 +112,17 @@ function ChatBoxDisplay({ chatId }: ChatBoxProps) {
     );
 }
 
+/**
+ * A wrapper around the `ChatBoxDisplay` component. This component 
+ * reads the current URL to get the chat ID.
+ */
 export default function ChatBox() {
+    // Read the chat ID from the URL.
     const { chatId } = useParams();
 
     return (
+        // Load the actual chat box UI.
+        //
         // Making the chat ID be part of the chat box display's key 
         // guarantees that the display re-renders when the chat ID changes.
         <ChatBoxDisplay chatId={chatId!} key={chatId} />

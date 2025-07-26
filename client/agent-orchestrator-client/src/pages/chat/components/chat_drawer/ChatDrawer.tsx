@@ -1,113 +1,17 @@
-import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField } from '@mui/material';
+import { Button } from '@mui/material';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
 import Divider from '@mui/material/Divider';
 import Drawer from '@mui/material/Drawer';
 import IconButton from '@mui/material/IconButton';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-type NewChatConfirmationFormModalProps = {
-  isOpen: boolean
-  onSubmit: (chatData: NewChatData) => void,
-  onClose: () => void,
-};
-
-type NewChatData = {
-  chatName: string
-};
-
-function NewChatConfirmationFormModal({ isOpen, onSubmit, onClose }: NewChatConfirmationFormModalProps) {
-  const [chatName, setChatName] = useState("");
-
-  function validateFormSubmission(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-
-    if (chatName.trim().length > 0) {
-      onSubmit({ chatName: chatName.trim() });
-    }
-  }
-
-  return (
-    <>
-      <Dialog open={isOpen} onClose={onClose}>
-        <DialogTitle>Create New Chat</DialogTitle>
-        <DialogContent sx={{ paddingBottom: 0 }}>
-          <DialogContentText>
-            Enter a name for the chat.
-          </DialogContentText>
-          <form onSubmit={validateFormSubmission}>
-            <TextField
-              autoFocus
-              required
-              margin="dense"
-              id="name"
-              name="chat-name"
-              label="Chat Name"
-              type="text"
-              onChange={e => setChatName(e.target.value)}
-              slotProps={{ htmlInput: { pattern: "^.{1,10}$" } }}
-              fullWidth
-              variant="standard"
-            />
-            <DialogActions>
-              <Button onClick={onClose}>Cancel</Button>
-              <Button type="submit">Create</Button>
-            </DialogActions>
-          </form>
-        </DialogContent>
-      </Dialog>
-    </>
-  );
-}
-
-type ChatJson = {
-    chat_id: string,
-    name: string,
-};
-
-type ChatSelectProps = {
-    onSelectChat: (chatId: string) => void,
-    // For forcing the chat list to re-render.
-    refreshTriggerToggle: boolean,
-};
-
-function ChatSelectionList({ onSelectChat, refreshTriggerToggle }: ChatSelectProps) {
-    const [chats, setChats] = useState<ChatJson[]>([]);
-
-    useEffect(() => {
-        const fetchChatIds = async () => {
-            const resp = await fetch("/api/chat/get-all-chats/");
-            const chatJson = await resp.json();
-
-            setChats(chatJson);
-        };
-        fetchChatIds();
-    }, [refreshTriggerToggle]); // re-fetch the chats whenever the chat list is forced to "refresh"
-
-    return (
-      <List>
-        {chats.map((c) => (
-          <ListItem key={c.chat_id} disablePadding>
-            <ListItemButton onClick={() => onSelectChat(c.chat_id)}>
-              <ListItemIcon>
-                C
-              </ListItemIcon>
-              <ListItemText primary={c.name} /> 
-            </ListItemButton>
-          </ListItem>
-        ))}
-      </List>
-    );
-}
+import type { ChatJson, NewChatData } from './chat';
+import ChatSelectionList from './components/ChatSelectionList';
+import NewChatConfirmationFormModal from './components/NewChatConfirmationModal';
 
 const drawerWidth = 240;
 
@@ -115,6 +19,10 @@ type ChatDrawerProps = {
   children: React.ReactNode
 };
 
+/**
+ * Drawer for displaying the chat selection list.
+ * Embeds the chat box UI within the drawer.
+ */
 function ChatDrawer({ children }: ChatDrawerProps) {
   const navigate = useNavigate();
   const [newChatModalOpen, setNewChatModalOpen] = useState(false);
