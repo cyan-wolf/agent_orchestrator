@@ -59,23 +59,31 @@ const Login = () => {
         <form onSubmit={handleFormSubmit}>
             <Container maxWidth="sm">
                 <Card>
-                    <CardContent>
+                    <CardContent sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center"
+                    }}>
                         <Typography variant="h3" align="center">Log In</Typography>
                         <TextField 
                             label="Username"
                             type="text"
                             sx={{ display: "block" }}
+                            margin="normal"
                             onChange={e => setUsername(e.target.value)}
                         />
                         <TextField 
                             label="Password"
                             type="password"
                             sx={{ display: "block" }}
+                            margin="normal"
                             onChange={e => setPassword(e.target.value)}
                         />
                         <Button
                             sx={{ display: "block" }}
+                            variant="outlined"
                             type="submit"
+                            fullWidth
                         >
                             Login
                         </Button>
