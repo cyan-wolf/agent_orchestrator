@@ -60,12 +60,23 @@ def prepare_supervisor_agent_tools(agent_manager):
         summarize_chat,
     ]
 
+
+def run_agent_specific_cleanup(agent_manager):
+    from ai.tools.code_sandbox.sandbox_management import clean_up_container_for_chat
+
+    if agent_manager.agents["main_agent"].name == "coding_agent":
+        # Clean up container for current chat when the coding agent runs cleanup.
+        clean_up_container_for_chat(agent_manager.chat_id)
+
+
 def prepare_switch_back_to_supervisor_tool(agent_manager):
     @trace(agent_manager)
     def switch_back_to_supervisor():
         """
         Switches back to the supervisor.
         """
+        run_agent_specific_cleanup(agent_manager)
+
         agent_manager.agents["main_agent"] = agent_manager.agents["supervisor_agent"]
         return "switched back to supervisor"
     

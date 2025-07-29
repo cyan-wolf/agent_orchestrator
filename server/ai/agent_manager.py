@@ -8,7 +8,8 @@ from langgraph.checkpoint.memory import InMemorySaver
 
 from langchain_core.runnables.config import RunnableConfig
 
-from ai.tools import code_runner, control_flow, web_searching
+from ai.tools import control_flow, web_searching
+from ai.tools.code_sandbox import coding_tools
 from ai.tracing import Tracer
 
 from ai.agent import Agent
@@ -20,7 +21,7 @@ def get_latest_agent_msg(agent_response: dict) -> BaseMessage:
 
 
 class AgentManager:
-    def __init__(self, serialized_version: SerializedAgentManager):
+    def __init__(self, serialized_version: SerializedAgentManager, chat_id: str):
         """
         Initializes an agent manager.
         """
@@ -32,6 +33,8 @@ class AgentManager:
         self.tracer = Tracer(serialized_version.history)
 
         self.chat_summary = serialized_version.chat_summary
+
+        self.chat_id = chat_id
 
         self.initialize_agents()
 
@@ -58,8 +61,11 @@ class AgentManager:
             """
             You are a helpful coding assistant. You only work with Python, no other programming language.
             Always add comments and type annotations to any Python code you run.
+            You have access to a Linux environment where you can run commands. 
             """, 
-            [code_runner.prepare_run_python_program_tool(self), control_flow.prepare_switch_back_to_supervisor_tool(self)],
+            [coding_tools.prepare_create_file_tool(self), 
+             coding_tools.prepare_run_command_tool(self), 
+             control_flow.prepare_switch_back_to_supervisor_tool(self)],
             checkpointer=InMemorySaver(),
         ))
 

@@ -12,14 +12,15 @@ def initialize_runtime_agent_manager_for_new_chat(chat: Chat, db: TempDB):
     # Initialize an empty agent manager, since this is a new chat.
     am = AgentManager(serialized_version=SerializedAgentManager(
         history=[],
-        chat_summary="This is a new chat, there is no summary yet."
-    ))
+        chat_summary="This is a new chat, there is no summary yet.",
+    ), chat_id=chat.chat_id)
     db.runtime_agent_managers[chat.chat_id] = am
     return am
 
 
 def gen_chat_id():
-    return base64.urlsafe_b64encode(uuid.uuid4().bytes).decode('utf-8')
+    # return base64.urlsafe_b64encode(uuid.uuid4().bytes).decode('utf-8')
+    return str(uuid.uuid4())
 
 
 def get_user_chat_list(username: str, db: TempDB) -> Sequence[Chat]:
@@ -71,7 +72,7 @@ def get_agent_manager_for_chat(chat: ChatInDB, db: TempDB) -> AgentManager:
     else:
         assert chat.agent_manager_serialization
 
-        am = AgentManager(chat.agent_manager_serialization)
+        am = AgentManager(chat.agent_manager_serialization, chat_id=chat.chat_id)
         # Store the retrieved AM in the runtime database so
         # that it isn't re-created after every message.
         db.runtime_agent_managers[chat.chat_id] = am
