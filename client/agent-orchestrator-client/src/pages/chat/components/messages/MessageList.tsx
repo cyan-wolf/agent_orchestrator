@@ -26,7 +26,7 @@ export default function MessageList({ messages }: MessageListProps) {
                 overflowY: "auto",
             }}
         >
-            {messages.map(m => <MessageComponent message={m} key={m.timestamp} />)}
+            {messages.map(m => <MessageComponent message={m} key={m.trace_id} />)}
             
             {/* Marker for scrolling to the end of the message list. */}
             <div ref={lastMsg} />

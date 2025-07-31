@@ -46,18 +46,11 @@ def prepare_supervisor_agent_tools(agent_manager):
             return agent_manager.invoke_agent(agent_manager.agents["writer_agent"], query)
         else:
             return f"error: unknown content type '{content_type}'"
-        
-    @trace(agent_manager)
-    def summarize_chat(chat_summary: str):
-        """
-        Stores a summary of the current chat.
-        """
-        agent_manager.set_chat_summary(chat_summary)
     
     return [
         request_math_help, request_external_information, 
         request_content_generation, switch_to_more_qualified_agent, 
-        summarize_chat,
+        prepare_summarization_tool(agent_manager),
     ]
 
 
@@ -67,6 +60,19 @@ def run_agent_specific_cleanup(agent_manager):
     if agent_manager.agents["main_agent"].name == "coding_agent":
         # Clean up container for current chat when the coding agent runs cleanup.
         clean_up_container_for_chat(agent_manager.chat_id)
+
+
+def prepare_summarization_tool(agent_manager):
+    @trace(agent_manager)
+    def summarize_chat(chat_summary: str):
+        """
+        Stores a summary of the current chat.
+        """
+        agent_manager.set_chat_summary(chat_summary)
+
+        return "Successfully summarized chat."
+
+    return summarize_chat
 
 
 def prepare_switch_back_to_supervisor_tool(agent_manager):

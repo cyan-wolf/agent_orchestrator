@@ -12,7 +12,7 @@ def initialize_runtime_agent_manager_for_new_chat(chat: Chat, db: TempDB):
     # Initialize an empty agent manager, since this is a new chat.
     am = AgentManager(serialized_version=SerializedAgentManager(
         history=[],
-        chat_summary="This is a new chat, there is no summary yet.",
+        chat_summaries={},
     ), chat_id=chat.chat_id)
     db.runtime_agent_managers[chat.chat_id] = am
     return am

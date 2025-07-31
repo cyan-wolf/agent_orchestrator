@@ -6,7 +6,10 @@ from typing import Sequence, Literal
 
 from pydantic import BaseModel, Field
 
+import uuid
+
 class TraceBase(BaseModel):
+    trace_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     timestamp: float = Field(default_factory=lambda: datetime.now().timestamp())
 
 
@@ -53,4 +56,4 @@ Trace = AIMessageTrace | HumanMessageTrace | ToolTrace | SideEffectTrace
 
 class SerializedAgentManager(BaseModel):
     history: Sequence[Trace]
-    chat_summary: str
+    chat_summaries: dict[str, str]

@@ -3,6 +3,7 @@
  * Message trace types from the API.
  */
 export type Message = {
+    trace_id: string,
     timestamp: number,
 } & MessagePayload;
 

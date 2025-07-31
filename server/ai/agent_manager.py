@@ -32,7 +32,8 @@ class AgentManager:
 
         self.tracer = Tracer(serialized_version.history)
 
-        self.chat_summary = serialized_version.chat_summary
+        # agent name -> chat summary (for that agent)
+        self.chat_summaries = serialized_version.chat_summaries
 
         self.chat_id = chat_id
 
@@ -42,12 +43,15 @@ class AgentManager:
     def to_serialized(self) -> SerializedAgentManager:
         return SerializedAgentManager(
             history=self.tracer.get_history(), 
-            chat_summary=self.chat_summary,
+            chat_summaries=self.chat_summaries,
         )
 
 
     def set_chat_summary(self, chat_summary: str):
-        self.chat_summary = chat_summary
+        """
+        Sets the chat summary for the current agent.
+        """
+        self.chat_summaries[self.get_current_agent_name()] = chat_summary
 
 
     def initialize_agents(self):
@@ -58,14 +62,20 @@ class AgentManager:
         self.register_agent(Agent("math_agent", "You are a helpful math assistant.", []))
 
         self.register_agent(Agent("coding_agent", 
-            """
+            f"""
             You are a helpful coding assistant. You only work with Python, no other programming language.
             Always add comments and type annotations to any Python code you run.
             You have access to a Linux environment where you can run commands. 
+
+            Run the summarization tool whenever something important gets done.
+
+            Below is a summary of the previous chat you had with the user:
+            {self.get_agent_chat_summary('coding_agent')}
             """, 
             [coding_tools.prepare_create_file_tool(self), 
              coding_tools.prepare_run_command_tool(self), 
-             control_flow.prepare_switch_back_to_supervisor_tool(self)],
+             control_flow.prepare_switch_back_to_supervisor_tool(self), 
+             control_flow.prepare_summarization_tool(self)],
             checkpointer=InMemorySaver(),
         ))
 
@@ -95,7 +105,7 @@ class AgentManager:
             Run the `summarize_chat` tool every 5 messages. This is very important.
 
             Below is a summary of the previous chat you had with this user:
-            {self.chat_summary}
+            {self.get_agent_chat_summary('supervisor_agent')}
             """,
             control_flow.prepare_supervisor_agent_tools(self),
             checkpointer=InMemorySaver()
@@ -151,3 +161,16 @@ class AgentManager:
         self.tracer.add(HumanMessageTrace(username=username, content=user_input))
 
         return self.invoke_agent(self.agents["main_agent"], user_input, as_main_agent=True)
+
+
+    def get_current_agent_name(self) -> str:
+        return self.agents["current_agent"].name
+    
+    
+    def get_agent_chat_summary(self, agent_name: str) -> str:
+        chat_summary = self.chat_summaries.get(agent_name)
+
+        if chat_summary is None:
+            return "This is a new chat. No summary available."
+        else:
+            return chat_summary
