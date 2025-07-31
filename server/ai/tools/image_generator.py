@@ -1,4 +1,7 @@
 from dotenv import load_dotenv
+
+from ai.models import ImageSideEffectTrace
+from ai.tracing import trace
 load_dotenv()
 
 from langchain_core.messages import BaseMessage
@@ -15,7 +18,7 @@ def _get_image_base64(response: BaseMessage):
     return image_block["image_url"].get("url").split(",")[-1]
 
 
-def generate_image(query: str) -> str:
+def _generate_image_impl(query: str) -> str:
     """
     Generates an image based on the specified query. Returns the base64 encoded image.
     """
@@ -32,5 +35,19 @@ def generate_image(query: str) -> str:
     image_base64: str = _get_image_base64(response)
     return image_base64
 
-if __name__ == "__main__":
-    generate_image(input("user> "))
+def prepare_image_generation_tool(agent_manager):
+    @trace(agent_manager)
+    def generate_image_and_show_it_to_user(query: str) -> str:
+        """
+        Generates the image specified by the query. This tool automatically 
+        shows the image to the user.
+        """
+        image_base64 = _generate_image_impl(query)
+
+        # Used for showing the image to the user.
+        agent_manager.tracer.add(ImageSideEffectTrace(base64_encoded_image=image_base64))
+
+        return "Successfully generated and showed image to user."
+        
+    return generate_image_and_show_it_to_user
+

@@ -8,7 +8,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 
 from langchain_core.runnables.config import RunnableConfig
 
-from ai.tools import control_flow, web_searching
+from ai.tools import control_flow, web_searching, image_generator
 from ai.tools.code_sandbox import coding_tools
 from ai.tracing import Tracer
 
@@ -88,11 +88,20 @@ class AgentManager:
             checkpointer=InMemorySaver(),
         ))
 
-        self.register_agent(Agent("writer_agent", 
-            """
-            You are a writer. You receive requests to write textual content such as poems, stories, scripts.
+        self.register_agent(Agent("creator_agent", 
+            f"""
+            You are a a content generation agent. You can help the user create images using your image generation tool. 
+            You receive requests to write textual content such as poems, stories, scripts.
+
+            Use the summarization tool whenever you generate a piece of content. Don't spam the summarization tool.
+
+            Below is a summary of the previous chat you had with the user:
+            {self.get_agent_chat_summary('creator_agent')}
             """,
-            []
+            [image_generator.prepare_image_generation_tool(self), 
+             control_flow.prepare_summarization_tool(self), 
+             control_flow.prepare_switch_back_to_supervisor_tool(self)],
+            checkpointer=InMemorySaver(),
         ))
 
         self.register_agent(Agent("supervisor_agent", 
