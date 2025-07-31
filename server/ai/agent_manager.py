@@ -111,6 +111,10 @@ class AgentManager:
 
             Don't hesitate to use the `switch_to_more_qualified_agent` tool.
 
+            You are the supervisor of several other helper agents. You sometimes hand-off the user to these helper 
+            agents. Thankfully, these agents write summaries of their chats with the user. This tool shows you 
+            the chat summaries for all agents. This way, you can see what they have done.
+
             Run the `summarize_chat` tool every 5 messages. This is very important.
 
             Below is a summary of the previous chat you had with this user:

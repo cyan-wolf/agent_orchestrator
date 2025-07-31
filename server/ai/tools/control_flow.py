@@ -23,6 +23,13 @@ def prepare_supervisor_agent_tools(agent_manager):
         
         else:
             return f"unknown agent name '{agent_name}'"
+        
+    @trace(agent_manager)
+    def check_helper_agent_chat_summaries():
+        """
+        Used for checking what the helper agents have talked about with the user.
+        """
+        return str(agent_manager.chat_summaries)
 
     @trace(agent_manager)
     def request_external_information(query: str) -> str:
@@ -32,6 +39,7 @@ def prepare_supervisor_agent_tools(agent_manager):
     return [
         request_math_help, request_external_information, 
         switch_to_more_qualified_agent, 
+        check_helper_agent_chat_summaries,
         prepare_summarization_tool(agent_manager),
     ]
 
