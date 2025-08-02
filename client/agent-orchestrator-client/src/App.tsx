@@ -13,6 +13,7 @@ import Logout from './pages/logout/Logout';
 import Chat from './pages/chat/Chat';
 import NavBar from './components/nav/NavBar';
 import ChatBox from './pages/chat/components/chat_drawer/components/ChatBox';
+import Register from './pages/register/Register';
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
           { to: "/settings", title: "Settings" },
           { to: "/login", title: "Login" },
           { to: "/logout", title: "Logout" },
+          { to: "/register", title: "Register" },
         ]} />
       </nav>
       
@@ -35,6 +37,7 @@ export default function App() {
 
         <Route path="/login" element={<Login/>} />
         <Route path="/logout" element={<Logout />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/" element={<Home/>} />
       </Routes>
     </div>

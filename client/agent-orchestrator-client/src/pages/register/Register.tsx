@@ -5,8 +5,10 @@ import Loading from "../../components/loading/Loading";
 import { Alert, AlertTitle, Button, Card, CardContent, Container, Paper, TextField, Typography } from "@mui/material";
 import { Link } from "react-router-dom";
 
-const Login = () => {
+export default function Register() {
     const [username, setUsername] = useState("");
+    const [email, setEmail] = useState("");
+    const [fullName, setFullName] = useState("");
     const [password, setPassword] = useState("");
     const { isLoading, user, login } = useAuth()!;
 
@@ -14,22 +16,21 @@ const Login = () => {
         return <Loading />;
     }
 
-
     async function handleFormSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
-        // Needed for 'application/x-www-form-urlencoded'.
-        const formData = new URLSearchParams({
-            username, password
-        });
-
         try {
-            await fetch("/api/token/", {
+            await fetch("/api/register/", {
                 method: "POST",
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Content-Type': 'application/json',
                 },
-                body: formData,
+                body: JSON.stringify({
+                    username,
+                    email,
+                    fullName,
+                    password,
+                }),
             });
 
             const user = await getCurrentUser();
@@ -55,7 +56,7 @@ const Login = () => {
                     <AlertTitle>Already Logged In</AlertTitle>
                     Cannot login as you are already logged in as user 
                     <Typography component="span" fontWeight="bold">{` ${user?.username}`}.</Typography>
-                    Try <Link to="/logout">logging out</Link> if you meant to login as another user.
+                    Try <Link to="/logout">logging out</Link> if you meant to register as another user.
                 </Alert>
             </Paper>
         </Container>
@@ -70,13 +71,27 @@ const Login = () => {
                         flexDirection: "column",
                         alignItems: "center"
                     }}>
-                        <Typography variant="h3" align="center">Log In</Typography>
+                        <Typography variant="h3" align="center">Register</Typography>
                         <TextField 
                             label="Username"
                             type="text"
                             sx={{ display: "block" }}
                             margin="normal"
                             onChange={e => setUsername(e.target.value)}
+                        />
+                        <TextField 
+                            label="Email"
+                            type="text"
+                            sx={{ display: "block" }}
+                            margin="normal"
+                            onChange={e => setEmail(e.target.value)}
+                        />
+                        <TextField 
+                            label="Full Name"
+                            type="text"
+                            sx={{ display: "block" }}
+                            margin="normal"
+                            onChange={e => setFullName(e.target.value)}
                         />
                         <TextField 
                             label="Password"
@@ -91,7 +106,7 @@ const Login = () => {
                             type="submit"
                             fullWidth
                         >
-                            Login
+                            Register
                         </Button>
                     </CardContent>
                 </Card>
@@ -101,5 +116,3 @@ const Login = () => {
 
     return (user !== null) ? alreadyLoggedInView : toLoginView;
 }
-
-export default Login;

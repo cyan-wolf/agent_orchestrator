@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../../auth/useAuth";
 import Loading from "../../components/loading/Loading";
+import { Alert, AlertTitle, Button, Card, CardContent, Container, Paper, Typography } from "@mui/material";
 
 export default function Logout() {
     const { user, logout, isLoading } = useAuth()!;
@@ -14,17 +15,34 @@ export default function Logout() {
     }
 
     const toLogoutView = (
-        <div>
-            <h2>Logout</h2>
-            <button type="button" onClick={handleButtonClick}>Logout (Are you sure?)</button>
-        </div>
+        <Container maxWidth="sm">
+            <Card>
+                <CardContent sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center"
+                }}>
+                    <Typography variant="h3" align="center">Logout</Typography>
+                    <Button 
+                        variant="outlined" 
+                        onClick={handleButtonClick}
+                    >
+                        Are you sure?
+                    </Button>
+                </CardContent>
+            </Card>
+        </Container>
     );
     
     const alreadyLoggedOutView = (
-        <div>
-            <h2>Already logged out</h2>
-            <Link to={"/login"}>Click here to login</Link>
-        </div>
+        <Container>
+            <Paper>
+                <Alert severity="error">
+                    <AlertTitle>Already Logged Out</AlertTitle>
+                    Cannot logout as you are not currently logged in. Please click <Link to="/login">here</Link> to login.
+                </Alert>
+            </Paper>
+        </Container>
     );
 
     return (user !== null) ? toLogoutView : alreadyLoggedOutView;
