@@ -3,7 +3,7 @@ from typing import Annotated
 
 import jwt
 
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import Depends, HTTPException, Request, Response, status
 from fastapi.security import OAuth2
 from fastapi.security.utils import get_authorization_scheme_param
 from fastapi.openapi.models import OAuthFlows
@@ -100,6 +100,23 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     return encoded_jwt
 
 
+def create_and_set_access_token(response: Response, user: User):
+    """
+    Logs in the user by setting the JWT auth token in the response's cookies. 
+    """
+
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
+
+    # Set HTTP-only cookie!
+    response.set_cookie("access_token", f"Bearer {access_token}", httponly=True)
+
+    # TODO: find a way of not needing to return this
+    return access_token
+
+
 async def _get_curr_user_impl(token: Annotated[str, Depends(oauth2_scheme)], db: UserTempDB, should_raise_credentials_exception: bool = True):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -148,11 +165,11 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: An
     return user
 
 
-async def get_current_active_user(
-    current_user: Annotated[User, Depends(get_current_user)],
-):
-    if current_user.disabled:
-        raise HTTPException(status_code=400, detail="Inactive user")
-    return current_user
+# async def get_current_active_user(
+#     current_user: Annotated[User, Depends(get_current_user)],
+# ):
+#     if current_user.disabled:
+#         raise HTTPException(status_code=400, detail="Inactive user")
+#     return current_user
 
 

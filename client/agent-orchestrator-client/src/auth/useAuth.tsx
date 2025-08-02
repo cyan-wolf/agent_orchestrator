@@ -33,7 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const logout = () => {
         setUser(null);
 
-        fetch("/api/logout");
+        fetch("/api/logout/");
 
         navigate("/", { replace: true });
     };
