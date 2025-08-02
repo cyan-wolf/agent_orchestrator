@@ -13,12 +13,30 @@ import App from './App.tsx';
 
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './auth/useAuth.tsx';
+import { ThemeProvider } from '@emotion/react';
+import { createTheme, CssBaseline } from '@mui/material';
+import { red, yellow } from '@mui/material/colors';
+
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: red[500]
+    },
+    background: {
+      default: yellow[50],
+      paper: yellow[100]
+    }
+  }
+});
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <App />
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <App />
+        </ThemeProvider>
       </AuthProvider>
     </BrowserRouter>
   </StrictMode>,

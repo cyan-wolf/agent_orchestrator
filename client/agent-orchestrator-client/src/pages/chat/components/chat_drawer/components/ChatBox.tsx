@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Loading from "../../../../../components/loading/Loading";
-import { Box, Container, TextField } from "@mui/material";
+import { Box, Container, Stack, TextField } from "@mui/material";
 import { useParams } from "react-router-dom";
 import type { Message } from "../../messages/message";
 import MessageList from "../../messages/MessageList";
@@ -87,27 +87,46 @@ function ChatBoxDisplay({ chatId }: ChatBoxProps) {
 
     return (
         <Container>
-            <Box
-                sx={{
-                    height: { xs: 'calc(100vh - 32px)', sm: '550px' }, // Responsive height
-                }}
-            >
-                <MessageList messages={messages} />
-            </Box>
+            <Stack spacing={1} sx={{
+                height: { xs: 'calc(100vh - 32px)', sm: '550px' }, // Responsive height
+            }}>
+                <Box
+                    sx={{
+                        border: '1px solid',
+                        flexGrow: 1,
+                        borderColor: 'primary.main', // Uses a color from your theme
+                        borderRadius: '8px',
+                        p: 2, // Adds padding for better visual spacing
 
-            {(waitingForServer) ? <Loading /> : <></>}
+                        overflowY: "auto", // Adds vertical scrollbar
 
-            <TextField 
-                fullWidth
-                multiline 
-                maxRows={4} 
-                variant="outlined"
-                placeholder="Type your message"
-                value={userMessage}
-                onChange={(e) => setUserMessage(e.target.value)}
-                onKeyDown={handleChatTextFieldKeyDown}
-                autoFocus
-            />
+                        // Custom scrollbar styling
+                        scrollbarWidth: 'thin', 
+                        scrollbarColor: 'rgba(0, 0, 0, 0.2) transparent',
+                    }}
+                >
+                    <MessageList messages={messages} />
+                </Box>
+                <Box>
+                    {(waitingForServer) ? <Loading /> : <></>}
+                    <TextField 
+                        fullWidth
+                        multiline 
+                        maxRows={4} 
+                        variant="outlined"
+                        placeholder="Type your message"
+                        value={userMessage}
+                        onChange={(e) => setUserMessage(e.target.value)}
+                        onKeyDown={handleChatTextFieldKeyDown}
+                        autoFocus
+
+                        // Gives more space for the 'waiting for server' loading component.
+                        sx={{
+                            marginTop: '10px'
+                        }}
+                    />
+                </Box>
+            </Stack>
         </Container>
     );
 }
