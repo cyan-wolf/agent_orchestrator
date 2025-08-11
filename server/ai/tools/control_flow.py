@@ -9,16 +9,25 @@ def prepare_supervisor_agent_tools(agent_manager):
         return agent_manager.invoke_agent(agent_manager.agents["math_agent"], query)
 
     @trace(agent_manager)
-    def switch_to_more_qualified_agent(agent_name: str) -> str:
+    def switch_to_more_qualified_agent(agent_name: str, reason: str | None) -> str:
         """
-        Switches to the given agent.
+        Switches to the given agent. A reason for the switch can optionally be passed to this tool. 
+        The reason is passed on to the new agent so that it has context on what it's supposed to do.
 
         Possible agents:
             - coding_agent
             - creator_agent
         """
         if agent_name in {"coding_agent", "creator_agent"}:
+            # Switch the 'main_agent' (i.e. the agent actually in control).
             agent_manager.agents["main_agent"] = agent_manager.agents[agent_name]
+
+            # Tell the new 'main_agent' why it's supposed to do.
+            agent_manager.invoke_agent(
+                agent_manager.agents["main_agent"], 
+                f"The supervisor agent handed off the user to you! Do your best. This was its reason: {reason}"
+            )
+
             return f"switched to {agent_name}!"
         
         else:
