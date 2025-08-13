@@ -1,5 +1,5 @@
 import { Box, Tab, Tabs } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 type NavPageInfo = {
@@ -15,6 +15,12 @@ const NavBar = (props: NavBarProps) => {
     const location = useLocation();
     const [pageName, setPageName] = useState<string>(location.pathname);
     const navigate = useNavigate();
+
+    // This useEffect is needed to update the nav bar UI itself 
+    // whenever the location is changed dynamically (for example, by the authentication protected routes).
+    useEffect(() => {
+        setPageName(location.pathname);
+    }, [location.pathname]);
 
     const handlePageChange = (newPageName: string) => {
         setPageName(newPageName);
