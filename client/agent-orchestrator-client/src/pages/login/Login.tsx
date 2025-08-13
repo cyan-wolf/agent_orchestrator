@@ -41,7 +41,8 @@ const Login = () => {
 
         // Needed for 'application/x-www-form-urlencoded'.
         const formData = new URLSearchParams({
-            username, password
+            username: username.trim(), 
+            password: password.trim(),
         });
 
         if (!validateUsernameOnClient() || !validatePasswordOnClient()) {

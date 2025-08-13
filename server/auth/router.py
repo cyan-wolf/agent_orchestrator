@@ -50,10 +50,10 @@ async def register(
     # TODO: Improve registration validation.
     
     if new_user.username.strip() in db.user_db.users:
-        raise HTTPException(status_code=400, detail=f"user '{new_user.username}' already exists")
+        raise HTTPException(status_code=400, detail=f"User '{new_user.username}' already exists.")
     
     if len(new_user.password) < 8:
-        raise HTTPException(status_code=400, detail="password is too weak; must be at least 8 characters")
+        raise HTTPException(status_code=400, detail="Password is too weak; must be at least 8 characters.")
     
     hashed_password = get_password_hash(new_user.password)
 
