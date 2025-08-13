@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Loading from "../../../../../components/loading/Loading";
 import { Box, Container, Stack, TextField } from "@mui/material";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import type { Message } from "../../messages/message";
 import MessageList from "../../messages/MessageList";
 
@@ -19,6 +19,8 @@ function ChatBoxDisplay({ chatId }: ChatBoxProps) {
     const [messages, setMessages] = useState<Message[]>([]);
 
     const [waitingForServer, setWaitingForServer] = useState(true); 
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchChatHistory = async () => {
@@ -61,6 +63,14 @@ function ChatBoxDisplay({ chatId }: ChatBoxProps) {
                 user_message: userMessage,
             }),
         });
+        if (!resp.ok) {
+            if (resp.statusText === "Unauthorized") {
+                // Force redirect to the login page, since the user's authentication expired.
+                navigate("/login");
+            }
+            return;
+        }
+
         setUserMessage("");
         setWaitingForServer(false);
 
