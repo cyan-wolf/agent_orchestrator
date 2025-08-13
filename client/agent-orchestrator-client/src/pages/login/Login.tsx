@@ -10,10 +10,31 @@ const Login = () => {
     const [password, setPassword] = useState("");
     const { isLoading, user, login } = useAuth()!;
 
+    const [userNameValidationErrorMsg, setUserNameValidationErrorMsg] = useState("");
+    const [passwordValidationErrorMsg, setPasswordValidationErrorMsg] = useState("");
+    const [formErrorMessage, setFormErrorMessage] = useState("");
+
     if (isLoading) {
         return <Loading />;
     }
 
+    function validateUsernameOnClient(): boolean {
+        if (username.trim().length == 0) {
+            setUserNameValidationErrorMsg("Username cannot be empty.");
+            return false;
+        }
+        setUserNameValidationErrorMsg("");
+        return true;
+    }
+
+    function validatePasswordOnClient(): boolean {
+        if (password.trim().length < 8) {
+            setPasswordValidationErrorMsg("Password is too short.");
+            return false;
+        }
+        setPasswordValidationErrorMsg("");
+        return true;
+    }
 
     async function handleFormSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -23,8 +44,13 @@ const Login = () => {
             username, password
         });
 
+        if (!validateUsernameOnClient() || !validatePasswordOnClient()) {
+            // Invalid form fields.
+            return;
+        }
+
         try {
-            await fetch("/api/token/", {
+            const response = await fetch("/api/token/", {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -32,16 +58,20 @@ const Login = () => {
                 body: formData,
             });
 
-            const user = await getCurrentUser();
-            
-            if (user !== null) {
-                // Login the user.
-                login(user);
+            if (!response.ok) {
+                if (response.statusText === "Unauthorized") {
+                    setFormErrorMessage("Could not complete authentication. Invalid credentials.");
+                }
+                else {
+                    console.log(response);
+                }
+                return;
             }
-            else {
-                // TODO: authentication was not successful
-            }
+            setFormErrorMessage("");
 
+            const user = await getCurrentUser();
+            // Login the user. The user cannot be null, as we have just logged in.
+            login(user!);
         }
         catch (err) {
             console.log(err);
@@ -62,28 +92,32 @@ const Login = () => {
     );
 
     const toLoginView = (
-        <form onSubmit={handleFormSubmit}>
-            <Container maxWidth="sm">
-                <Card>
-                    <CardContent sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center"
-                    }}>
+        <Container maxWidth="sm">
+            <Card>
+                <CardContent sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center"
+                }}>
+                    <form onSubmit={handleFormSubmit}>
                         <Typography variant="h3" align="center">Log In</Typography>
                         <TextField 
                             label="Username"
                             type="text"
+                            value={username}
                             sx={{ display: "block" }}
                             margin="normal"
                             onChange={e => setUsername(e.target.value)}
+                            helperText={userNameValidationErrorMsg}
                         />
                         <TextField 
                             label="Password"
                             type="password"
+                            value={password}
                             sx={{ display: "block" }}
                             margin="normal"
                             onChange={e => setPassword(e.target.value)}
+                            helperText={passwordValidationErrorMsg}
                         />
                         <Button
                             sx={{ display: "block" }}
@@ -93,10 +127,16 @@ const Login = () => {
                         >
                             Login
                         </Button>
-                    </CardContent>
-                </Card>
-            </Container>
-        </form>
+                    </form>
+                    {(formErrorMessage.length !== 0) ? 
+                        <Alert severity="error">
+                            <AlertTitle>Authentication Error</AlertTitle>
+                            {formErrorMessage}
+                        </Alert> 
+                        : <></>}
+                </CardContent>
+            </Card>
+        </Container>
     );
 
     return (user !== null) ? alreadyLoggedInView : toLoginView;
