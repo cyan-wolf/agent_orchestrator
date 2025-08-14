@@ -14,6 +14,7 @@ import Chat from './pages/chat/Chat';
 import NavBar from './components/nav/NavBar';
 import ChatBox from './pages/chat/components/chat_drawer/components/ChatBox';
 import Register from './pages/register/Register';
+import Manual from './pages/manual/Manual';
 
 export default function App() {
   return (
@@ -26,19 +27,24 @@ export default function App() {
           { to: "/login", title: "Login" },
           { to: "/logout", title: "Logout" },
           { to: "/register", title: "Register" },
+          { to: "/manual", title: "Manual" },
         ]} />
       </nav>
       
       <Routes>
+        <Route path="/" element={<Home/>} />
+
         <Route path="/chat" element={<ProtectedRoute children={<Chat/>} />}>
           <Route path=":chatId" element={<ProtectedRoute children={<ChatBox />} />} />
         </Route>
+
         <Route path="/settings" element={<ProtectedRoute children={<Settings/>} />} />
 
         <Route path="/login" element={<Login/>} />
         <Route path="/logout" element={<Logout />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/" element={<Home/>} />
+        
+        <Route path="/manual" element={<Manual />} />
       </Routes>
     </div>
   );
