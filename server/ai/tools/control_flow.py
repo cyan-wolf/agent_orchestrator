@@ -17,8 +17,9 @@ def prepare_supervisor_agent_tools(agent_manager):
         Possible agents:
             - coding_agent
             - creator_agent
+            - planner_agent
         """
-        if agent_name in {"coding_agent", "creator_agent"}:
+        if agent_name in {"coding_agent", "creator_agent", "planner_agent"}:
             # Switch the 'main_agent' (i.e. the agent actually in control).
             agent_manager.agents["main_agent"] = agent_manager.agents[agent_name]
 

@@ -8,8 +8,9 @@ from langgraph.checkpoint.memory import InMemorySaver
 
 from langchain_core.runnables.config import RunnableConfig
 
-from ai.tools import control_flow, web_searching, image_generator
+from ai.tools import control_flow, web_searching, image_generator, generic_tools
 from ai.tools.code_sandbox import coding_tools
+from ai.tools.scheduling import scheduling_tools
 from ai.tracing import Tracer
 
 from ai.agent import Agent
@@ -100,6 +101,31 @@ class AgentManager:
             """,
             [image_generator.prepare_image_generation_tool(self), 
              control_flow.prepare_summarization_tool(self), 
+             control_flow.prepare_switch_back_to_supervisor_tool(self)],
+            checkpointer=InMemorySaver(),
+        ))
+
+        self.register_agent(Agent("planner_agent", 
+            f"""
+            You are a planner agent. You help the user make a schedule along with helping them organize it. 
+            You can view and modify the schedule with your tools. You can also check the current date with your tools.
+
+            Please assume that the user's timezone is Atlantic Standard Time (AST).
+
+            You can check the current date and time using your get_current_date_tool. As a good reference point, 
+            keep in mind that your current conversation with the user started at {datetime.now()} though.
+
+            Use the summarization tool whenever you do something worth remembering later. Don't spam the summarization tool.
+
+            Below is a summary of the previous chat you had with the user:
+            {self.get_agent_chat_summary('planner_agent')}
+            """,
+            [generic_tools.prepare_get_current_date_tool(self),
+             scheduling_tools.prepare_view_schedule_tool(self),
+             scheduling_tools.prepare_add_new_event_tool(self),
+             scheduling_tools.prepare_delete_event_tool(self),
+             scheduling_tools.prepare_modify_event_tool(self),
+             control_flow.prepare_summarization_tool(self),
              control_flow.prepare_switch_back_to_supervisor_tool(self)],
             checkpointer=InMemorySaver(),
         ))
