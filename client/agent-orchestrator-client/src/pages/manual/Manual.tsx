@@ -52,12 +52,15 @@ export default function Manual() {
                             the Python programming language.
                         </Paper>
                         <Paper>
-                            <BoldSpan>Context Generation Agent</BoldSpan>: Can create images through the use of tools. 
+                            <BoldSpan>Creator Agent</BoldSpan>: Can create images through the use of tools. 
                         </Paper>
                         <Paper>
                             <BoldSpan>Research Agent</BoldSpan>: Has access to external and up-to-date information through the 
                             use of its web search tool. This is a way of implementing retrieval-augment-generation (RAG), where 
                             the output of the model is expanded to include data outside of its original training data.
+                        </Paper>
+                        <Paper>
+                            <BoldSpan>Planner Agent</BoldSpan>: Saves events on a schedule to help the user plan out tasks.
                         </Paper>
                         <Paper>
                             <BoldSpan>Math Agent</BoldSpan>: Helps with math.
