@@ -1,38 +1,18 @@
+from datetime import datetime, timezone
 from ai.tracing import trace
-from ai.tools.scheduling.models import Event, Importance  
-from datetime import datetime
-
-class Schedule:
-    def __init__(self):
-        # event ID -> Event
-        self.events: dict[str, Event] = {}
-
-    def get_all_events(self) -> list[Event]:
-        return list(self.events.values())
-    
-    def get_event_by_id(self, event_id: str) -> Event | None:
-        return self.events.get(event_id)
-    
-    def add_event(self, event: Event):
-        self.events[event.id] = event
-
-    def remove_event(self, event_id: str):
-        if event_id in self.events:
-            del self.events[event_id]
-            return f"successfully deleted event with ID {event_id}"
-        else:
-            return f"event with ID {event_id} does not exist"
+from ai.tools.scheduling.models import Event, Importance
+from db.placeholder_db import get_db  
 
 
-# chat ID -> schedule
-SCHEDULE_TEMP_DB: dict[str, Schedule] = {}
+def get_or_init_schedule_from_user(username: str) -> list[Event]:
+    db = get_db().schedules_db.schedules
 
-def get_or_init_schedule_from_chat(chat_id: str) -> Schedule:
-    schedule = SCHEDULE_TEMP_DB.get(chat_id)
+    schedule = db.get(username)
 
     if schedule is None:
-        schedule = Schedule()
-        SCHEDULE_TEMP_DB[chat_id] = schedule
+        schedule = []
+        db[username] = schedule
+        get_db().store_schedules_db()
 
     return schedule
 
@@ -43,10 +23,10 @@ def prepare_view_schedule_tool(agent_manager):
         """
         Returns a list of events on the schedule.
         """
-        schedule = get_or_init_schedule_from_chat(agent_manager.chat_id)
-        return schedule.get_all_events()
+        return get_or_init_schedule_from_user(agent_manager.owner_username)
 
     return view_schedule
+
 
 def prepare_add_new_event_tool(agent_manager):
     @trace(agent_manager)
@@ -56,10 +36,15 @@ def prepare_add_new_event_tool(agent_manager):
         Python datetime objects. Please convert from the user's timezone to UTC and work with start and endtimes in UTC. 
         Of course, refer to them in the user's timezone when communicating with them as to not confuse them, but the tool works with UTC only.
         """
-        event = Event(name=event_name, start_time=start_time, end_time=end_time, importance=importance)
+        event = Event(
+            name=event_name, 
+            start_time=start_time.replace(tzinfo=timezone.utc), 
+            end_time=end_time.replace(tzinfo=timezone.utc), 
+            importance=importance)
 
-        schedule = get_or_init_schedule_from_chat(agent_manager.chat_id)
-        schedule.add_event(event)
+        schedule = get_or_init_schedule_from_user(agent_manager.owner_username)
+        schedule.append(event)
+        get_db().store_schedules_db()
 
         return "successfully added event"
     
@@ -71,9 +56,18 @@ def prepare_delete_event_tool(agent_manager):
         """
         Removes the event with the given ID from the schedule.
         """
-        schedule = get_or_init_schedule_from_chat(agent_manager.chat_id)
-        result_message = schedule.remove_event(event_id)
-        return result_message
+        schedule = get_or_init_schedule_from_user(agent_manager.owner_username)
+        
+        if len(schedule) == 0:
+            return "no events to delete"
+        
+        for i in range(len(schedule)):
+            if schedule[i].id == event_id:
+                del schedule[i]
+                get_db().store_schedules_db()
+                return f"successfully deleted event"
+            
+        return f"event with id {event_id} was not present"
     
     return remove_event_with_id
 

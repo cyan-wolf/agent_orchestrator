@@ -22,7 +22,7 @@ def get_latest_agent_msg(agent_response: dict) -> BaseMessage:
 
 
 class AgentManager:
-    def __init__(self, serialized_version: SerializedAgentManager, chat_id: str):
+    def __init__(self, serialized_version: SerializedAgentManager, chat_id: str, owner_username: str):
         """
         Initializes an agent manager.
         """
@@ -37,6 +37,7 @@ class AgentManager:
         self.chat_summaries = serialized_version.chat_summaries
 
         self.chat_id = chat_id
+        self.owner_username = owner_username
 
         self.initialize_agents()
 

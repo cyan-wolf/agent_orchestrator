@@ -8,12 +8,15 @@ from chat.models import Chat, ChatInDB
 from db.placeholder_db import TempDB
 
 
-def initialize_runtime_agent_manager_for_new_chat(chat: Chat, db: TempDB):
+def initialize_runtime_agent_manager_for_new_chat(chat: Chat, db: TempDB, username: str):
     # Initialize an empty agent manager, since this is a new chat.
     am = AgentManager(serialized_version=SerializedAgentManager(
         history=[],
         chat_summaries={},
-    ), chat_id=chat.chat_id)
+    ), 
+        chat_id=chat.chat_id,
+        owner_username=username)
+    
     db.runtime_agent_managers[chat.chat_id] = am
     return am
 
@@ -41,7 +44,7 @@ def initialize_new_chat(username: str, db: TempDB, chat_name: str) -> Chat:
     new_chat = ChatInDB(chat_id=chat_id, name=chat_name)
 
     # Initalize a runtime agent manager for the chat.
-    am = initialize_runtime_agent_manager_for_new_chat(new_chat, db)
+    am = initialize_runtime_agent_manager_for_new_chat(new_chat, db, username)
 
     # Store the newly created agent manager in the chat.
     new_chat.agent_manager_serialization = am.to_serialized()
@@ -62,7 +65,7 @@ def delete_chat(username: str, chat_id: str, db: TempDB) -> bool:
     
     return False
 
-def get_agent_manager_for_chat(chat: ChatInDB, db: TempDB) -> AgentManager:
+def get_agent_manager_for_chat(chat: ChatInDB, db: TempDB, username: str) -> AgentManager:
     # Existing chat's runtime agent manager has already been initialized.
     if chat.chat_id in db.runtime_agent_managers:
         return db.runtime_agent_managers[chat.chat_id]
@@ -72,7 +75,7 @@ def get_agent_manager_for_chat(chat: ChatInDB, db: TempDB) -> AgentManager:
     else:
         assert chat.agent_manager_serialization
 
-        am = AgentManager(chat.agent_manager_serialization, chat_id=chat.chat_id)
+        am = AgentManager(chat.agent_manager_serialization, chat_id=chat.chat_id, owner_username=username)
         # Store the retrieved AM in the runtime database so
         # that it isn't re-created after every message.
         db.runtime_agent_managers[chat.chat_id] = am

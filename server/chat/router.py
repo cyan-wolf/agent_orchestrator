@@ -58,7 +58,7 @@ async def get_history(
     if chat is None:
         raise Exception("invalid chat ID")
 
-    agent_manager = get_agent_manager_for_chat(chat, db)
+    agent_manager = get_agent_manager_for_chat(chat, db, current_user.username)
     hist = agent_manager.tracer.get_history()
 
     return hist
@@ -76,7 +76,7 @@ async def get_latest_messages(
     if chat is None:
         raise Exception("invalid chat ID")
 
-    agent_manager = get_agent_manager_for_chat(chat, db)
+    agent_manager = get_agent_manager_for_chat(chat, db, current_user.username)
     hist = agent_manager.tracer.get_history()
 
     return [t for t in hist if t.timestamp > latest_timestamp]
@@ -96,7 +96,7 @@ async def recieve_user_input(
     if chat is None:
         raise Exception("invalid chat ID")
 
-    agent_manager = get_agent_manager_for_chat(chat, db)
+    agent_manager = get_agent_manager_for_chat(chat, db, current_user.username)
 
     _ = agent_manager.invoke_main_with_text(current_user.username, user_req.user_message)
 
