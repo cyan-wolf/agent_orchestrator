@@ -15,7 +15,7 @@ from ai.tracing import Tracer
 
 from ai.agent import Agent
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 def get_latest_agent_msg(agent_response: dict) -> BaseMessage:
     return agent_response["messages"][-1]
@@ -83,7 +83,7 @@ class AgentManager:
         self.register_agent(Agent("research_agent",  
             f"""
             You are a helpful research agent. Use the web search tool to look for information. 
-            The current date is {datetime.now()}.
+            The current date in UTC is {datetime.now(tz=timezone.utc)}.
             """, 
             [web_searching.prepare_web_search_tool(self)],
             checkpointer=InMemorySaver(),
@@ -113,7 +113,7 @@ class AgentManager:
             Please assume that the user's timezone is Atlantic Standard Time (AST).
 
             You can check the current date and time using your get_current_date_tool. As a good reference point, 
-            keep in mind that your current conversation with the user started at {datetime.now()} though.
+            keep in mind that your current conversation with the user started at {datetime.now(tz=timezone.utc)} (UTC time) though.
 
             Use the summarization tool whenever you do something worth remembering later. Don't spam the summarization tool.
 

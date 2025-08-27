@@ -1,7 +1,7 @@
 from typing import Sequence
 from pydantic import BaseModel
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Sequence, Literal
 
 from pydantic import BaseModel, Field
@@ -10,7 +10,7 @@ import uuid
 
 class TraceBase(BaseModel):
     trace_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    timestamp: float = Field(default_factory=lambda: datetime.now().timestamp())
+    timestamp: float = Field(default_factory=lambda: datetime.now(tz=timezone.utc).timestamp())
 
 
 class AIMessageTrace(TraceBase):
