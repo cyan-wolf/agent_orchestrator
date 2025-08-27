@@ -14,3 +14,11 @@ class Event(BaseModel):
     start_time: datetime
     end_time: datetime
     importance: Importance
+
+
+class EventModification(BaseModel):
+    event_id: str
+    new_name: str | None
+    new_start_time: datetime | None
+    new_end_time: datetime | None
+    new_importance: Importance | None
