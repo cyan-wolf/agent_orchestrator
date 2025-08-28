@@ -16,5 +16,6 @@ dependencies = [
     "pillow>=11.2.1",
     "pyjwt>=2.10.1",
     "python-dotenv>=1.1.0",
+    "tzdata>=2025.2",
     "uvicorn[standard]>=0.34.3",
 ]
