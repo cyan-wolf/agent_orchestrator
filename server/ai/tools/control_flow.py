@@ -1,8 +1,6 @@
-from ai.models import ImageSideEffectTrace
-from ai.tools import image_generator
 from ai.tracing import trace
 
-def prepare_supervisor_agent_tools(agent_manager):
+def prepare_supervisor_agent_tools(agent_manager, extra_tools: list):
     @trace(agent_manager)
     def request_math_help(query: str) -> str:
         """Asks the math expert for help."""
@@ -41,17 +39,14 @@ def prepare_supervisor_agent_tools(agent_manager):
         """
         return str(agent_manager.chat_summaries)
 
-    @trace(agent_manager)
-    def request_external_information(query: str) -> str:
-        """Asks the research agent for help whenever external information is needed, such as external websites or the current date."""
-        return agent_manager.invoke_agent(agent_manager.agents["research_agent"], query)
+    
     
     return [
-        request_math_help, request_external_information, 
+        request_math_help, 
         switch_to_more_qualified_agent, 
         check_helper_agent_chat_summaries,
         prepare_summarization_tool(agent_manager),
-    ]
+    ] + extra_tools
 
 
 def run_agent_specific_cleanup(agent_manager):

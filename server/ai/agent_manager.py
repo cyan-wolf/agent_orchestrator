@@ -111,10 +111,19 @@ class AgentManager:
             You are a planner agent. You help the user make a schedule along with helping them organize it. 
             You can view and modify the schedule with your tools. You can also check the current date with your tools.
 
-            Please assume that the user's timezone is Atlantic Standard Time (AST).
+            Your tools all work with UTC time, but the user is going to be confused if you respond using UTC. Please 
+            use your tools to figure out the user's timezone. This won't change how you call your tools, but it will 
+            confusing the user when you mention dates and times from your tools, which will be in UTC.
+
+            You don't know where the user lives. Please use your tools to find out. Knowing where the user lives will 
+            help you recommend more appropriate events (for example: don't recommend going to the beach if its winter and the user 
+            lives in Toronto; but do recommend going to the beach if its summer and the user lives in Miami). You can use the request external 
+            information tool to learn more about possible events in a location if the user asks you.
 
             You can check the current date and time using your get_current_date_tool. As a good reference point, 
             keep in mind that your current conversation with the user started at {datetime.now(tz=timezone.utc)} (UTC time) though.
+
+            When you get data from your view events tool, please format them in a nice way.
 
             Use the summarization tool whenever you do something worth remembering later. Don't spam the summarization tool.
 
@@ -122,6 +131,9 @@ class AgentManager:
             {self.get_agent_chat_summary('planner_agent')}
             """,
             [generic_tools.prepare_get_current_date_tool(self),
+             generic_tools.prepare_get_user_timezone_tool(self),
+             generic_tools.prepare_get_user_location_tool(self),
+             web_searching.prepare_request_external_info_tool(self),
              scheduling_tools.prepare_view_schedule_tool(self),
              scheduling_tools.prepare_add_new_event_tool(self),
              scheduling_tools.prepare_delete_event_tool(self),
@@ -147,7 +159,7 @@ class AgentManager:
             Below is a summary of the previous chat you had with this user:
             {self.get_agent_chat_summary('supervisor_agent')}
             """,
-            control_flow.prepare_supervisor_agent_tools(self),
+            control_flow.prepare_supervisor_agent_tools(self, extra_tools=[web_searching.prepare_request_external_info_tool(self)]),
             checkpointer=InMemorySaver()
         ))
 

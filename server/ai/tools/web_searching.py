@@ -23,3 +23,12 @@ def prepare_web_search_tool(agent_manager):
         return str(json_output)
 
     return perform_web_search
+
+
+def prepare_request_external_info_tool(agent_manager):
+    @trace(agent_manager)
+    def request_external_information(query: str) -> str:
+        """Asks the research agent for help whenever external information is needed, such as external websites or the current date."""
+        return agent_manager.invoke_agent(agent_manager.agents["research_agent"], query)
+    
+    return request_external_information
