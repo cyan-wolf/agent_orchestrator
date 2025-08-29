@@ -1,23 +1,17 @@
 from ai.tracing import trace
+from typing import Literal
+
+SwitchableAgent = Literal["coding_agent", "creator_agent", "planner_agent", "math_agent"]
+VALID_SWITCHABLE_AGENT = {"coding_agent", "creator_agent", "planner_agent", "math_agent"}
 
 def prepare_supervisor_agent_tools(agent_manager, extra_tools: list):
     @trace(agent_manager)
-    def request_math_help(query: str) -> str:
-        """Asks the math expert for help."""
-        return agent_manager.invoke_agent(agent_manager.agents["math_agent"], query)
-
-    @trace(agent_manager)
-    def switch_to_more_qualified_agent(agent_name: str, reason: str | None) -> str:
+    def switch_to_more_qualified_agent(agent_name: SwitchableAgent, reason: str | None) -> str:
         """
         Switches to the given agent. A reason for the switch can optionally be passed to this tool. 
         The reason is passed on to the new agent so that it has context on what it's supposed to do.
-
-        Possible agents:
-            - coding_agent
-            - creator_agent
-            - planner_agent
         """
-        if agent_name in {"coding_agent", "creator_agent", "planner_agent"}:
+        if agent_name in VALID_SWITCHABLE_AGENT:
             # Switch the 'main_agent' (i.e. the agent actually in control).
             agent_manager.agents["main_agent"] = agent_manager.agents[agent_name]
 
@@ -42,7 +36,6 @@ def prepare_supervisor_agent_tools(agent_manager, extra_tools: list):
     
     
     return [
-        request_math_help, 
         switch_to_more_qualified_agent, 
         check_helper_agent_chat_summaries,
         prepare_summarization_tool(agent_manager),

@@ -63,7 +63,17 @@ class AgentManager:
         Initializes and registers several agents.
         """
 
-        self.register_agent(Agent("math_agent", "You are a helpful math assistant.", []))
+        self.register_agent(Agent("math_agent", 
+            f"""
+            You are a helpful math assistant.
+
+            Below is a summary of the previous chat you had with the user:
+            {self.get_agent_chat_summary('math_agent')}
+            """, 
+            [control_flow.prepare_switch_back_to_supervisor_tool(self), 
+             control_flow.prepare_summarization_tool(self)],
+            checkpointer=InMemorySaver(),
+        ))
 
         self.register_agent(Agent("coding_agent", 
             f"""
