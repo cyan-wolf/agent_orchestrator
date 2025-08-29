@@ -26,4 +26,4 @@ def set_settings(
     db.user_settings_db.user_settings[current_user.username] = new_settings
     db.store_user_settings_db()
 
-    return {"response": "successfully modified settings"}
+    return { "result": "Successfully modified settings." }
