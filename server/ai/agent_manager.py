@@ -17,6 +17,8 @@ from ai.agent import Agent
 
 from datetime import datetime, timezone
 
+from user_settings import user_settings
+
 def get_latest_agent_msg(agent_response: dict) -> BaseMessage:
     return agent_response["messages"][-1]
 
@@ -154,6 +156,15 @@ class AgentManager:
             agents. Thankfully, these agents write summaries of their chats with the user. This tool shows you 
             the chat summaries for all agents. This way, you can see what they have done.
 
+            Some basic info on the user:
+            * Preferred Language: {user_settings.get_language(self.owner_username)}
+            * City: {user_settings.get_city(self.owner_username)}
+            * Country: {user_settings.get_country(self.owner_username)}
+            * Time Zone: {user_settings.get_timezone_string(self.owner_username)}
+            
+            Please speak in the user's preferred language. If the user tries to get you to speak in another language, 
+            tell them to change their preferred language in the settings.
+            
             Run the `summarize_chat` tool every 5 messages. This is very important.
 
             Below is a summary of the previous chat you had with this user:

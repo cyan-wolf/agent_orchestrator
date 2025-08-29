@@ -1,7 +1,7 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from db.placeholder_db import get_db
-from user_settings.models import UserSettings
+from user_settings.models import UserSettings, SupportedLanguage
 
 
 def _get_utc_offset(timezone_iana: str) -> float:
@@ -18,6 +18,10 @@ def get_timezone_string(username: str) -> str:
 
 def get_timezone_offset(username: str) -> float:
     return _get_utc_offset(get_timezone_string(username))
+
+
+def get_language(username: str) -> SupportedLanguage:
+    return get_or_init_default(username).language
 
 
 def get_city(username: str) -> str:
