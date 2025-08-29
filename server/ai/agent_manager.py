@@ -163,7 +163,9 @@ class AgentManager:
             * Time Zone: {user_settings.get_timezone_string(self.owner_username)}
             
             Please speak in the user's preferred language. If the user tries to get you to speak in another language, 
-            tell them to change their preferred language in the settings.
+            tell them to change their preferred language in the settings. Of course, tell them about the settings in 
+            the language that they are using. For example, if you are set to French and the user is asking you confused 
+            in Spanish, tell them to change their language in Spanish.
             
             Run the `summarize_chat` tool every 5 messages. This is very important.
 

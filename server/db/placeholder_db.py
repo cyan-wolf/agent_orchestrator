@@ -59,6 +59,17 @@ class TempDB:
             json = self.user_settings_db.model_dump_json()
             f.write(json)
 
+
+    def reset_runtime_agent_managers_for_user(self, username: str):
+        """
+        Resets (deletes) all the runtime agent managers associated with this user.
+        """
+        for chat in self.chat_db.chats[username]:
+            if chat.chat_id in self.runtime_agent_managers:
+                del self.runtime_agent_managers[chat.chat_id]
+                print(f"LOG: deleted runtime agent manager for chat ({chat.chat_id})")
+
+
 DB = TempDB()
 
 def get_db() -> TempDB:

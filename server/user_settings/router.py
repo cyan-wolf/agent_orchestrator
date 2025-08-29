@@ -26,4 +26,7 @@ def set_settings(
     db.user_settings_db.user_settings[current_user.username] = new_settings
     db.store_user_settings_db()
 
+    # Resets the agents in the chat so that they can properly adapt to the new settings.
+    db.reset_runtime_agent_managers_for_user(current_user.username)
+
     return { "result": "Successfully modified settings." }
