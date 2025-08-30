@@ -11,6 +11,7 @@ from langchain_core.runnables.config import RunnableConfig
 from ai.tools import control_flow, web_searching, image_generator, generic_tools
 from ai.tools.code_sandbox import coding_tools
 from ai.tools.scheduling import scheduling_tools
+from ai.tools.math import math_tools
 from ai.tracing import Tracer
 
 from ai.agent import Agent
@@ -67,11 +68,15 @@ class AgentManager:
             f"""
             You are a helpful math assistant.
 
+            Run the summarization tool whenever something important gets done.
+
             Below is a summary of the previous chat you had with the user:
             {self.get_agent_chat_summary('math_agent')}
             """, 
             [control_flow.prepare_switch_back_to_supervisor_tool(self), 
-             control_flow.prepare_summarization_tool(self)],
+             control_flow.prepare_summarization_tool(self), 
+             math_tools.prepare_run_wolfram_alpha_tool(self),
+            ],
             checkpointer=InMemorySaver(),
         ))
 
