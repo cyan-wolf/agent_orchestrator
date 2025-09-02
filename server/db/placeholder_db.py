@@ -1,9 +1,12 @@
 # from ai.agent_manager import AgentManager # commented out due to circular import errors
 from db.models import ChatTempDB, UserTempDB, ScheduleTempDB, UserSettingsTempDB
 from typing import Any
+import os
 
 class TempDB:
     def __init__(self):
+        self.create_temp_store_dir_if_not_present()
+
         self.user_db: UserTempDB = self.load_users_db()
         self.chat_db: ChatTempDB = self.load_chat_db()
         self.schedules_db: ScheduleTempDB = self.load_schedules_db()
@@ -11,30 +14,55 @@ class TempDB:
 
         # chat ID -> AgentManager
         self.runtime_agent_managers: dict[str, Any] = {}
-    
+
+
+    def create_temp_store_dir_if_not_present(self):
+        if not os.path.exists("db_placeholder_store"):
+            os.mkdir("db_placeholder_store")
+
+
     def load_users_db(self):
-        with open("db_placeholder_store/users.json", "r", encoding="utf-8") as f:
-            json = f.read()
-            return UserTempDB.model_validate_json(json)
+        try: 
+            with open("db_placeholder_store/users.json", "r", encoding="utf-8") as f:
+                json = f.read()
+                return UserTempDB.model_validate_json(json)
+            
+        except FileNotFoundError:
+            print(f"LOG: could not load users; generating empty table")
+            return UserTempDB(users={})
 
 
     def load_chat_db(self):
-        with open("db_placeholder_store/chats.json", "r", encoding="utf-8") as f:
-            json = f.read()
-            return ChatTempDB.model_validate_json(json)
+        try:
+            with open("db_placeholder_store/chats.json", "r", encoding="utf-8") as f:
+                json = f.read()
+                return ChatTempDB.model_validate_json(json)
+            
+        except FileNotFoundError:
+            print(f"LOG: could not load chats; generating empty table")
+            return ChatTempDB(chats={})
         
 
     def load_schedules_db(self):
-        with open("db_placeholder_store/schedules.json", "r", encoding="utf-8") as f:
-            json = f.read()
-            return ScheduleTempDB.model_validate_json(json)
+        try:
+            with open("db_placeholder_store/schedules.json", "r", encoding="utf-8") as f:
+                json = f.read()
+                return ScheduleTempDB.model_validate_json(json)
+            
+        except FileNotFoundError:
+            print(f"LOG: could not load schedules; generating empty table")
+            return ScheduleTempDB(schedules={})
         
 
     def load_user_settings_db(self):
-        with open("db_placeholder_store/user_settings.json", "r", encoding="utf-8") as f:
-            json = f.read()
-            return UserSettingsTempDB.model_validate_json(json)
+        try:    
+            with open("db_placeholder_store/user_settings.json", "r", encoding="utf-8") as f:
+                json = f.read()
+                return UserSettingsTempDB.model_validate_json(json)
         
+        except FileNotFoundError:
+            print(f"LOG: could not load user settings; generating empty table")
+            return UserSettingsTempDB(user_settings={})
 
     def store_users_db(self):
         with open("db_placeholder_store/users.json", "w", encoding="utf-8") as f:
