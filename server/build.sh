@@ -4,6 +4,7 @@
 set -e
 
 echo "--- Building Frontend ---"
+cd ..
 cd client
 cd agent-orchestrator-client
 npm install
@@ -13,7 +14,6 @@ cd ..
 echo "--- Finished Building Frontend ---"
 
 echo "--- Building Backend ---"
-pip install uv
 cd server
-python -m uv sync
+uv sync
 echo "--- Finished Building Backend ---"
