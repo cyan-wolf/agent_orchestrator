@@ -15,5 +15,5 @@ echo "--- Finished Building Frontend ---"
 echo "--- Building Backend ---"
 pip install uv
 cd server
-uv sync
+python -m uv sync
 echo "--- Finished Building Backend ---"
