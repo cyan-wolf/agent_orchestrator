@@ -26,5 +26,11 @@ if not FRONTEND_BUILD_PATH.is_dir():
         "Frontend build directory not found. Please run 'npm run build' inside the 'frontend' directory first."
     )
 
-app.mount("/", StaticFiles(directory=FRONTEND_BUILD_PATH, html=True), name="static")
+# Mounts a static route for hosting necessary assets.
+app.mount("/assets", StaticFiles(directory=FRONTEND_BUILD_PATH / "assets"), name="assets")
+
+# Catch all route that serves the frontend `index.html`.
+@app.get("/{full_path:path}")
+def serve_front_end_with_catchall():
+    return FileResponse(FRONTEND_BUILD_PATH / "index.html")
 
