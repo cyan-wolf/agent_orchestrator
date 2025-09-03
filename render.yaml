@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: agent-orchestrator
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "uvicorn server.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.13.5" 
