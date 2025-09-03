@@ -13,4 +13,5 @@ cd ..
 
 echo "--- Building Backend ---"
 cd server
-uv sync
+# Call `uv` using its location in Render's environment.
+/home/render/envwrappers/uv sync
