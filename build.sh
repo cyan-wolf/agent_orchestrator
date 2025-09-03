@@ -10,8 +10,10 @@ npm install
 npm run build
 cd ..
 cd ..
+echo "--- Finished Building Frontend ---"
 
 echo "--- Building Backend ---"
 cd server
 # Call `uv` using its location in Render's environment.
 /home/render/envwrappers/uv sync
+echo "--- Finished Building Backend ---"
