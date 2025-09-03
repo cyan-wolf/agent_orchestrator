@@ -13,7 +13,7 @@ cd ..
 echo "--- Finished Building Frontend ---"
 
 echo "--- Building Backend ---"
+pip install uv
 cd server
-# Call `uv` using its location in Render's environment.
-/home/render/envwrappers/uv sync
+uv sync
 echo "--- Finished Building Backend ---"
