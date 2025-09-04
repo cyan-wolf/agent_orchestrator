@@ -4,10 +4,10 @@ from ai.agent_context import AgentContext
 
 import json
 
-def prepare_web_search_tool(agent_manager: AgentContext):
+def prepare_web_search_tool(ctx: AgentContext):
     search_tool = TavilySearch(max_results=5)
 
-    @trace(agent_manager)
+    @trace(ctx)
     def perform_web_search(query: str) -> str:
         """
         Looks for information on the internet.
@@ -26,10 +26,10 @@ def prepare_web_search_tool(agent_manager: AgentContext):
     return perform_web_search
 
 
-def prepare_request_external_info_tool(agent_manager: AgentContext):
-    @trace(agent_manager)
+def prepare_request_external_info_tool(ctx: AgentContext):
+    @trace(ctx)
     def request_external_information(query: str) -> str:
         """Asks the research agent for help whenever external information is needed, such as external websites or the current date."""
-        return agent_manager.invoke_agent(agent_manager.get_agent_dict()["research_agent"], query)
+        return ctx.invoke_agent(ctx.get_agent_dict()["research_agent"], query)
     
     return request_external_information

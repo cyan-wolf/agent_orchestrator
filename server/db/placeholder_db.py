@@ -13,7 +13,7 @@ class TempDB:
         self.schedules_db: ScheduleTempDB = self.load_schedules_db()
         self.user_settings_db: UserSettingsTempDB = self.load_user_settings_db()
 
-        # chat ID -> AgentManager
+        # chat ID -> AgentContext (AgentManager)
         self.runtime_agent_managers: dict[str, AgentContext] = {}
 
 

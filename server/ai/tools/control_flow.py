@@ -5,8 +5,8 @@ from ai.agent_context import AgentContext
 SwitchableAgent = Literal["coding_agent", "creator_agent", "planner_agent", "math_agent"]
 VALID_SWITCHABLE_AGENT = {"coding_agent", "creator_agent", "planner_agent", "math_agent"}
 
-def prepare_supervisor_agent_tools(agent_manager: AgentContext, extra_tools: list):
-    @trace(agent_manager)
+def prepare_supervisor_agent_tools(ctx: AgentContext, extra_tools: list):
+    @trace(ctx)
     def switch_to_more_qualified_agent(agent_name: SwitchableAgent, reason: str | None) -> str:
         """
         Switches to the given agent. A reason for the switch can optionally be passed to this tool. 
@@ -14,11 +14,11 @@ def prepare_supervisor_agent_tools(agent_manager: AgentContext, extra_tools: lis
         """
         if agent_name in VALID_SWITCHABLE_AGENT:
             # Switch the 'main_agent' (i.e. the agent actually in control).
-            agent_manager.get_agent_dict()["main_agent"] = agent_manager.get_agent_dict()[agent_name]
+            ctx.get_agent_dict()["main_agent"] = ctx.get_agent_dict()[agent_name]
 
             # Tell the new 'main_agent' why it's supposed to do.
-            agent_manager.invoke_agent(
-                agent_manager.get_agent_dict()["main_agent"], 
+            ctx.invoke_agent(
+                ctx.get_agent_dict()["main_agent"], 
                 f"The supervisor agent handed off the user to you! Do your best. This was its reason: {reason}"
             )
 
@@ -27,52 +27,52 @@ def prepare_supervisor_agent_tools(agent_manager: AgentContext, extra_tools: lis
         else:
             return f"unknown agent name '{agent_name}'"
         
-    @trace(agent_manager)
+    @trace(ctx)
     def check_helper_agent_chat_summaries():
         """
         Used for checking what the helper agents have talked about with the user.
         """
-        return str(agent_manager.get_chat_summary_dict())
+        return str(ctx.get_chat_summary_dict())
 
     
     
     return [
         switch_to_more_qualified_agent, 
         check_helper_agent_chat_summaries,
-        prepare_summarization_tool(agent_manager),
+        prepare_summarization_tool(ctx),
     ] + extra_tools
 
 
-def run_agent_specific_cleanup(agent_manager: AgentContext):
+def run_agent_specific_cleanup(ctx: AgentContext):
     from ai.tools.code_sandbox.sandbox_management import clean_up_container_for_chat
 
-    if agent_manager.get_agent_dict()["main_agent"].name == "coding_agent":
+    if ctx.get_agent_dict()["main_agent"].name == "coding_agent":
         # Clean up container for current chat when the coding agent runs cleanup.
-        clean_up_container_for_chat(agent_manager.get_chat_id())
+        clean_up_container_for_chat(ctx.get_chat_id())
 
 
-def prepare_summarization_tool(agent_manager: AgentContext):
-    @trace(agent_manager)
+def prepare_summarization_tool(ctx: AgentContext):
+    @trace(ctx)
     def summarize_chat(chat_summary: str):
         """
         Stores a summary of the current chat.
         """
-        agent_manager.set_chat_summary_for_current(chat_summary)
+        ctx.set_chat_summary_for_current(chat_summary)
 
         return "Successfully summarized chat."
 
     return summarize_chat
 
 
-def prepare_switch_back_to_supervisor_tool(agent_manager: AgentContext):
-    @trace(agent_manager)
+def prepare_switch_back_to_supervisor_tool(ctx: AgentContext):
+    @trace(ctx)
     def switch_back_to_supervisor():
         """
         Switches back to the supervisor. 
         """
-        run_agent_specific_cleanup(agent_manager)
+        run_agent_specific_cleanup(ctx)
 
-        agent_manager.get_agent_dict()["main_agent"] = agent_manager.get_agent_dict()["supervisor_agent"]
+        ctx.get_agent_dict()["main_agent"] = ctx.get_agent_dict()["supervisor_agent"]
         return "switched back to supervisor"
     
     return switch_back_to_supervisor

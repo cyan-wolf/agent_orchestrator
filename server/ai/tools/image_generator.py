@@ -36,8 +36,8 @@ def _generate_image_impl(query: str) -> str:
     image_base64: str = _get_image_base64(response)
     return image_base64
 
-def prepare_image_generation_tool(agent_manager: AgentContext):
-    @trace(agent_manager)
+def prepare_image_generation_tool(ctx: AgentContext):
+    @trace(ctx)
     def generate_image_and_show_it_to_user(query: str) -> str:
         """
         Generates the image specified by the query. This tool automatically 
@@ -46,7 +46,7 @@ def prepare_image_generation_tool(agent_manager: AgentContext):
         image_base64 = _generate_image_impl(query)
 
         # Used for showing the image to the user.
-        agent_manager.get_tracer().add(ImageSideEffectTrace(base64_encoded_image=image_base64))
+        ctx.get_tracer().add(ImageSideEffectTrace(base64_encoded_image=image_base64))
 
         return "Successfully generated and showed image to user."
         
