@@ -1,7 +1,6 @@
 # from ai.agent_manager import AgentManager # commented out due to circular import errors
 from db.models import ChatTempDB, UserTempDB, ScheduleTempDB, UserSettingsTempDB
 from ai.agent_context import AgentContext
-from typing import Any
 import os
 
 class TempDB:

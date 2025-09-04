@@ -13,12 +13,15 @@ from ai.tools.code_sandbox import coding_tools
 from ai.tools.scheduling import scheduling_tools
 from ai.tools.math import math_tools
 from ai.tracing import Tracer
-
 from ai.agent import Agent
 
 from datetime import datetime, timezone
 
+from collections import defaultdict
+
 from user_settings import user_settings
+
+from db.placeholder_db import get_db
 
 def get_latest_agent_msg(agent_response: dict) -> BaseMessage:
     return agent_response["messages"][-1]
@@ -37,7 +40,7 @@ class AgentManager:
         self.tracer = Tracer(serialized_version.history)
 
         # agent name -> chat summary (for that agent)
-        self.chat_summaries = serialized_version.chat_summaries
+        self.chat_summaries: dict[str, str] = defaultdict(lambda: "This is a new chat. No summary available.", serialized_version.chat_summaries)
 
         self.chat_id = chat_id
         self.owner_username = owner_username
@@ -45,7 +48,163 @@ class AgentManager:
         self.initialize_agents()
 
 
-    # == Protocol methods ==
+    def to_serialized(self) -> SerializedAgentManager:
+        return SerializedAgentManager(
+            history=self.tracer.get_history(), 
+            chat_summaries=self.chat_summaries,
+        )
+
+
+    def set_chat_summary(self, chat_summary: str):
+        """
+        Sets the chat summary for the current agent.
+        """
+        self.chat_summaries[self.get_current_agent_name()] = chat_summary
+
+
+    def initialize_agents(self):
+        """
+        Initializes and registers several agents.
+        """
+
+        user_owner = get_db().user_db.users[self.owner_username]
+
+        self.register_agent(Agent("math_agent", 
+            "You are a helpful math assistant.",
+            """
+            You can mainly use your Wolfram Alpha tool to solve math problems. 
+            """,
+            user_owner,
+            user_settings.get_or_init_default(self.owner_username),
+            self.chat_summaries,
+            [control_flow.prepare_switch_back_to_supervisor_tool(self), 
+             control_flow.prepare_summarization_tool(self), 
+             math_tools.prepare_run_wolfram_alpha_tool(self),
+            ],
+            checkpointer=InMemorySaver(),
+        ))
+
+        self.register_agent(Agent("coding_agent", 
+            "You are a helpful coding assistant.",
+            """
+            You only work with Python, no other programming language.
+            Always add comments and type annotations to any Python code you run.
+            You have access to a Linux environment where you can run commands.
+            """,
+            user_owner,
+            user_settings.get_or_init_default(self.owner_username),
+            self.chat_summaries,
+            [coding_tools.prepare_create_file_tool(self), 
+             coding_tools.prepare_run_command_tool(self), 
+             control_flow.prepare_switch_back_to_supervisor_tool(self), 
+             control_flow.prepare_summarization_tool(self)],
+            checkpointer=InMemorySaver(),
+        ))
+
+        self.register_agent(Agent("research_agent",  
+            "You are a helpful research agent.",
+            f"""
+            Use the web search tool to look for information. 
+            """, 
+            user_owner,
+            user_settings.get_or_init_default(self.owner_username),
+            self.chat_summaries,
+            [web_searching.prepare_web_search_tool(self)],
+            checkpointer=InMemorySaver(),
+        ))
+
+        self.register_agent(Agent("creator_agent", 
+            "You are a a content generation agent.",
+            f"""
+            You can help the user create images using your image generation tool. 
+            You receive requests to write textual content such as poems, stories, scripts.
+            """,
+            user_owner,
+            user_settings.get_or_init_default(self.owner_username),
+            self.chat_summaries,
+            [image_generator.prepare_image_generation_tool(self), 
+             control_flow.prepare_summarization_tool(self), 
+             control_flow.prepare_switch_back_to_supervisor_tool(self)],
+            checkpointer=InMemorySaver(),
+        ))
+
+        self.register_agent(Agent("planner_agent", 
+            "You are a planner agent.",
+            f"""
+            You help the user make a schedule along with helping them organize it. 
+            You can view and modify the schedule with your tools. You can also check the current date with your tools.
+
+            You don't know where the user lives. Please use your tools to find out. Knowing where the user lives will 
+            help you recommend more appropriate events (for example: don't recommend going to the beach if its winter and the user 
+            lives in Toronto; but do recommend going to the beach if its summer and the user lives in Miami). You can use the request external 
+            information tool to learn more about possible events in a location if the user asks you.
+
+            You can check the current date and time using your get_current_date_tool. As a good reference point, 
+            keep in mind that your current conversation with the user started at {datetime.now(tz=timezone.utc)} (UTC time) though.
+
+            When you get data from your view events tool, please format them in a nice way.
+            """,
+            user_owner,
+            user_settings.get_or_init_default(self.owner_username),
+            self.chat_summaries,
+            [generic_tools.prepare_get_current_date_tool(self),
+             generic_tools.prepare_get_user_timezone_tool(self),
+             generic_tools.prepare_get_user_location_tool(self),
+             web_searching.prepare_request_external_info_tool(self),
+             scheduling_tools.prepare_view_schedule_tool(self),
+             scheduling_tools.prepare_add_new_event_tool(self),
+             scheduling_tools.prepare_delete_event_tool(self),
+             scheduling_tools.prepare_modify_event_tool(self),
+             control_flow.prepare_summarization_tool(self),
+             control_flow.prepare_switch_back_to_supervisor_tool(self)],
+            checkpointer=InMemorySaver(),
+        ))
+
+        self.register_agent(Agent("supervisor_agent", 
+            """
+            You are a helpful assistant. You are kind of sassy. 
+            You can answer any topic except for one caveat: never EVER answer questions about Bruno.
+            """,
+            f"""
+            You are the supervisor of several other helper agents. You sometimes hand-off the user to these helper 
+            agents. Thankfully, these agents write summaries of their chats with the user. This tool shows you 
+            the chat summaries for all agents. This way, you can see what they have done.
+
+            Don't hesitate to use the `switch_to_more_qualified_agent` tool.
+            
+            Run the `summarize_chat` tool every 5 messages. This is very important.
+            """,
+            user_owner,
+            user_settings.get_or_init_default(self.owner_username),
+            self.chat_summaries,
+            control_flow.prepare_supervisor_agent_tools(self, extra_tools=[web_searching.prepare_request_external_info_tool(self)]),
+            checkpointer=InMemorySaver()
+        ))
+
+        # "main_agent" is the agent that the user directly chats with.
+        self.agents["main_agent"] = self.agents["supervisor_agent"]
+
+        # "current_agent" is the agent currently in control. This is 
+        # used to keep track of which agents call the tools.
+        # this is currently broken vvv
+        self.agents["current_agent"] = self.agents["main_agent"]
+ 
+
+    def register_agent(self, agent: Agent):
+        """
+        Registers the given agent to the agent manager. Allows the agent to be 
+        called by other agents using its name.
+        """
+        self.agents[agent.name] = agent
+
+
+
+    def get_current_agent_name(self) -> str:
+        return self.agents["current_agent"].name
+    
+        
+
+    # == Protocol methods for `AgentContext` ==
 
     def get_owner_username(self) -> str:
         return self.owner_username
@@ -98,184 +257,3 @@ class AgentManager:
         self.tracer.add(HumanMessageTrace(username=username, content=user_input))
 
         return self.invoke_agent(self.agents["main_agent"], user_input, as_main_agent=True)
-
-
-    # =======================
-
-
-    
-    def to_serialized(self) -> SerializedAgentManager:
-        return SerializedAgentManager(
-            history=self.tracer.get_history(), 
-            chat_summaries=self.chat_summaries,
-        )
-
-
-    def set_chat_summary(self, chat_summary: str):
-        """
-        Sets the chat summary for the current agent.
-        """
-        self.chat_summaries[self.get_current_agent_name()] = chat_summary
-
-
-    def initialize_agents(self):
-        """
-        Initializes and registers several agents.
-        """
-
-        self.register_agent(Agent("math_agent", 
-            f"""
-            You are a helpful math assistant.
-
-            Run the summarization tool whenever something important gets done.
-
-            Below is a summary of the previous chat you had with the user:
-            {self.get_agent_chat_summary('math_agent')}
-            """, 
-            [control_flow.prepare_switch_back_to_supervisor_tool(self), 
-             control_flow.prepare_summarization_tool(self), 
-             math_tools.prepare_run_wolfram_alpha_tool(self),
-            ],
-            checkpointer=InMemorySaver(),
-        ))
-
-        self.register_agent(Agent("coding_agent", 
-            f"""
-            You are a helpful coding assistant. You only work with Python, no other programming language.
-            Always add comments and type annotations to any Python code you run.
-            You have access to a Linux environment where you can run commands. 
-
-            Run the summarization tool whenever something important gets done.
-
-            Below is a summary of the previous chat you had with the user:
-            {self.get_agent_chat_summary('coding_agent')}
-            """, 
-            [coding_tools.prepare_create_file_tool(self), 
-             coding_tools.prepare_run_command_tool(self), 
-             control_flow.prepare_switch_back_to_supervisor_tool(self), 
-             control_flow.prepare_summarization_tool(self)],
-            checkpointer=InMemorySaver(),
-        ))
-
-        self.register_agent(Agent("research_agent",  
-            f"""
-            You are a helpful research agent. Use the web search tool to look for information. 
-            The current date in UTC is {datetime.now(tz=timezone.utc)}.
-            """, 
-            [web_searching.prepare_web_search_tool(self)],
-            checkpointer=InMemorySaver(),
-        ))
-
-        self.register_agent(Agent("creator_agent", 
-            f"""
-            You are a a content generation agent. You can help the user create images using your image generation tool. 
-            You receive requests to write textual content such as poems, stories, scripts.
-
-            Use the summarization tool whenever you generate a piece of content. Don't spam the summarization tool.
-
-            Below is a summary of the previous chat you had with the user:
-            {self.get_agent_chat_summary('creator_agent')}
-            """,
-            [image_generator.prepare_image_generation_tool(self), 
-             control_flow.prepare_summarization_tool(self), 
-             control_flow.prepare_switch_back_to_supervisor_tool(self)],
-            checkpointer=InMemorySaver(),
-        ))
-
-        self.register_agent(Agent("planner_agent", 
-            f"""
-            You are a planner agent. You help the user make a schedule along with helping them organize it. 
-            You can view and modify the schedule with your tools. You can also check the current date with your tools.
-
-            Your tools all work with UTC time, but the user is going to be confused if you respond using UTC. Please 
-            use your tools to figure out the user's timezone. This won't change how you call your tools, but it will 
-            confusing the user when you mention dates and times from your tools, which will be in UTC.
-
-            You don't know where the user lives. Please use your tools to find out. Knowing where the user lives will 
-            help you recommend more appropriate events (for example: don't recommend going to the beach if its winter and the user 
-            lives in Toronto; but do recommend going to the beach if its summer and the user lives in Miami). You can use the request external 
-            information tool to learn more about possible events in a location if the user asks you.
-
-            You can check the current date and time using your get_current_date_tool. As a good reference point, 
-            keep in mind that your current conversation with the user started at {datetime.now(tz=timezone.utc)} (UTC time) though.
-
-            When you get data from your view events tool, please format them in a nice way.
-
-            Use the summarization tool whenever you do something worth remembering later. Don't spam the summarization tool.
-
-            Below is a summary of the previous chat you had with the user:
-            {self.get_agent_chat_summary('planner_agent')}
-            """,
-            [generic_tools.prepare_get_current_date_tool(self),
-             generic_tools.prepare_get_user_timezone_tool(self),
-             generic_tools.prepare_get_user_location_tool(self),
-             web_searching.prepare_request_external_info_tool(self),
-             scheduling_tools.prepare_view_schedule_tool(self),
-             scheduling_tools.prepare_add_new_event_tool(self),
-             scheduling_tools.prepare_delete_event_tool(self),
-             scheduling_tools.prepare_modify_event_tool(self),
-             control_flow.prepare_summarization_tool(self),
-             control_flow.prepare_switch_back_to_supervisor_tool(self)],
-            checkpointer=InMemorySaver(),
-        ))
-
-        self.register_agent(Agent("supervisor_agent", 
-            f"""
-            You are a helpful assistant. You are kind of sassy. 
-            You can answer any topic except for one caveat: never EVER answer questions about Bruno.
-
-            Don't hesitate to use the `switch_to_more_qualified_agent` tool.
-
-            You are the supervisor of several other helper agents. You sometimes hand-off the user to these helper 
-            agents. Thankfully, these agents write summaries of their chats with the user. This tool shows you 
-            the chat summaries for all agents. This way, you can see what they have done.
-
-            Some basic info on the user:
-            * Preferred Language: {user_settings.get_language(self.owner_username)}
-            * City: {user_settings.get_city(self.owner_username)}
-            * Country: {user_settings.get_country(self.owner_username)}
-            * Time Zone: {user_settings.get_timezone_string(self.owner_username)}
-            
-            Please speak in the user's preferred language. If the user tries to get you to speak in another language, 
-            tell them to change their preferred language in the settings. Of course, tell them about the settings in 
-            the language that they are using. For example, if you are set to French and the user is asking you confused 
-            in Spanish, tell them to change their language in Spanish.
-            
-            Run the `summarize_chat` tool every 5 messages. This is very important.
-
-            Below is a summary of the previous chat you had with this user:
-            {self.get_agent_chat_summary('supervisor_agent')}
-            """,
-            control_flow.prepare_supervisor_agent_tools(self, extra_tools=[web_searching.prepare_request_external_info_tool(self)]),
-            checkpointer=InMemorySaver()
-        ))
-
-        # "main_agent" is the agent that the user directly chats with.
-        self.agents["main_agent"] = self.agents["supervisor_agent"]
-
-        # "current_agent" is the agent currently in control. This is 
-        # used to keep track of which agents call the tools.
-        # this is currently broken vvv
-        self.agents["current_agent"] = self.agents["main_agent"]
- 
-
-    def register_agent(self, agent: Agent):
-        """
-        Registers the given agent to the agent manager. Allows the agent to be 
-        called by other agents using its name.
-        """
-        self.agents[agent.name] = agent
-
-
-
-    def get_current_agent_name(self) -> str:
-        return self.agents["current_agent"].name
-    
-    
-    def get_agent_chat_summary(self, agent_name: str) -> str:
-        chat_summary = self.chat_summaries.get(agent_name)
-
-        if chat_summary is None:
-            return "This is a new chat. No summary available."
-        else:
-            return chat_summary
