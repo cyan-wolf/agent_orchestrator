@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from ai.tracing import trace
+from ai.agent_context import AgentContext
 from ai.tools.scheduling.models import Event, Importance, EventModification
 from db.placeholder_db import get_db  
 
@@ -26,18 +27,18 @@ def get_or_init_schedule_from_user(username: str) -> list[Event]:
     return schedule
 
 
-def prepare_view_schedule_tool(agent_manager):
+def prepare_view_schedule_tool(agent_manager: AgentContext):
     @trace(agent_manager)
     def view_schedule() -> list[Event]:
         """
         Returns a list of events on the schedule.
         """
-        return get_or_init_schedule_from_user(agent_manager.owner_username)
+        return get_or_init_schedule_from_user(agent_manager.get_owner_username())
 
     return view_schedule
 
 
-def prepare_add_new_event_tool(agent_manager):
+def prepare_add_new_event_tool(agent_manager: AgentContext):
     @trace(agent_manager)
     def add_new_event(event_name: str, start_time: datetime, end_time: datetime, importance: Importance):
         """
@@ -52,7 +53,7 @@ def prepare_add_new_event_tool(agent_manager):
             importance=importance)
         _add_utc_timezone_to_event(event)
 
-        schedule = get_or_init_schedule_from_user(agent_manager.owner_username)
+        schedule = get_or_init_schedule_from_user(agent_manager.get_owner_username())
         schedule.append(event)
         get_db().store_schedules_db()
 
@@ -60,13 +61,13 @@ def prepare_add_new_event_tool(agent_manager):
     
     return add_new_event
 
-def prepare_delete_event_tool(agent_manager):
+def prepare_delete_event_tool(agent_manager: AgentContext):
     @trace(agent_manager)
     def remove_event_with_id(event_id: str) -> str:
         """
         Removes the event with the given ID from the schedule.
         """
-        schedule = get_or_init_schedule_from_user(agent_manager.owner_username)
+        schedule = get_or_init_schedule_from_user(agent_manager.get_owner_username())
         
         if len(schedule) == 0:
             return "no events to delete"
@@ -82,7 +83,7 @@ def prepare_delete_event_tool(agent_manager):
     return remove_event_with_id
 
 
-def prepare_modify_event_tool(agent_manager):
+def prepare_modify_event_tool(agent_manager: AgentContext):
     @trace(agent_manager)
     def modify_event(event_modification: EventModification):
         """
@@ -93,7 +94,7 @@ def prepare_modify_event_tool(agent_manager):
         modify the corresponding field on the existing event.
         """
 
-        schedule = get_or_init_schedule_from_user(agent_manager.owner_username)
+        schedule = get_or_init_schedule_from_user(agent_manager.get_owner_username())
         
         if len(schedule) == 0:
             return "no events to modify"

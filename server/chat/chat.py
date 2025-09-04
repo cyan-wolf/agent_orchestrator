@@ -2,6 +2,7 @@ import base64
 from typing import Sequence
 import uuid
 
+from ai.agent_context import AgentContext
 from ai.agent_manager import AgentManager
 from ai.models import SerializedAgentManager
 from chat.models import Chat, ChatInDB
@@ -65,7 +66,7 @@ def delete_chat(username: str, chat_id: str, db: TempDB) -> bool:
     
     return False
 
-def get_agent_manager_for_chat(chat: ChatInDB, db: TempDB, username: str) -> AgentManager:
+def get_agent_manager_for_chat(chat: ChatInDB, db: TempDB, username: str) -> AgentContext:
     # Existing chat's runtime agent manager has already been initialized.
     if chat.chat_id in db.runtime_agent_managers:
         return db.runtime_agent_managers[chat.chat_id]

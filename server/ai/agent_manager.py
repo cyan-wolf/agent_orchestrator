@@ -44,6 +44,65 @@ class AgentManager:
 
         self.initialize_agents()
 
+
+    # == Protocol methods ==
+
+    def get_owner_username(self) -> str:
+        return self.owner_username
+
+    def get_chat_id(self) -> str:
+        return self.chat_id
+
+    def get_tracer(self) -> Tracer:
+        return self.tracer
+    
+    def get_agent_dict(self) -> dict[str, Agent]:
+        return self.agents
+    
+    def get_chat_summary_dict(self) -> dict[str, str]:
+        return self.chat_summaries
+    
+    def set_chat_summary_for_current(self, chat_summary: str) -> None:
+        self.set_chat_summary(chat_summary)
+
+    def invoke_agent(self, agent: Agent, user_input: str, as_main_agent: bool = False) -> str:
+        """
+        Invokes the given agent using the provided user input.
+        """
+
+        # Bookeeping to keep track of the agent currently in control.
+        prev_agent = self.agents["current_agent"]
+        self.agents["current_agent"] = agent
+
+        res = agent.graph.invoke(
+            {"messages": [{"role": "user", "content": user_input}]},
+            self.config,
+        )
+        message = get_latest_agent_msg(res)
+        content = str(message.content)
+        self.tracer.add(AIMessageTrace(agent_name=agent.name, content=content, is_main_agent=as_main_agent))
+
+        # `agent` is no longer in control.
+        # If the "main agent" did not switch during agent invocation, then it is 
+        # safe to switch back to `prev_agent`.
+        if prev_agent.name == self.agents["main_agent"].name:
+            self.agents["current_agent"] = prev_agent
+
+        return content
+
+
+    def invoke_main_agent_with_text(self, username: str, user_input: str) -> str:
+        """
+        Invokes the agent that is currently designated to be the main agent.
+        """
+        self.tracer.add(HumanMessageTrace(username=username, content=user_input))
+
+        return self.invoke_agent(self.agents["main_agent"], user_input, as_main_agent=True)
+
+
+    # =======================
+
+
     
     def to_serialized(self) -> SerializedAgentManager:
         return SerializedAgentManager(
@@ -207,40 +266,6 @@ class AgentManager:
         """
         self.agents[agent.name] = agent
 
-
-    def invoke_agent(self, agent: Agent, user_input: str, as_main_agent: bool = False) -> str:
-        """
-        Invokes the given agent using the provided user input.
-        """
-
-        # Bookeeping to keep track of the agent currently in control.
-        prev_agent = self.agents["current_agent"]
-        self.agents["current_agent"] = agent
-
-        res = agent.graph.invoke(
-            {"messages": [{"role": "user", "content": user_input}]},
-            self.config,
-        )
-        message = get_latest_agent_msg(res)
-        content = str(message.content)
-        self.tracer.add(AIMessageTrace(agent_name=agent.name, content=content, is_main_agent=as_main_agent))
-
-        # `agent` is no longer in control.
-        # If the "main agent" did not switch during agent invocation, then it is 
-        # safe to switch back to `prev_agent`.
-        if prev_agent.name == self.agents["main_agent"].name:
-            self.agents["current_agent"] = prev_agent
-
-        return content
-
-
-    def invoke_main_with_text(self, username: str, user_input: str) -> str:
-        """
-        Invokes the agent that is currently designated to be the main agent.
-        """
-        self.tracer.add(HumanMessageTrace(username=username, content=user_input))
-
-        return self.invoke_agent(self.agents["main_agent"], user_input, as_main_agent=True)
 
 
     def get_current_agent_name(self) -> str:

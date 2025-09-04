@@ -3,7 +3,7 @@ from fastapi import Depends
 from fastapi.routing import APIRouter
 from pydantic import BaseModel
 
-from ai.tracing import Trace
+from ai.models import Trace
 from auth.auth import User, get_current_user
 from chat.chat import Chat, delete_chat, get_agent_manager_for_chat, get_chat_by_id, get_user_chat_list, initialize_new_chat
 from chat.models import CreateNewChat
@@ -59,7 +59,7 @@ async def get_history(
         raise Exception("invalid chat ID")
 
     agent_manager = get_agent_manager_for_chat(chat, db, current_user.username)
-    hist = agent_manager.tracer.get_history()
+    hist = agent_manager.get_tracer().get_history()
 
     return hist
 
@@ -77,7 +77,7 @@ async def get_latest_messages(
         raise Exception("invalid chat ID")
 
     agent_manager = get_agent_manager_for_chat(chat, db, current_user.username)
-    hist = agent_manager.tracer.get_history()
+    hist = agent_manager.get_tracer().get_history()
 
     return [t for t in hist if t.timestamp > latest_timestamp]
 
@@ -98,11 +98,14 @@ async def recieve_user_input(
 
     agent_manager = get_agent_manager_for_chat(chat, db, current_user.username)
 
-    _ = agent_manager.invoke_main_with_text(current_user.username, user_req.user_message)
+    _ = agent_manager.invoke_main_agent_with_text(current_user.username, user_req.user_message)
 
     # Store the chat history by serializing the agent manager.
     # This is for the placeholder storing functionality.
-    chat.agent_manager_serialization = agent_manager.to_serialized()
+
+    # IGNORE TYPING SINCE THIS IS A TEMPORARY HACK.
+    # Just assume that the context *IS* an agent manager.
+    chat.agent_manager_serialization = agent_manager.to_serialized() # type: ignore
 
     # Store the chat DB on disk everytime a message is sent (placeholder).
     db.store_chat_db()

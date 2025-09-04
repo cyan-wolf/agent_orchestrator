@@ -1,5 +1,6 @@
 # from ai.agent_manager import AgentManager # commented out due to circular import errors
 from db.models import ChatTempDB, UserTempDB, ScheduleTempDB, UserSettingsTempDB
+from ai.agent_context import AgentContext
 from typing import Any
 import os
 
@@ -13,7 +14,7 @@ class TempDB:
         self.user_settings_db: UserSettingsTempDB = self.load_user_settings_db()
 
         # chat ID -> AgentManager
-        self.runtime_agent_managers: dict[str, Any] = {}
+        self.runtime_agent_managers: dict[str, AgentContext] = {}
 
 
     def create_temp_store_dir_if_not_present(self):
