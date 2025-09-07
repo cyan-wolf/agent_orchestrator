@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from ai.models import SerializedAgentManager
+from ai.schemas import SerializedAgentManager
 
 
 class CreateNewChat(BaseModel):

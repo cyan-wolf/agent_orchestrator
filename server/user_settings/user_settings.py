@@ -1,7 +1,7 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from db.placeholder_db import get_temp_db
-from user_settings.models import UserSettings, SupportedLanguage
+from user_settings.schemas import UserSettings, SupportedLanguage
 
 
 def _get_utc_offset(timezone_iana: str) -> float:

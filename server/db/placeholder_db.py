@@ -1,5 +1,5 @@
 # from ai.agent_manager import AgentManager # commented out due to circular import errors
-from db.models import ChatTempDB, ScheduleTempDB, UserSettingsTempDB
+from db.schemas import ChatTempDB, ScheduleTempDB, UserSettingsTempDB
 from ai.agent_manager_interface import IAgentManager
 import os
 

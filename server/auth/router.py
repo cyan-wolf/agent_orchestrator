@@ -7,7 +7,7 @@ from fastapi.routing import APIRouter
 
 from auth.auth import *
 
-from auth.models import CreateNewUser, Token, User
+from auth.schemas import CreateNewUser, Token, User
 
 from sqlalchemy.orm import Session
 from database.database import get_database

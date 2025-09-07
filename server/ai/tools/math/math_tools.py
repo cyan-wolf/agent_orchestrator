@@ -1,7 +1,7 @@
 import os
 import requests
 import base64
-from ai.models import ImageSideEffectTrace
+from ai.schemas import ImageSideEffectTrace
 from ai.tracing import trace
 from ai.agent_context import AgentCtx
 

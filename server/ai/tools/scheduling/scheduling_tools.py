@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from ai.tracing import trace
 from ai.agent_context import AgentCtx
-from ai.tools.scheduling.models import Event, Importance, EventModification
+from ai.tools.scheduling.schemas import Event, Importance, EventModification
 from db.placeholder_db import get_temp_db  
 
 

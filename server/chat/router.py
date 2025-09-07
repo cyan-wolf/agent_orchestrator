@@ -3,11 +3,11 @@ from fastapi import Depends
 from fastapi.routing import APIRouter
 from pydantic import BaseModel
 
-from ai.models import Trace
+from ai.schemas import Trace
 from auth.tables import UserTable
 from auth.auth import get_current_user
 from chat.chat import Chat, delete_chat, get_agent_manager_for_chat, get_chat_by_id, get_user_chat_list, initialize_new_chat
-from chat.models import CreateNewChat
+from chat.schemas import CreateNewChat
 from db.placeholder_db import TempDB, get_temp_db
 
 from sqlalchemy.orm import Session

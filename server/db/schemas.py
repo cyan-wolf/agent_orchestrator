@@ -1,8 +1,8 @@
 
 from pydantic import BaseModel
-from chat.models import ChatInDB
-from ai.tools.scheduling.models import Event
-from user_settings.models import UserSettings
+from chat.schemas import ChatInDB
+from ai.tools.scheduling.schemas import Event
+from user_settings.schemas import UserSettings
 
 class ChatTempDB(BaseModel):
     # username -> list of chats

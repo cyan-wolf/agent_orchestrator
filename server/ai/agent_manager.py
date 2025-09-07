@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 
-from ai.models import AIMessageTrace, HumanMessageTrace, SerializedAgentManager
+from ai.schemas import AIMessageTrace, HumanMessageTrace, SerializedAgentManager
 load_dotenv()
 
 from langchain_core.messages import BaseMessage

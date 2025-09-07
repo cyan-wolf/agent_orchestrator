@@ -4,8 +4,8 @@ import uuid
 
 from ai.agent_manager_interface import IAgentManager
 from ai.agent_manager import RuntimeAgentManager
-from ai.models import SerializedAgentManager
-from chat.models import Chat, ChatInDB
+from ai.schemas import SerializedAgentManager
+from chat.schemas import Chat, ChatInDB
 from db.placeholder_db import TempDB
 
 from sqlalchemy.orm import Session

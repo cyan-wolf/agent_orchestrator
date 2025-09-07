@@ -12,7 +12,7 @@ from passlib.context import CryptContext
 
 import os
 
-from auth.models import AuthCheck, UserWithPass, TokenData
+from auth.schemas import AuthCheck, UserWithPass, TokenData
 from auth.tables import UserTable
 
 from database.database import get_database

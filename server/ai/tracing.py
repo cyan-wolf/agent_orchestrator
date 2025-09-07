@@ -1,7 +1,7 @@
 import inspect
 from functools import wraps
 
-from ai.models import ToolTrace
+from ai.schemas import ToolTrace
 from ai.agent_context import AgentCtx
 
 from .tracer import Tracer

@@ -6,7 +6,7 @@ from langgraph.graph.graph import CompiledGraph
 from langgraph.types import Checkpointer
 
 from auth.tables import UserTable
-from user_settings.models import UserSettings
+from user_settings.schemas import UserSettings
 
 class Agent:
 

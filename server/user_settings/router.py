@@ -2,9 +2,9 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 
 from auth.auth import get_current_user
-from auth.models import User
+from auth.schemas import User
 from db.placeholder_db import TempDB, get_temp_db
-from user_settings.models import UserSettings
+from user_settings.schemas import UserSettings
 from user_settings.user_settings import get_or_init_default
 
 router = APIRouter()
