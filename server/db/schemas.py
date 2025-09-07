@@ -9,11 +9,6 @@ class ChatTempDB(BaseModel):
     chats: dict[str, list[ChatInDB]]
 
 
-class ScheduleTempDB(BaseModel):
-    # username -> list of events
-    schedules: dict[str, list[Event]]
-
-
 class UserSettingsTempDB(BaseModel):
     # username -> user settings
     user_settings: dict[str, UserSettings]

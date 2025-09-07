@@ -1,5 +1,5 @@
 # from ai.agent_manager import AgentManager # commented out due to circular import errors
-from db.schemas import ChatTempDB, ScheduleTempDB, UserSettingsTempDB
+from db.schemas import ChatTempDB, UserSettingsTempDB
 from ai.agent_manager_interface import IAgentManager
 import os
 
@@ -8,7 +8,6 @@ class TempDB:
         self.create_temp_store_dir_if_not_present()
 
         self.chat_db: ChatTempDB = self.load_chat_db()
-        self.schedules_db: ScheduleTempDB = self.load_schedules_db()
         self.user_settings_db: UserSettingsTempDB = self.load_user_settings_db()
 
         # chat ID -> AgentContext (AgentManager)
@@ -31,17 +30,6 @@ class TempDB:
             return ChatTempDB(chats={})
         
 
-    def load_schedules_db(self):
-        try:
-            with open("db_placeholder_store/schedules.json", "r", encoding="utf-8") as f:
-                json = f.read()
-                return ScheduleTempDB.model_validate_json(json)
-            
-        except FileNotFoundError:
-            print(f"LOG: could not load schedules; generating empty table")
-            return ScheduleTempDB(schedules={})
-        
-
     def load_user_settings_db(self):
         try:    
             with open("db_placeholder_store/user_settings.json", "r", encoding="utf-8") as f:
@@ -56,12 +44,6 @@ class TempDB:
     def store_chat_db(self):
         with open("db_placeholder_store/chats.json", "w", encoding="utf-8") as f:
             json = self.chat_db.model_dump_json()
-            f.write(json)
-
-
-    def store_schedules_db(self):
-        with open("db_placeholder_store/schedules.json", "w", encoding="utf-8") as f:
-            json = self.schedules_db.model_dump_json()
             f.write(json)
 
 
