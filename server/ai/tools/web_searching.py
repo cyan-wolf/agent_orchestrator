@@ -1,10 +1,10 @@
 from langchain_tavily import TavilySearch
 from ai.tracing import trace
-from ai.agent_context import AgentContext
+from ai.agent_context import AgentCtx
 
 import json
 
-def prepare_web_search_tool(ctx: AgentContext):
+def prepare_web_search_tool(ctx: AgentCtx):
     search_tool = TavilySearch(max_results=5)
 
     @trace(ctx)
@@ -26,10 +26,10 @@ def prepare_web_search_tool(ctx: AgentContext):
     return perform_web_search
 
 
-def prepare_request_external_info_tool(ctx: AgentContext):
+def prepare_request_external_info_tool(ctx: AgentCtx):
     @trace(ctx)
     def request_external_information(query: str) -> str:
         """Asks the research agent for help whenever external information is needed, such as external websites or the current date."""
-        return ctx.invoke_agent(ctx.get_agent_dict()["research_agent"], query)
+        return ctx.manager.invoke_agent(ctx.manager.get_agent_dict()["research_agent"], query, ctx.db)
     
     return request_external_information

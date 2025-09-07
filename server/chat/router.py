@@ -10,6 +10,9 @@ from chat.chat import Chat, delete_chat, get_agent_manager_for_chat, get_chat_by
 from chat.models import CreateNewChat
 from db.placeholder_db import TempDB, get_db
 
+from sqlalchemy.orm import Session
+from database.database import get_database
+
 router = APIRouter()
 
 @router.get("/api/chat/get-all-chats/", tags=["chat"])
@@ -24,12 +27,13 @@ async def get_all_chats(
 @router.post("/api/chat/create/", tags=["chat"])
 async def create_new_chat(
     current_user: Annotated[UserTable, Depends(get_current_user)],
-    db: Annotated[TempDB, Depends(get_db)],
+    db: Annotated[Session, Depends(get_database)],
+    temp_db: Annotated[TempDB, Depends(get_db)],
     new_chat_req_body: CreateNewChat,
 ) -> Chat:
     username = current_user.username
 
-    new_chat = initialize_new_chat(username, db, new_chat_req_body.name)
+    new_chat = initialize_new_chat(username, db, temp_db, new_chat_req_body.name)
     return new_chat
 
 
@@ -52,14 +56,15 @@ async def delete_chat_with_id(
 async def get_history(
     chat_id: str, 
     current_user: Annotated[UserTable, Depends(get_current_user)],
-    db: Annotated[TempDB, Depends(get_db)],
+    db: Annotated[Session, Depends(get_database)],
+    temp_db: Annotated[TempDB, Depends(get_db)],
  ) -> Sequence[Trace]:
     
-    chat = get_chat_by_id(current_user.username, chat_id, db)
+    chat = get_chat_by_id(current_user.username, chat_id, temp_db)
     if chat is None:
         raise Exception("invalid chat ID")
 
-    agent_manager = get_agent_manager_for_chat(chat, db, current_user.username)
+    agent_manager = get_agent_manager_for_chat(chat, db, temp_db, current_user.username)
     hist = agent_manager.get_tracer().get_history()
 
     return hist
@@ -70,14 +75,15 @@ async def get_latest_messages(
     chat_id: str, 
     latest_timestamp: float, 
     current_user: Annotated[UserTable, Depends(get_current_user)],
-    db: Annotated[TempDB, Depends(get_db)],
+    db: Annotated[Session, Depends(get_database)],
+    temp_db: Annotated[TempDB, Depends(get_db)],
 ) -> Sequence[Trace]:
     
-    chat = get_chat_by_id(current_user.username, chat_id, db)
+    chat = get_chat_by_id(current_user.username, chat_id, temp_db)
     if chat is None:
         raise Exception("invalid chat ID")
 
-    agent_manager = get_agent_manager_for_chat(chat, db, current_user.username)
+    agent_manager = get_agent_manager_for_chat(chat, db, temp_db, current_user.username)
     hist = agent_manager.get_tracer().get_history()
 
     return [t for t in hist if t.timestamp > latest_timestamp]
@@ -91,15 +97,16 @@ async def recieve_user_input(
     chat_id: str, 
     user_req: UserRequest, 
     current_user: Annotated[UserTable, Depends(get_current_user)],
-    db: Annotated[TempDB, Depends(get_db)],
+    temp_db: Annotated[TempDB, Depends(get_db)],
+    db: Annotated[Session, Depends(get_database)],
 ):
-    chat = get_chat_by_id(current_user.username, chat_id, db)
+    chat = get_chat_by_id(current_user.username, chat_id, temp_db)
     if chat is None:
         raise Exception("invalid chat ID")
 
-    agent_manager = get_agent_manager_for_chat(chat, db, current_user.username)
+    agent_manager = get_agent_manager_for_chat(chat, db, temp_db, current_user.username)
 
-    _ = agent_manager.invoke_main_agent_with_text(current_user.username, user_req.user_message)
+    _ = agent_manager.invoke_main_agent_with_text(current_user.username, user_req.user_message, db)
 
     # Store the chat history by serializing the agent manager.
     # This is for the placeholder storing functionality.
@@ -109,6 +116,6 @@ async def recieve_user_input(
     chat.agent_manager_serialization = agent_manager.to_serialized() # type: ignore
 
     # Store the chat DB on disk everytime a message is sent (placeholder).
-    db.store_chat_db()
+    temp_db.store_chat_db()
     
     return { "result": "finished processing" }

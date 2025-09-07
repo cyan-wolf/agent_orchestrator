@@ -1,9 +1,9 @@
 from datetime import datetime, timezone
 from ai.tracing import trace
-from ai.agent_context import AgentContext
+from ai.agent_context import AgentCtx
 from user_settings import user_settings
 
-def prepare_get_current_date_tool(ctx: AgentContext):
+def prepare_get_current_date_tool(ctx: AgentCtx):
     @trace(ctx)
     def get_current_date():
         """
@@ -14,7 +14,7 @@ def prepare_get_current_date_tool(ctx: AgentContext):
     return get_current_date
 
 
-def prepare_get_user_timezone_tool(ctx: AgentContext):
+def prepare_get_user_timezone_tool(ctx: AgentCtx):
     @trace(ctx)
     def get_user_timezone() -> tuple[str, float]:
         """
@@ -23,7 +23,7 @@ def prepare_get_user_timezone_tool(ctx: AgentContext):
         computed UTC offset as a floating point number. For example, if the offset is 4.0
         then the user's timezone is UTC+4. If the offset is -4.0, then the offset is UTC-4. 
         """
-        username = ctx.get_owner_username()
+        username = ctx.manager.get_owner_username()
         timezone_string = user_settings.get_timezone_string(username)
         timezone_offset = user_settings.get_timezone_offset(username)
 
@@ -32,14 +32,14 @@ def prepare_get_user_timezone_tool(ctx: AgentContext):
     return get_user_timezone
 
 
-def prepare_get_user_location_tool(ctx: AgentContext):
+def prepare_get_user_location_tool(ctx: AgentCtx):
     @trace(ctx)
     def get_user_provided_location() -> tuple[str, str]:
         """
         Returns the user's provided location as a tuple of strings. The first element 
         is the user-provided city and the second element is the user-provided country.
         """
-        username = ctx.get_owner_username()
+        username = ctx.manager.get_owner_username()
         city = user_settings.get_city(username)
         country = user_settings.get_country(username)
 

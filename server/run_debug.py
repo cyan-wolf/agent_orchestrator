@@ -1,7 +1,7 @@
-from ai.agent_manager import AgentManager
+from ai.agent_manager import RuntimeAgentManager
 
 def run_debug_prompt_loop():
-    agent_manager = AgentManager()
+    agent_manager = RuntimeAgentManager()
 
     while True:
         try:

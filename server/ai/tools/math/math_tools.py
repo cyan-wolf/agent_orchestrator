@@ -3,7 +3,7 @@ import requests
 import base64
 from ai.models import ImageSideEffectTrace
 from ai.tracing import trace
-from ai.agent_context import AgentContext
+from ai.agent_context import AgentCtx
 
 _URL = "https://www.wolframalpha.com/api/v1/llm-api"
 
@@ -52,12 +52,12 @@ def _extract_image_links_from_api_response(tool_output: str) -> list[tuple[str, 
     return image_links
 
 
-def _add_image_to_trace_history(ctx: AgentContext, image_base64: str):
+def _add_image_to_trace_history(ctx: AgentCtx, image_base64: str):
     # Used for showing the image to the user.
-    ctx.get_tracer().add(ImageSideEffectTrace(base64_encoded_image=image_base64))
+    ctx.manager.get_tracer().add(ImageSideEffectTrace(base64_encoded_image=image_base64))
 
 
-def prepare_run_wolfram_alpha_tool(ctx: AgentContext):
+def prepare_run_wolfram_alpha_tool(ctx: AgentCtx):
     @trace(ctx)
     def run_wolfram_alpha_tool(query: str) -> str:
         """

@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 
 from ai.models import ImageSideEffectTrace
 from ai.tracing import trace
-from ai.agent_context import AgentContext
+from ai.agent_context import AgentCtx
 load_dotenv()
 
 from langchain_core.messages import BaseMessage
@@ -36,7 +36,7 @@ def _generate_image_impl(query: str) -> str:
     image_base64: str = _get_image_base64(response)
     return image_base64
 
-def prepare_image_generation_tool(ctx: AgentContext):
+def prepare_image_generation_tool(ctx: AgentCtx):
     @trace(ctx)
     def generate_image_and_show_it_to_user(query: str) -> str:
         """
@@ -46,7 +46,7 @@ def prepare_image_generation_tool(ctx: AgentContext):
         image_base64 = _generate_image_impl(query)
 
         # Used for showing the image to the user.
-        ctx.get_tracer().add(ImageSideEffectTrace(base64_encoded_image=image_base64))
+        ctx.manager.get_tracer().add(ImageSideEffectTrace(base64_encoded_image=image_base64))
 
         return "Successfully generated and showed image to user."
         

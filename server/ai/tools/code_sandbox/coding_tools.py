@@ -1,8 +1,8 @@
 from ai.tracing import trace
-from ai.agent_context import AgentContext
+from ai.agent_context import AgentCtx
 from ai.tools.code_sandbox.sandbox_management import get_container, exec_command_on_container, add_file_to_container
 
-def prepare_run_command_tool(ctx: AgentContext):
+def prepare_run_command_tool(ctx: AgentCtx):
     @trace(ctx)
     def run_command(command: str) -> tuple[int, str]:
         """
@@ -15,14 +15,14 @@ def prepare_run_command_tool(ctx: AgentContext):
             A tuple where the first element represents the exit code and the second element the output of the command.
         """
 
-        container = get_container(ctx.get_chat_id())
+        container = get_container(ctx.manager.get_chat_id())
         exit_code, output = exec_command_on_container(container, command)
         return exit_code, output
     
     return run_command
 
 
-def prepare_create_file_tool(ctx: AgentContext):
+def prepare_create_file_tool(ctx: AgentCtx):
     @trace(ctx)
     def create_file(file_path: str, file_content: str) -> bool:
         """
@@ -35,7 +35,7 @@ def prepare_create_file_tool(ctx: AgentContext):
         Returns:
             bool: True if the operation succeeded.
         """
-        container = get_container(ctx.get_chat_id())
+        container = get_container(ctx.manager.get_chat_id())
         succeeded = add_file_to_container(container, file_path, file_content)
         return succeeded
     
