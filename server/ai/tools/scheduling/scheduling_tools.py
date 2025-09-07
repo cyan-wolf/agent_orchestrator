@@ -1,11 +1,16 @@
 from datetime import datetime, timezone
 from ai.tracing import trace
 from ai.agent_context import AgentCtx
-from ai.tools.scheduling.schemas import Event, Importance, EventModification
-from db.placeholder_db import get_temp_db  
+from ai.tools.scheduling.tables import EventTable
+from ai.tools.scheduling.schemas import CreateEvent, EventBase, Event, Importance, EventModification
 
+import uuid
 
-def _add_utc_timezone_to_event(event: Event):
+from sqlalchemy.orm import Session
+
+from auth.auth import get_user_by_username
+
+def _add_utc_timezone_to_event(event: EventBase):
     """
     Modifies the given event such that its start and end times are 
     proper datetimes (i.e. not naive) by adding UTC as their timezone.
@@ -14,17 +19,37 @@ def _add_utc_timezone_to_event(event: Event):
     event.end_time = event.end_time.replace(tzinfo=timezone.utc)
 
 
-def get_or_init_schedule_from_user(username: str) -> list[Event]:
-    db = get_temp_db().schedules_db.schedules
+def _event_from_db_to_schema(event: EventTable) -> Event:
+    return Event(
+        id=event.id,
+        name=event.name,
+        start_time=datetime.fromtimestamp(event.start_time),
+        end_time=datetime.fromtimestamp(event.end_time),
+        importance=event.importance, # type: ignore # assume that the importance from the DB is valid
+    )
 
-    schedule = db.get(username)
 
-    if schedule is None:
-        schedule = []
-        db[username] = schedule
-        get_temp_db().store_schedules_db()
+# NOTE: Creates an event without an ID. The ID is auto-generated.
+def _event_from_schema_to_db(event: EventBase, user_id: uuid.UUID) -> EventTable:
+    return EventTable(
+        name=event.name,
+        start_time=int(event.start_time.timestamp()),
+        end_time=int(event.end_time.timestamp()),
+        importance=event.importance,
+        user_id=user_id,
+    )
 
-    return schedule
+
+def get_all_user_events(db: Session, username: str) -> list[EventTable]:
+    user = get_user_by_username(db, username)
+    assert user
+    return user.events
+
+
+def add_new_event_in_db(db: Session, user_id: uuid.UUID, create_event: CreateEvent):
+    event = _event_from_schema_to_db(create_event, user_id)
+    db.add(event)
+    db.commit()
 
 
 def prepare_view_schedule_tool(ctx: AgentCtx):
@@ -33,8 +58,8 @@ def prepare_view_schedule_tool(ctx: AgentCtx):
         """
         Returns a list of events on the schedule.
         """
-        return get_or_init_schedule_from_user(ctx.manager.get_owner_username())
-
+        return list(map(_event_from_db_to_schema, get_all_user_events(ctx.db, ctx.manager.get_owner_username())))
+    
     return view_schedule
 
 
@@ -46,39 +71,36 @@ def prepare_add_new_event_tool(ctx: AgentCtx):
         Python datetime objects. Please convert from the user's timezone to UTC and work with start and endtimes in UTC. 
         Of course, refer to them in the user's timezone when communicating with them as to not confuse them, but the tool works with UTC only.
         """
-        event = Event(
+        create_event = CreateEvent(
             name=event_name, 
             start_time=start_time, 
             end_time=end_time, 
             importance=importance)
-        _add_utc_timezone_to_event(event)
+        _add_utc_timezone_to_event(create_event)
 
-        schedule = get_or_init_schedule_from_user(ctx.manager.get_owner_username())
-        schedule.append(event)
-        get_temp_db().store_schedules_db()
+        add_new_event_in_db(ctx.db, ctx.manager.get_owner_user_id(), create_event)
 
         return "successfully added event"
     
     return add_new_event
 
+
 def prepare_delete_event_tool(ctx: AgentCtx):
     @trace(ctx)
-    def remove_event_with_id(event_id: str) -> str:
+    def remove_event_with_id(event_id: uuid.UUID) -> str:
         """
         Removes the event with the given ID from the schedule.
         """
-        schedule = get_or_init_schedule_from_user(ctx.manager.get_owner_username())
-        
-        if len(schedule) == 0:
-            return "no events to delete"
-        
-        for i in range(len(schedule)):
-            if schedule[i].id == event_id:
-                del schedule[i]
-                get_temp_db().store_schedules_db()
-                return f"successfully deleted event"
-            
-        return f"event with id {event_id} was not present"
+        event = ctx.db.get(EventTable, event_id)
+
+        if event is not None:
+            ctx.db.delete(event)
+            ctx.db.commit()
+            return f"successfully deleted event"
+
+        else:
+            return f"event with id {event_id} was not present"
+
     
     return remove_event_with_id
 
@@ -94,31 +116,29 @@ def prepare_modify_event_tool(ctx: AgentCtx):
         modify the corresponding field on the existing event.
         """
 
-        schedule = get_or_init_schedule_from_user(ctx.manager.get_owner_username())
+        event = ctx.db.get(EventTable, event_modification.event_id)
+
+        if event is not None:
+
+            if event_modification.new_name is not None:
+                event.name = event_modification.new_name
+
+            if event_modification.new_start_time is not None:
+                event.start_time = int(event_modification.new_start_time.replace(tzinfo=timezone.utc).timestamp())
+
+            if event_modification.new_end_time is not None:
+                event.end_time = int(event_modification.new_end_time.replace(tzinfo=timezone.utc).timestamp())
+
+            if event_modification.new_importance is not None:
+                event.importance = event_modification.new_importance
+
+            # Save the changes.
+            ctx.db.commit()
+
+            return "Successfully modified the event"
         
-        if len(schedule) == 0:
-            return "no events to modify"
+        else:
+            return f"event with id {event_modification.event_id} was not present"
         
-        for i in range(len(schedule)):
-            if schedule[i].id == event_modification.event_id:
-                
-                if event_modification.new_name is not None:
-                    schedule[i].name = event_modification.new_name
-
-                if event_modification.new_start_time is not None:
-                    schedule[i].start_time = event_modification.new_start_time
-
-                if event_modification.new_end_time is not None:
-                    schedule[i].end_time = event_modification.new_end_time
-
-                if event_modification.new_importance is not None:
-                    schedule[i].importance = event_modification.new_importance
-
-                _add_utc_timezone_to_event(schedule[i])
-
-                get_temp_db().store_schedules_db()
-                return f"successfully modified event"
-        
-        return f"event with id {event_modification.event_id} was not present"
     
     return modify_event

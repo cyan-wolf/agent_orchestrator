@@ -10,18 +10,13 @@ class TokenData(BaseModel):
     username: str | None = None
 
 
-class User(BaseModel):
-    id: uuid.UUID
+class UserBase(BaseModel):
     username: str
-    email: str | None = None
-    full_name: str | None = None
+    email: str 
+    full_name: str
 
 
-class UserWithPass(User):
-    hashed_password: str
-
-
-class CreateNewUser(User):
+class CreateNewUser(UserBase):
     password: str
 
     @field_validator('password')
@@ -29,6 +24,14 @@ class CreateNewUser(User):
         if len(value) < 8:
             raise ValueError("Password is too weak; must be at least 8 characters.")
         return value
+
+
+class User(UserBase):
+    id: uuid.UUID
+
+
+class UserWithPass(User):
+    hashed_password: str
 
 
 class AuthCheck(BaseModel):

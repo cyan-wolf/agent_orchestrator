@@ -13,7 +13,12 @@ from pathlib import Path
 
 # For making sure the database is setup.
 from database.database import Base, engine
+
+# Side-effect import all the tables to make sure they are loaded.
 import auth.tables as _
+import ai.tools.scheduling.tables as _
+
+# Create the metadata on the engine.
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()

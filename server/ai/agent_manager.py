@@ -27,6 +27,8 @@ from sqlalchemy.orm import Session
 
 from ai.agent_context import AgentCtx
 
+import uuid
+
 def get_latest_agent_msg(agent_response: dict) -> BaseMessage:
     return agent_response["messages"][-1]
 
@@ -48,6 +50,10 @@ class RuntimeAgentManager:
 
         self.chat_id = chat_id
         self.owner_username = owner_username
+
+        owner = get_user_by_username(db, self.owner_username)
+        assert owner
+        self.owner_user_id = owner.id
 
         self.initialize_agents(db)
 
@@ -218,6 +224,9 @@ class RuntimeAgentManager:
 
     def get_owner_username(self) -> str:
         return self.owner_username
+    
+    def get_owner_user_id(self) -> uuid.UUID:
+        return self.owner_user_id
 
     def get_chat_id(self) -> str:
         return self.chat_id

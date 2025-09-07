@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { getCurrentUser } from "../../auth/user";
+import { getCurrentUser, type User } from "../../auth/user";
 import { useAuth } from "../../auth/useAuth";
 import Loading from "../../components/loading/Loading";
 import { Alert, AlertTitle, Button, Card, CardContent, Container, Paper, TextField, Typography } from "@mui/material";
@@ -67,17 +67,19 @@ export default function Register() {
         }
 
         try {
+            const userSubmission: User = {
+                username: username.trim(),
+                email: email.trim(),
+                full_name: fullName.trim(),
+                password: password.trim(),
+            };
+
             const response = await fetch("/api/register/", {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    username: username.trim(),
-                    email: email.trim(),
-                    fullName: fullName.trim(),
-                    password: password.trim(),
-                }),
+                body: JSON.stringify(userSubmission),
             });
 
             if (!response.ok) {
@@ -90,7 +92,7 @@ export default function Register() {
             const user = await getCurrentUser();
             
             // Login the user; must exist since the API returned a successful response.
-            login(user!);
+            login(userSubmission!);
         }
         catch (err) {
             console.log(err);

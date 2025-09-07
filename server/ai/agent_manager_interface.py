@@ -2,6 +2,7 @@ from typing import Protocol
 from ai.tracer import Tracer
 from ai.agent import Agent
 from sqlalchemy.orm import Session
+import uuid
 
 class IAgentManager(Protocol):
     """
@@ -9,6 +10,9 @@ class IAgentManager(Protocol):
     """
     
     def get_owner_username(self) -> str:
+        ...
+
+    def get_owner_user_id(self) -> uuid.UUID:
         ...
 
     def get_chat_id(self) -> str:
