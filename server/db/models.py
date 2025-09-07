@@ -1,13 +1,13 @@
 
 from pydantic import BaseModel
-from auth.models import UserInDB
+from auth.models import UserWithPass
 from chat.models import ChatInDB
 from ai.tools.scheduling.models import Event
 from user_settings.models import UserSettings
 
 class UserTempDB(BaseModel):
     # username -> user
-    users: dict[str, UserInDB]
+    users: dict[str, UserWithPass]
 
 
 class ChatTempDB(BaseModel):

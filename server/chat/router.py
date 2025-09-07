@@ -4,7 +4,8 @@ from fastapi.routing import APIRouter
 from pydantic import BaseModel
 
 from ai.models import Trace
-from auth.auth import User, get_current_user
+from auth.tables import UserTable
+from auth.auth import get_current_user
 from chat.chat import Chat, delete_chat, get_agent_manager_for_chat, get_chat_by_id, get_user_chat_list, initialize_new_chat
 from chat.models import CreateNewChat
 from db.placeholder_db import TempDB, get_db
@@ -13,7 +14,7 @@ router = APIRouter()
 
 @router.get("/api/chat/get-all-chats/", tags=["chat"])
 async def get_all_chats(
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[UserTable, Depends(get_current_user)],
     db: Annotated[TempDB, Depends(get_db)],
 ) -> Sequence[Chat]:
     username = current_user.username
@@ -22,7 +23,7 @@ async def get_all_chats(
 
 @router.post("/api/chat/create/", tags=["chat"])
 async def create_new_chat(
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[UserTable, Depends(get_current_user)],
     db: Annotated[TempDB, Depends(get_db)],
     new_chat_req_body: CreateNewChat,
 ) -> Chat:
@@ -35,7 +36,7 @@ async def create_new_chat(
 @router.post("/api/chat/{chat_id}/delete/", tags=["chat"])
 async def delete_chat_with_id(
     chat_id: str, 
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[UserTable, Depends(get_current_user)],
     db: Annotated[TempDB, Depends(get_db)],
 ):
     could_delete = delete_chat(current_user.username, chat_id, db)
@@ -50,7 +51,7 @@ async def delete_chat_with_id(
 @router.get("/api/chat/{chat_id}/history/", tags=["chat"])
 async def get_history(
     chat_id: str, 
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[UserTable, Depends(get_current_user)],
     db: Annotated[TempDB, Depends(get_db)],
  ) -> Sequence[Trace]:
     
@@ -68,7 +69,7 @@ async def get_history(
 async def get_latest_messages(
     chat_id: str, 
     latest_timestamp: float, 
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[UserTable, Depends(get_current_user)],
     db: Annotated[TempDB, Depends(get_db)],
 ) -> Sequence[Trace]:
     
@@ -89,7 +90,7 @@ class UserRequest(BaseModel):
 async def recieve_user_input(
     chat_id: str, 
     user_req: UserRequest, 
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[UserTable, Depends(get_current_user)],
     db: Annotated[TempDB, Depends(get_db)],
 ):
     chat = get_chat_by_id(current_user.username, chat_id, db)

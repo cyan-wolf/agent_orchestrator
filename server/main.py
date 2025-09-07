@@ -11,6 +11,11 @@ from user_settings.router import router as user_settings_router
 
 from pathlib import Path
 
+# For making sure the database is setup.
+from database.database import Base, engine
+import auth.tables as _
+Base.metadata.create_all(bind=engine)
+
 app = FastAPI()
 
 app.include_router(auth_router)

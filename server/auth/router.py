@@ -7,8 +7,10 @@ from fastapi.routing import APIRouter
 
 from auth.auth import *
 
-from auth.models import CreateNewUser, Token
-from db.placeholder_db import TempDB, get_db
+from auth.models import CreateNewUser, Token, User
+
+from sqlalchemy.orm import Session
+from database.database import get_database
 
 router = APIRouter()
 
@@ -16,9 +18,9 @@ router = APIRouter()
 async def login_for_access_token(
     response: Response,
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-    db: Annotated[TempDB, Depends(get_db)]
+    db: Annotated[Session, Depends(get_database)],
 ) -> Token:
-    user = authenticate_user(db.user_db, form_data.username, form_data.password)
+    user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -44,22 +46,23 @@ async def auth_check(
 async def register(
     response: Response,
     new_user: CreateNewUser,
-    db: Annotated[TempDB, Depends(get_db)]
+    db: Annotated[Session, Depends(get_database)],
 ):
     # TODO: Improve registration validation.
     
-    if new_user.username.strip() in db.user_db.users:
+    if get_user_by_username(db, new_user.username.strip()) is not None:
         raise HTTPException(status_code=400, detail=f"User '{new_user.username}' already exists.")
     
-    if len(new_user.password) < 8:
-        raise HTTPException(status_code=400, detail="Password is too weak; must be at least 8 characters.")
-    
+    # Add a new user record to the DB.
     hashed_password = get_password_hash(new_user.password)
-
-    user = UserInDB(**new_user.__dict__, hashed_password=hashed_password)
-
-    db.user_db.users[new_user.username] = user
-    db.store_users_db()
+    user = UserTable(
+        username=new_user.username,
+        email=new_user.email,
+        full_name=new_user.full_name,
+        hashed_password=hashed_password,
+    )
+    db.add(user)
+    db.commit()
 
     # Logs in the user.
     create_and_set_access_token(response, user)
@@ -75,13 +78,7 @@ async def logout(response: Response):
 
 @router.get("/api/users/me/", response_model=User)
 async def read_users_me(
-    current_user: Annotated[User, Depends(get_current_user)],
-):
-    return current_user
+    current_user: Annotated[UserTable, Depends(get_current_user)],
+) -> User:
+    return user_from_db_to_dto(current_user)
 
-
-@router.get("/api/users/me/items/")
-async def read_own_items(
-    current_user: Annotated[User, Depends(get_current_user)],
-):
-    return [{"item_id": "Foo", "owner": current_user.username}]

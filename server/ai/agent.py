@@ -5,7 +5,7 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langgraph.graph.graph import CompiledGraph
 from langgraph.types import Checkpointer
 
-from auth.auth import User
+from auth.tables import UserTable
 from user_settings.models import UserSettings
 
 class Agent:
@@ -16,7 +16,7 @@ class Agent:
 
         persona: str, 
         purpose: str, 
-        user: User,
+        user: UserTable,
         user_settings: UserSettings,
         chat_summaries: dict[str, str], 
 
@@ -38,7 +38,7 @@ class Agent:
         self,         
         persona: str, 
         purpose: str, 
-        user: User,
+        user: UserTable,
         user_settings: UserSettings,
         chat_summaries: dict[str, str],
     ) -> str:

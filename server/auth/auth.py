@@ -12,9 +12,12 @@ from passlib.context import CryptContext
 
 import os
 
-from auth.models import AuthCheck, TokenData, User, UserInDB
-from db.models import UserTempDB
-from db.placeholder_db import TempDB, get_db
+from auth.models import AuthCheck, UserWithPass, TokenData
+from auth.tables import UserTable
+
+from database.database import get_database
+
+from sqlalchemy.orm import Session
 
 class MissingEnvVarException(Exception): pass
 
@@ -63,25 +66,20 @@ class OAuth2PasswordBearerFromCookies(OAuth2):
 oauth2_scheme = OAuth2PasswordBearerFromCookies(tokenUrl="/api/token/", auto_error=False)
 
 
-
-def verify_password(plain_password, hashed_password):
+def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def get_password_hash(password):
+def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 
-def get_user(db: UserTempDB, username: str) -> UserInDB | None:
-    if username in db.users:
-        user = db.users[username]
-        return user
-    else:
-        return None
+def get_user_by_username(db: Session, username: str) -> UserTable | None:
+    return db.query(UserTable).filter(UserTable.username == username).first()
         
 
-def authenticate_user(db: UserTempDB, username: str, password: str):
-    user = get_user(db, username)
+def authenticate_user(db: Session, username: str, password: str):
+    user = get_user_by_username(db, username)
     if not user:
         return False
     if not verify_password(password, user.hashed_password):
@@ -100,7 +98,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     return encoded_jwt
 
 
-def create_and_set_access_token(response: Response, user: User):
+def create_and_set_access_token(response: Response, user: UserTable):
     """
     Logs in the user by setting the JWT auth token in the response's cookies. 
     """
@@ -117,7 +115,7 @@ def create_and_set_access_token(response: Response, user: User):
     return access_token
 
 
-async def _get_curr_user_impl(token: Annotated[str, Depends(oauth2_scheme)], db: UserTempDB, should_raise_credentials_exception: bool = True):
+async def _get_curr_user_from_db_impl(token: Annotated[str, Depends(oauth2_scheme)], db: Session, should_raise_credentials_exception: bool = True) -> UserTable | None:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -133,7 +131,7 @@ async def _get_curr_user_impl(token: Annotated[str, Depends(oauth2_scheme)], db:
                 return None
             
         token_data = TokenData(username=username)
-        user = get_user(db, username=username)
+        user = get_user_by_username(db, username)
 
     except InvalidTokenError:
         if should_raise_credentials_exception:
@@ -150,26 +148,32 @@ async def _get_curr_user_impl(token: Annotated[str, Depends(oauth2_scheme)], db:
     return user
 
 
-async def check_user_auth(token: Annotated[str, Depends(oauth2_scheme)], db: Annotated[TempDB, Depends(get_db)]) -> AuthCheck:
-    user = await _get_curr_user_impl(token, db.user_db, should_raise_credentials_exception=False)
+async def check_user_auth(token: Annotated[str, Depends(oauth2_scheme)], db: Annotated[Session, Depends(get_database)]) -> AuthCheck:
+    user_from_db = await _get_curr_user_from_db_impl(token, db, should_raise_credentials_exception=False)
+    curr_user_exists = user_from_db is not None
+
+    if curr_user_exists:
+        user = user_from_db_to_dto(user_from_db)
+    else:
+        user = None
     
     return AuthCheck(
-        is_auth=user is not None, 
+        is_auth=curr_user_exists, 
         user=user,
     )
 
 
-async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: Annotated[TempDB, Depends(get_db)]) -> User:
-    user = await _get_curr_user_impl(token, db.user_db)
+async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: Annotated[Session, Depends(get_database)]) -> UserTable:
+    user = await _get_curr_user_from_db_impl(token, db)
     assert user is not None
     return user
 
 
-# async def get_current_active_user(
-#     current_user: Annotated[User, Depends(get_current_user)],
-# ):
-#     if current_user.disabled:
-#         raise HTTPException(status_code=400, detail="Inactive user")
-#     return current_user
-
-
+def user_from_db_to_dto(user_from_db: UserTable) -> UserWithPass:
+    return UserWithPass(
+        id=user_from_db.id,
+        username=user_from_db.username,
+        email=user_from_db.email,
+        full_name=user_from_db.full_name,
+        hashed_password=user_from_db.hashed_password,
+    )
