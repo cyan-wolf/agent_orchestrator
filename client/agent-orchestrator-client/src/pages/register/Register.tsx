@@ -67,7 +67,7 @@ export default function Register() {
         }
 
         try {
-            const userSubmission: User = {
+            const userRegistration: User = {
                 username: username.trim(),
                 email: email.trim(),
                 full_name: fullName.trim(),
@@ -79,7 +79,7 @@ export default function Register() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(userSubmission),
+                body: JSON.stringify(userRegistration),
             });
 
             if (!response.ok) {
@@ -89,10 +89,10 @@ export default function Register() {
                 return;
             }
 
-            const user = await getCurrentUser();
+            const currUser = await getCurrentUser();
             
             // Login the user; must exist since the API returned a successful response.
-            login(userSubmission!);
+            login(currUser!);
         }
         catch (err) {
             console.log(err);
