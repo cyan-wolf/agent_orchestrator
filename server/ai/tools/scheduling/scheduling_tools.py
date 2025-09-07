@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from ai.tracing import trace
 from ai.agent_context import AgentCtx
 from ai.tools.scheduling.models import Event, Importance, EventModification
-from db.placeholder_db import get_db  
+from db.placeholder_db import get_temp_db  
 
 
 def _add_utc_timezone_to_event(event: Event):
@@ -15,14 +15,14 @@ def _add_utc_timezone_to_event(event: Event):
 
 
 def get_or_init_schedule_from_user(username: str) -> list[Event]:
-    db = get_db().schedules_db.schedules
+    db = get_temp_db().schedules_db.schedules
 
     schedule = db.get(username)
 
     if schedule is None:
         schedule = []
         db[username] = schedule
-        get_db().store_schedules_db()
+        get_temp_db().store_schedules_db()
 
     return schedule
 
@@ -55,7 +55,7 @@ def prepare_add_new_event_tool(ctx: AgentCtx):
 
         schedule = get_or_init_schedule_from_user(ctx.manager.get_owner_username())
         schedule.append(event)
-        get_db().store_schedules_db()
+        get_temp_db().store_schedules_db()
 
         return "successfully added event"
     
@@ -75,7 +75,7 @@ def prepare_delete_event_tool(ctx: AgentCtx):
         for i in range(len(schedule)):
             if schedule[i].id == event_id:
                 del schedule[i]
-                get_db().store_schedules_db()
+                get_temp_db().store_schedules_db()
                 return f"successfully deleted event"
             
         return f"event with id {event_id} was not present"
@@ -116,7 +116,7 @@ def prepare_modify_event_tool(ctx: AgentCtx):
 
                 _add_utc_timezone_to_event(schedule[i])
 
-                get_db().store_schedules_db()
+                get_temp_db().store_schedules_db()
                 return f"successfully modified event"
         
         return f"event with id {event_modification.event_id} was not present"

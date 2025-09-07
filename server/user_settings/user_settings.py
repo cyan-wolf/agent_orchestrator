@@ -1,6 +1,6 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
-from db.placeholder_db import get_db
+from db.placeholder_db import get_temp_db
 from user_settings.models import UserSettings, SupportedLanguage
 
 
@@ -39,7 +39,7 @@ def get_or_init_default(username: str) -> UserSettings:
     Gets the settings for the given user. Initalizes the user 
     with some default settings if they do not exist.
     """
-    db = get_db()
+    db = get_temp_db()
     settings = db.user_settings_db.user_settings.get(username)
 
     if settings is None:
