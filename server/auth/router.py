@@ -47,22 +47,8 @@ async def register(
     response: Response,
     new_user: CreateNewUser,
     db: Annotated[Session, Depends(get_database)],
-):
-    # TODO: Improve registration validation.
-    
-    if get_user_by_username(db, new_user.username.strip()) is not None:
-        raise HTTPException(status_code=400, detail=f"User '{new_user.username}' already exists.")
-    
-    # Add a new user record to the DB.
-    hashed_password = get_password_hash(new_user.password)
-    user = UserTable(
-        username=new_user.username,
-        email=new_user.email,
-        full_name=new_user.full_name,
-        hashed_password=hashed_password,
-    )
-    db.add(user)
-    db.commit()
+):    
+    user = create_user_with_default_settings(db, new_user)
 
     # Logs in the user.
     create_and_set_access_token(response, user)

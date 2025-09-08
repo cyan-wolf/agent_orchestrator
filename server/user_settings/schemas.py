@@ -7,8 +7,8 @@ SupportedLanguage = Literal["English", "Spanish", "French", "German", "Russian",
 class UserSettings(BaseModel):
     timezone: str = Field(default='Etc/UTC')
     language: SupportedLanguage = Field(default='English')
-    city: str | None = Field(default=None)
-    country: str | None = Field(default=None)
+    city: str = Field(default='Unknown')
+    country: str = Field(default='Unknown')
 
     @field_validator('timezone')
     def validate_timezone(cls, value: str) -> str:

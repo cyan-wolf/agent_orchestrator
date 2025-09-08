@@ -16,6 +16,7 @@ from database.database import Base, engine
 
 # Side-effect import all the tables to make sure they are loaded.
 import auth.tables as _
+import user_settings.tables as _
 import ai.tools.scheduling.tables as _
 
 # Create the metadata on the engine.

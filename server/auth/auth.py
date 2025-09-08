@@ -12,8 +12,9 @@ from passlib.context import CryptContext
 
 import os
 
-from auth.schemas import AuthCheck, UserWithPass, TokenData
+from auth.schemas import AuthCheck, CreateNewUser, UserWithPass, TokenData
 from auth.tables import UserTable
+from user_settings.tables import UserSettingsTable
 
 from database.database import get_database
 
@@ -166,6 +167,35 @@ async def check_user_auth(token: Annotated[str, Depends(oauth2_scheme)], db: Ann
 async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: Annotated[Session, Depends(get_database)]) -> UserTable:
     user = await _get_curr_user_from_db_impl(token, db)
     assert user is not None
+    return user
+
+
+def create_user_with_default_settings(db: Session, new_user: CreateNewUser) -> UserTable:
+    """
+    This method adds a new user to the DB along with some default settings.
+    """
+
+    if get_user_by_username(db, new_user.username.strip()) is not None:
+        raise HTTPException(status_code=400, detail=f"User '{new_user.username}' already exists.")
+    
+    hashed_password = get_password_hash(new_user.password)
+    
+    user = UserTable(
+        username=new_user.username,
+        email=new_user.email,
+        full_name=new_user.full_name,
+        hashed_password=hashed_password,
+    )
+    db.add(user)
+    
+    # A flush needs to be done so that SQLAlchemy populates the user.id field.
+    db.flush()
+
+    user_settings = UserSettingsTable(user_id=user.id)
+
+    db.add(user_settings)
+    db.commit()
+
     return user
 
 

@@ -6,6 +6,7 @@ import uuid
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from ai.tools.scheduling.tables import EventTable
+    from user_settings.tables import UserSettingsTable
 
 class UserTable(Base):
     __tablename__ = "users"
@@ -17,3 +18,4 @@ class UserTable(Base):
     hashed_password: Mapped[str] = mapped_column(Text)
 
     events: Mapped[list["EventTable"]] = relationship(back_populates="user")
+    settings: Mapped["UserSettingsTable"] = relationship(back_populates="user")
