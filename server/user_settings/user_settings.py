@@ -1,54 +1,29 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
-from db.placeholder_db import get_temp_db
+from auth.auth import get_user_by_username
 from user_settings.schemas import UserSettings, SupportedLanguage
+from user_settings.tables import UserSettingsTable
+from sqlalchemy.orm import Session
+
+# def _get_utc_offset(timezone_iana: str) -> float:
+#     SECS_PER_DAY = 3600
+
+#     now = datetime.now(tz=ZoneInfo(timezone_iana))
+#     offset = now.utcoffset().total_seconds() / SECS_PER_DAY # type: ignore
+#     return offset
 
 
-def _get_utc_offset(timezone_iana: str) -> float:
-    SECS_PER_DAY = 3600
-
-    now = datetime.now(tz=ZoneInfo(timezone_iana))
-    offset = now.utcoffset().total_seconds() / SECS_PER_DAY # type: ignore
-    return offset
+def get_settings_table_with_username(db: Session, username: str) -> UserSettingsTable:
+    user = get_user_by_username(db, username)
+    assert user
+    return user.settings
 
 
-def get_timezone_string(username: str) -> str:
-    return get_or_init_default(username).timezone
-
-
-def get_timezone_offset(username: str) -> float:
-    return _get_utc_offset(get_timezone_string(username))
-
-
-def get_language(username: str) -> SupportedLanguage:
-    return get_or_init_default(username).language
-
-
-def get_city(username: str) -> str:
-    city = get_or_init_default(username).city
-    return "unknown" if city is None else city
-
-
-def get_country(username: str) -> str:
-    country = get_or_init_default(username).country
-    return "unknown" if country is None else country
-
-
-def get_or_init_default(username: str) -> UserSettings:
-    """
-    Gets the settings for the given user. Initalizes the user 
-    with some default settings if they do not exist.
-    """
-    db = get_temp_db()
-    settings = db.user_settings_db.user_settings.get(username)
-
-    if settings is None:
-        # Initialize the user's settings with default values.
-        settings = UserSettings()
-        db.user_settings_db.user_settings[username] = settings
-        db.store_user_settings_db()
-
-    return settings
-
-
+def settings_to_schema(settings_from_db: UserSettingsTable) -> UserSettings:
+    return UserSettings(
+        timezone=settings_from_db.timezone,
+        language=settings_from_db.language, # type: ignore # assume that the settings from the DB are valid
+        city=settings_from_db.city,
+        country=settings_from_db.country,
+    )
 

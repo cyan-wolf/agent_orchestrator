@@ -13,7 +13,7 @@ class UserSettingsTable(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
 
     timezone: Mapped[str] = mapped_column(Text, default="Etc/UTC")
-    langauge: Mapped[str] = mapped_column(Text, default="English")
+    language: Mapped[str] = mapped_column(Text, default="English")
     city: Mapped[str] = mapped_column(Text, default="Unknown")
     country: Mapped[str] = mapped_column(Text, default="Unknown")
 

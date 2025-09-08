@@ -82,6 +82,7 @@ class RuntimeAgentManager:
         """
 
         user_owner = get_user_by_username(db, self.owner_username)
+        settings = user_settings.get_settings_table_with_username(db, self.owner_username)
 
         ctx = self.to_ctx(db)
 
@@ -91,7 +92,7 @@ class RuntimeAgentManager:
             You can mainly use your Wolfram Alpha tool to solve math problems. 
             """,
             user_owner,
-            user_settings.get_or_init_default(self.owner_username),
+            settings,
             self.chat_summaries,
             [control_flow.prepare_switch_back_to_supervisor_tool(ctx), 
              control_flow.prepare_summarization_tool(ctx), 
@@ -108,7 +109,7 @@ class RuntimeAgentManager:
             You have access to a Linux environment where you can run commands.
             """,
             user_owner,
-            user_settings.get_or_init_default(self.owner_username),
+            settings,
             self.chat_summaries,
             [coding_tools.prepare_create_file_tool(ctx), 
              coding_tools.prepare_run_command_tool(ctx), 
@@ -123,7 +124,7 @@ class RuntimeAgentManager:
             Use the web search tool to look for information. 
             """, 
             user_owner,
-            user_settings.get_or_init_default(self.owner_username),
+            settings,
             self.chat_summaries,
             [web_searching.prepare_web_search_tool(ctx)],
             checkpointer=InMemorySaver(),
@@ -136,7 +137,7 @@ class RuntimeAgentManager:
             You receive requests to write textual content such as poems, stories, scripts.
             """,
             user_owner,
-            user_settings.get_or_init_default(self.owner_username),
+            settings,
             self.chat_summaries,
             [image_generator.prepare_image_generation_tool(ctx), 
              control_flow.prepare_summarization_tool(ctx), 
@@ -161,7 +162,7 @@ class RuntimeAgentManager:
             When you get data from your view events tool, please format them in a nice way.
             """,
             user_owner,
-            user_settings.get_or_init_default(self.owner_username),
+            settings,
             self.chat_summaries,
             [generic_tools.prepare_get_current_date_tool(ctx),
              generic_tools.prepare_get_user_timezone_tool(ctx),
@@ -191,7 +192,7 @@ class RuntimeAgentManager:
             Run the `summarize_chat` tool every 5 messages. This is very important.
             """,
             user_owner,
-            user_settings.get_or_init_default(self.owner_username),
+            settings,
             self.chat_summaries,
             control_flow.prepare_supervisor_agent_tools(ctx, extra_tools=[web_searching.prepare_request_external_info_tool(ctx)]),
             checkpointer=InMemorySaver()

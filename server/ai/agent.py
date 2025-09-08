@@ -6,7 +6,7 @@ from langgraph.graph.graph import CompiledGraph
 from langgraph.types import Checkpointer
 
 from auth.tables import UserTable
-from user_settings.schemas import UserSettings
+from user_settings.tables import UserSettingsTable
 
 class Agent:
 
@@ -17,7 +17,7 @@ class Agent:
         persona: str, 
         purpose: str, 
         user: UserTable,
-        user_settings: UserSettings,
+        user_settings: UserSettingsTable,
         chat_summaries: dict[str, str], 
 
         tools: list, 
@@ -39,7 +39,7 @@ class Agent:
         persona: str, 
         purpose: str, 
         user: UserTable,
-        user_settings: UserSettings,
+        user_settings: UserSettingsTable,
         chat_summaries: dict[str, str],
     ) -> str:
         master_prompt = (
