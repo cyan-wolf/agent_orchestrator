@@ -15,7 +15,7 @@ class IAgentManager(Protocol):
     def get_owner_user_id(self) -> uuid.UUID:
         ...
 
-    def get_chat_id(self) -> str:
+    def get_chat_id(self) -> uuid.UUID:
         ...
 
     def get_tracer(self) -> Tracer:

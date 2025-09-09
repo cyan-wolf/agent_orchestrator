@@ -1,15 +1,10 @@
 from pydantic import BaseModel
-from ai.schemas import SerializedAgentManager
-
+import uuid
 
 class CreateNewChat(BaseModel):
     name: str    
 
 
 class Chat(BaseModel):
-    chat_id: str
+    chat_id: uuid.UUID
     name: str
-
-
-class ChatInDB(Chat):
-    agent_manager_serialization: SerializedAgentManager | None = None

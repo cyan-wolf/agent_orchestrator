@@ -53,7 +53,3 @@ class ProgramExecutionSideEffectTrace(SideEffectTraceBase):
 SideEffectTrace = ImageSideEffectTrace | ProgramExecutionSideEffectTrace
 Trace = AIMessageTrace | HumanMessageTrace | ToolTrace | SideEffectTrace
 
-
-class SerializedAgentManager(BaseModel):
-    history: Sequence[Trace]
-    chat_summaries: dict[str, str]

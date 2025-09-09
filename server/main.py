@@ -18,6 +18,7 @@ from database.database import Base, engine
 import auth.tables as _
 import user_settings.tables as _
 import ai.tools.scheduling.tables as _
+import chat.tables as _
 
 # Create the metadata on the engine.
 Base.metadata.create_all(bind=engine)

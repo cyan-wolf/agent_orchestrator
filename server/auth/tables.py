@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Text, UUID
+from sqlalchemy import Text, UUID
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 from database.database import Base
 import uuid
@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from ai.tools.scheduling.tables import EventTable
     from user_settings.tables import UserSettingsTable
+    from chat.tables import ChatTable
 
 class UserTable(Base):
     __tablename__ = "users"
@@ -19,3 +20,4 @@ class UserTable(Base):
 
     events: Mapped[list["EventTable"]] = relationship(back_populates="user")
     settings: Mapped["UserSettingsTable"] = relationship(back_populates="user")
+    chats: Mapped[list["ChatTable"]] = relationship(back_populates="user")

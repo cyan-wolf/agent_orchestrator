@@ -1,8 +1,7 @@
 from dotenv import load_dotenv
-
-from ai.schemas import AIMessageTrace, HumanMessageTrace, SerializedAgentManager
 load_dotenv()
 
+from ai.schemas import AIMessageTrace, HumanMessageTrace
 from langchain_core.messages import BaseMessage
 from langgraph.checkpoint.memory import InMemorySaver
 
@@ -16,8 +15,6 @@ from ai.tracing import Tracer
 from ai.agent import Agent
 
 from datetime import datetime, timezone
-
-from collections import defaultdict
 
 from user_settings import user_settings
 
@@ -34,7 +31,7 @@ def get_latest_agent_msg(agent_response: dict) -> BaseMessage:
 
 
 class RuntimeAgentManager:
-    def __init__(self, serialized_version: SerializedAgentManager, chat_id: str, owner_username: str, db: Session):
+    def __init__(self, db: Session, chat_id: uuid.UUID, owner_username: str, chat_summaries: dict[str, str], tracer: Tracer):
         """
         Initializes an agent manager.
         """
@@ -43,10 +40,11 @@ class RuntimeAgentManager:
         config: RunnableConfig = {"configurable": {"thread_id": "1"}}
         self.config = config
 
-        self.tracer = Tracer(serialized_version.history)
+        self.tracer = tracer
 
         # agent name -> chat summary (for that agent)
-        self.chat_summaries: dict[str, str] = defaultdict(lambda: "This is a new chat. No summary available.", serialized_version.chat_summaries)
+        # self.chat_summaries: dict[str, str] = defaultdict(lambda: "This is a new chat. No summary available.", serialized_version.chat_summaries)
+        self.chat_summaries = chat_summaries
 
         self.chat_id = chat_id
         self.owner_username = owner_username
@@ -56,13 +54,6 @@ class RuntimeAgentManager:
         self.owner_user_id = owner.id
 
         self.initialize_agents(db)
-
-
-    def to_serialized(self) -> SerializedAgentManager:
-        return SerializedAgentManager(
-            history=self.tracer.get_history(), 
-            chat_summaries=self.chat_summaries,
-        )
 
 
     def set_chat_summary(self, chat_summary: str):
@@ -229,7 +220,7 @@ class RuntimeAgentManager:
     def get_owner_user_id(self) -> uuid.UUID:
         return self.owner_user_id
 
-    def get_chat_id(self) -> str:
+    def get_chat_id(self) -> uuid.UUID:
         return self.chat_id
 
     def get_tracer(self) -> Tracer:

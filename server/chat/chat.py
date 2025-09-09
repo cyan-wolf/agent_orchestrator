@@ -1,88 +1,110 @@
-import base64
-from typing import Sequence
 import uuid
 
-from ai.agent_manager_interface import IAgentManager
 from ai.agent_manager import RuntimeAgentManager
-from ai.schemas import SerializedAgentManager
-from chat.schemas import Chat, ChatInDB
-from db.placeholder_db import TempDB
+from ai.agent_manager_interface import IAgentManager
+from ai.tracing import Tracer
+from chat.tables import ChatTable
+from chat.schemas import Chat
+from auth.tables import UserTable
+from auth.auth import get_user_by_username
+from ai.agent_manager_store import AgentMangerInMemoryStore
 
 from sqlalchemy.orm import Session
 
+from collections import defaultdict
 
-def initialize_runtime_agent_manager_for_new_chat(chat: Chat, db: Session, temp_db: TempDB, username: str):
-    # Initialize an empty agent manager, since this is a new chat.
-    am = RuntimeAgentManager(serialized_version=SerializedAgentManager(
-        history=[],
-        chat_summaries={},
-    ), 
-        chat_id=chat.chat_id,
-        owner_username=username,
-        db=db,
+def chat_schema_from_db(chat: ChatTable) -> Chat:
+    return Chat(
+        chat_id=chat.id,
+        name=chat.name,
     )
+
+
+def chat_belongs_to_user(chat: ChatTable, user: UserTable) -> bool:
+    return chat.user.username == user.username
+
+
+def get_chat_by_id_from_user(db: Session, user: UserTable, chat_id: uuid.UUID) -> ChatTable | None:
+    chat = db.get(ChatTable, chat_id)
+
+    # A user should not be able to view other user's chats.
+    if not chat_belongs_to_user(chat, user):
+        return None
+
+    return chat
+
+
+def get_chat_by_id_from_user_throwing(db: Session, user: UserTable, chat_id: uuid.UUID) -> ChatTable:
+    chat = get_chat_by_id_from_user(db, user, chat_id)
+    if chat is None:
+        raise ValueError("invalid chat ID")
     
-    temp_db.runtime_agent_managers[chat.chat_id] = am
-    return am
+    return chat
 
 
-def gen_chat_id():
-    # return base64.urlsafe_b64encode(uuid.uuid4().bytes).decode('utf-8')
-    return str(uuid.uuid4())
+def _create_agent_manager_from_chat(db: Session, chat: ChatTable) -> IAgentManager:
+    return RuntimeAgentManager(
+        db=db,
+        chat_id=chat.id,
+        owner_username=chat.user.username,
+        # TODO: this should be obtained from the DB and loaded as a defaultdict (backrefereced with the chat table)
+        chat_summaries=defaultdict(lambda: "This is a new chat. No summary available.", {}), 
+        # TODO: this history should be obtained from the DB (backreferenced with the chat table)
+        tracer=Tracer(history=[]), 
+    )
 
 
-def get_user_chat_list(username: str, db: TempDB) -> Sequence[Chat]:
-    return db.chat_db.chats.setdefault(username, [])
+def initialize_new_chat_for_user(db: Session,  manager_store: AgentMangerInMemoryStore, chat_name: str, username: str) -> ChatTable:
+    user = get_user_by_username(db, username)
+    assert user
 
-
-def get_chat_by_id(username: str, chat_id: str, db: TempDB) -> ChatInDB | None:
-    for chat in db.chat_db.chats.setdefault(username, []):
-        if chat_id == chat.chat_id:
-            return chat
-        
-    return None
-
-
-def initialize_new_chat(username: str, db: Session, temp_db: TempDB, chat_name: str) -> Chat:
-    chat_id = gen_chat_id()
-    # Create a new chat.
-    new_chat = ChatInDB(chat_id=chat_id, name=chat_name)
+    new_chat = ChatTable(
+        name=chat_name,
+        user_id=user.id,
+    )
+    db.add(new_chat)
+    # This flushes the DB to generate the new chat's ID for use below.
+    db.commit()
 
     # Initalize a runtime agent manager for the chat.
-    am = initialize_runtime_agent_manager_for_new_chat(new_chat, db, temp_db, username)
-
-    # Store the newly created agent manager in the chat.
-    new_chat.agent_manager_serialization = am.to_serialized()
-
-    # Add the chat to the database.
-    temp_db.chat_db.chats.setdefault(username, []).append(new_chat)
+    manager = _create_agent_manager_from_chat(db, new_chat)
+    manager_store.register_manager_for_chat(manager)
 
     return new_chat
 
 
-def delete_chat(username: str, chat_id: str, db: TempDB) -> bool:
-    curr_chat = get_chat_by_id(username, chat_id, db)
+def get_or_init_agent_manager_for_chat(db: Session, manager_store: AgentMangerInMemoryStore, owner: UserTable, chat: ChatTable) -> IAgentManager:
+    manager = manager_store.get_manager_for_chat(chat.id)
 
-    if curr_chat is not None:
-        db.chat_db.chats[username].remove(curr_chat)
-        del db.runtime_agent_managers[chat_id]
-        return True
-    
-    return False
+    if manager is None:
+        chat = get_chat_by_id_from_user(db, owner, chat.id)
+        assert chat
+        manager = _create_agent_manager_from_chat(db, chat)
 
-def get_agent_manager_for_chat(chat: ChatInDB, db: Session, temp_db: TempDB, username: str) -> IAgentManager:
-    # Existing chat's runtime agent manager has already been initialized.
-    if chat.chat_id in temp_db.runtime_agent_managers:
-        return temp_db.runtime_agent_managers[chat.chat_id]
+    return manager
 
-    # The runtime agent manager has still not been initalized.
-    # Build a runtime agent manager using the serialized data in the chat.
-    else:
-        assert chat.agent_manager_serialization
 
-        am = RuntimeAgentManager(chat.agent_manager_serialization, chat_id=chat.chat_id, owner_username=username, db=db)
-        # Store the retrieved AM in the runtime database so
-        # that it isn't re-created after every message.
-        temp_db.runtime_agent_managers[chat.chat_id] = am
+def _reset_agent_manager_for_chat(db: Session, manager_store: AgentMangerInMemoryStore, owner: UserTable, chat_id: uuid.UUID):
+    chat = get_chat_by_id_from_user(db, owner, chat_id)
+    assert chat
+    new_manager = _create_agent_manager_from_chat(db, chat)
+    manager_store.register_manager_for_chat(new_manager)
 
-        return am
+    print(f"LOG: resetted agent manager for chat '{chat.id}'")
+
+
+def reset_all_agent_managers_for_user(db: Session, manager_store: AgentMangerInMemoryStore, user: UserTable):
+    for chat in user.chats:
+        _reset_agent_manager_for_chat(db, manager_store, user, chat.id)
+
+
+def delete_chat(db: Session, manager_store: AgentMangerInMemoryStore, owner: UserTable, chat: ChatTable) -> bool:
+    # A user should not be able to delete other user's chats.
+    if not chat_belongs_to_user(chat, owner):
+        return False
+
+    db.delete(chat)
+    db.commit()
+    manager_store.delete_entry_with_chat_id(chat.id)
+    return True
+

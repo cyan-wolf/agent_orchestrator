@@ -1,33 +1,21 @@
 # from ai.agent_manager import AgentManager # commented out due to circular import errors
-from db.schemas import ChatTempDB, UserSettingsTempDB
-from ai.agent_manager_interface import IAgentManager
+from db.schemas import UserSettingsTempDB
 import os
 
 class TempDB:
     def __init__(self):
         self.create_temp_store_dir_if_not_present()
 
-        self.chat_db: ChatTempDB = self.load_chat_db()
+        # self.chat_db: ChatTempDB = self.load_chat_db()
         self.user_settings_db: UserSettingsTempDB = self.load_user_settings_db()
 
         # chat ID -> AgentContext (AgentManager)
-        self.runtime_agent_managers: dict[str, IAgentManager] = {}
+        # self.runtime_agent_managers: dict[str, IAgentManager] = {}
 
 
     def create_temp_store_dir_if_not_present(self):
         if not os.path.exists("db_placeholder_store"):
             os.mkdir("db_placeholder_store")
-
-
-    def load_chat_db(self):
-        try:
-            with open("db_placeholder_store/chats.json", "r", encoding="utf-8") as f:
-                json = f.read()
-                return ChatTempDB.model_validate_json(json)
-            
-        except FileNotFoundError:
-            print(f"LOG: could not load chats; generating empty table")
-            return ChatTempDB(chats={})
         
 
     def load_user_settings_db(self):
@@ -41,26 +29,10 @@ class TempDB:
             return UserSettingsTempDB(user_settings={})
 
 
-    def store_chat_db(self):
-        with open("db_placeholder_store/chats.json", "w", encoding="utf-8") as f:
-            json = self.chat_db.model_dump_json()
-            f.write(json)
-
-
     def store_user_settings_db(self):
         with open("db_placeholder_store/user_settings.json", "w", encoding="utf-8") as f:
             json = self.user_settings_db.model_dump_json()
             f.write(json)
-
-
-    def reset_runtime_agent_managers_for_user(self, username: str):
-        """
-        Resets (deletes) all the runtime agent managers associated with this user.
-        """
-        for chat in self.chat_db.chats[username]:
-            if chat.chat_id in self.runtime_agent_managers:
-                del self.runtime_agent_managers[chat.chat_id]
-                print(f"LOG: deleted runtime agent manager for chat ({chat.chat_id})")
 
 
 DB = TempDB()
