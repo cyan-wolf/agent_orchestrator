@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from auth.tables import UserTable
     from chat.chat_summaries.tables import ChatSummaryTable
+    from ai.tracing.tables import TraceTable
 
 class ChatTable(Base):
     __tablename__ = "chats"
@@ -17,3 +18,4 @@ class ChatTable(Base):
 
     user: Mapped["UserTable"] = relationship(back_populates="chats")
     summaries: Mapped[list["ChatSummaryTable"]] = relationship(back_populates="chat")
+    trace_history: Mapped[list["TraceTable"]] = relationship(back_populates="chat")

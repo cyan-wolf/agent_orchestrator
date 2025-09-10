@@ -1,0 +1,70 @@
+from sqlalchemy import ForeignKey, Text, UUID, Float, Boolean
+from sqlalchemy.orm import mapped_column, Mapped, relationship
+from database.database import Base
+import uuid
+from datetime import datetime, timezone
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from chat.tables import ChatTable
+
+class TraceTable(Base):
+    __tablename__ = "traces"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    timestamp: Mapped[float] = mapped_column(Float, default_factory=lambda: datetime.now(tz=timezone.utc).timestamp())
+    kind: Mapped[str] = mapped_column(Text)
+    chat_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("chats.id"))
+
+    chat: Mapped["ChatTable"] = relationship(back_populates="trace_history")
+
+    __mapper_args__ = {
+        'polymorphic_on': 'kind',
+    }
+
+
+class AIMessageTraceTable(TraceTable):
+    __tablename__ = None
+
+    agent_name: Mapped[str] = mapped_column(Text)
+    content: Mapped[str] = mapped_column(Text)
+    is_main_agent: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'ai_message'
+    }
+
+
+class HumanMessageTraceTable(TraceTable):
+    __tablename__ = None
+
+    username: Mapped[str] = mapped_column(Text)
+    content: Mapped[str] = mapped_column(Text)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'human_message'
+    }
+
+
+class ToolTraceTable(TraceTable):
+    __tablename__ = None
+
+    called_by: Mapped[str] = mapped_column(Text)
+    name: Mapped[str] = mapped_column(Text)
+    bound_arguments: Mapped[str] = mapped_column(Text) # JSON
+    return_value: Mapped[str] = mapped_column(Text)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'tool'
+    }
+
+
+class ImageCreationTraceTable(TraceTable):
+    __tablename__ = None
+
+    base64_encoded_image: Mapped[str] = mapped_column(Text)
+    caption: Mapped[str] = mapped_column(Text)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'image'
+    }
