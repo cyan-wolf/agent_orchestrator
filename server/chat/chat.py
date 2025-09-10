@@ -4,6 +4,7 @@ from ai.agent_manager import RuntimeAgentManager
 from ai.agent_manager_interface import IAgentManager
 from ai.tracing import Tracer
 from chat.tables import ChatTable
+from chat.chat_summaries.tables import ChatSummaryTable
 from chat.schemas import Chat
 from auth.tables import UserTable
 from auth.auth import get_user_by_username
@@ -42,13 +43,21 @@ def get_chat_by_id_from_user_throwing(db: Session, user: UserTable, chat_id: uui
     return chat
 
 
+def _load_chat_summaries_as_default_dict(summaries: list[ChatSummaryTable]) -> defaultdict[str, str]:
+    dict_ = defaultdict(lambda: "This is a new chat. No summary available.", {})
+    
+    for summary in summaries:
+        dict_[summary.agent_name] = summary.content
+
+    return dict_
+
+
 def _create_agent_manager_from_chat(db: Session, chat: ChatTable) -> IAgentManager:
     return RuntimeAgentManager(
         db=db,
         chat_id=chat.id,
         owner_username=chat.user.username,
-        # TODO: this should be obtained from the DB and loaded as a defaultdict (backrefereced with the chat table)
-        chat_summaries=defaultdict(lambda: "This is a new chat. No summary available.", {}), 
+        chat_summaries=_load_chat_summaries_as_default_dict(chat.summaries), 
         # TODO: this history should be obtained from the DB (backreferenced with the chat table)
         tracer=Tracer(history=[]), 
     )

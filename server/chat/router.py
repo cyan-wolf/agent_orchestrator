@@ -13,7 +13,6 @@ from chat.schemas import CreateNewChat, Chat
 
 from sqlalchemy.orm import Session
 from database.database import get_database
-from db.placeholder_db import TempDB, get_temp_db
 
 router = APIRouter()
 
@@ -98,7 +97,6 @@ async def recieve_user_input(
     chat_id: uuid.UUID, 
     user_req: UserRequest, 
     current_user: Annotated[UserTable, Depends(get_current_user)],
-    temp_db: Annotated[TempDB, Depends(get_temp_db)],
     db: Annotated[Session, Depends(get_database)],
     manager_store: Annotated[AgentMangerInMemoryStore, Depends(get_manager_in_mem_store)],
 ):

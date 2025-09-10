@@ -49,7 +49,7 @@ def run_agent_specific_cleanup(ctx: AgentCtx):
 
     if ctx.manager.get_agent_dict()["main_agent"].name == "coding_agent":
         # Clean up container for current chat when the coding agent runs cleanup.
-        clean_up_container_for_chat(ctx.manager.get_chat_id())
+        clean_up_container_for_chat(str(ctx.manager.get_chat_id()))
 
 
 def prepare_summarization_tool(ctx: AgentCtx):
@@ -58,7 +58,7 @@ def prepare_summarization_tool(ctx: AgentCtx):
         """
         Stores a summary of the current chat.
         """
-        ctx.manager.set_chat_summary_for_current(chat_summary)
+        ctx.manager.set_chat_summary_for_current(ctx.db, chat_summary)
 
         return "Successfully summarized chat."
 

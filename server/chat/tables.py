@@ -6,6 +6,7 @@ import uuid
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from auth.tables import UserTable
+    from chat.chat_summaries.tables import ChatSummaryTable
 
 class ChatTable(Base):
     __tablename__ = "chats"
@@ -15,3 +16,4 @@ class ChatTable(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
 
     user: Mapped["UserTable"] = relationship(back_populates="chats")
+    summaries: Mapped[list["ChatSummaryTable"]] = relationship(back_populates="chat")

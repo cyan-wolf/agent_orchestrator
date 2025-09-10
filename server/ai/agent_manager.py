@@ -1,3 +1,4 @@
+from collections import defaultdict
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -19,6 +20,7 @@ from datetime import datetime, timezone
 from user_settings import user_settings
 
 from auth.auth import get_user_by_username
+from chat.chat_summaries import chat_summaries
 
 from sqlalchemy.orm import Session
 
@@ -31,7 +33,7 @@ def get_latest_agent_msg(agent_response: dict) -> BaseMessage:
 
 
 class RuntimeAgentManager:
-    def __init__(self, db: Session, chat_id: uuid.UUID, owner_username: str, chat_summaries: dict[str, str], tracer: Tracer):
+    def __init__(self, db: Session, chat_id: uuid.UUID, owner_username: str, chat_summaries: defaultdict[str, str], tracer: Tracer):
         """
         Initializes an agent manager.
         """
@@ -42,8 +44,6 @@ class RuntimeAgentManager:
 
         self.tracer = tracer
 
-        # agent name -> chat summary (for that agent)
-        # self.chat_summaries: dict[str, str] = defaultdict(lambda: "This is a new chat. No summary available.", serialized_version.chat_summaries)
         self.chat_summaries = chat_summaries
 
         self.chat_id = chat_id
@@ -56,11 +56,15 @@ class RuntimeAgentManager:
         self.initialize_agents(db)
 
 
-    def set_chat_summary(self, chat_summary: str):
+    def set_chat_summary(self, db: Session, chat_summary_content: str):
         """
         Sets the chat summary for the current agent.
         """
-        self.chat_summaries[self.get_current_agent_name()] = chat_summary
+        agent_name = self.get_current_agent_name()
+
+        # Save the chat summary to both the DB and the manager's runtime dictionary.
+        chat_summaries.set_agent_chat_summary_in_db(db, self.chat_id, agent_name, chat_summary_content)
+        self.chat_summaries[agent_name] = chat_summary_content
 
 
     def to_ctx(self, db: Session) -> AgentCtx:
@@ -229,11 +233,11 @@ class RuntimeAgentManager:
     def get_agent_dict(self) -> dict[str, Agent]:
         return self.agents
     
-    def get_chat_summary_dict(self) -> dict[str, str]:
+    def get_chat_summary_dict(self) -> defaultdict[str, str]:
         return self.chat_summaries
     
-    def set_chat_summary_for_current(self, chat_summary: str) -> None:
-        self.set_chat_summary(chat_summary)
+    def set_chat_summary_for_current(self, db: Session, chat_summary_content: str) -> None:
+        self.set_chat_summary(db, chat_summary_content)
 
     def invoke_agent(self, agent: Agent, user_input: str, db: Session, as_main_agent: bool = False) -> str:
         """

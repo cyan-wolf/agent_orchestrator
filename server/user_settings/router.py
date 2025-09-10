@@ -5,7 +5,6 @@ from auth.auth import get_current_user
 from auth.tables import UserTable
 from sqlalchemy.orm import Session
 from database.database import get_database
-from db.placeholder_db import TempDB, get_temp_db
 from user_settings.schemas import UserSettings
 from user_settings.user_settings import get_settings_table_with_username, settings_to_schema
 from chat import chat
