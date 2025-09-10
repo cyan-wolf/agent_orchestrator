@@ -1,14 +1,14 @@
 import uuid
 
-from ai.agent_manager import RuntimeAgentManager
-from ai.agent_manager_interface import IAgentManager
-from ai.tracing import Tracer
+from ai.agent_manager.runtime_agent_manager import RuntimeAgentManager
+from ai.agent_manager.agent_manager_interface import IAgentManager
+from ai.tracing.trace_decorator import Tracer
 from chat.tables import ChatTable
 from chat.chat_summaries.tables import ChatSummaryTable
 from chat.schemas import Chat
 from auth.tables import UserTable
 from auth.auth import get_user_by_username
-from ai.agent_manager_store import AgentMangerInMemoryStore
+from ai.agent_manager.agent_manager_store import AgentMangerInMemoryStore
 
 from sqlalchemy.orm import Session
 

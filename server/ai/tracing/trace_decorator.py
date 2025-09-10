@@ -1,10 +1,10 @@
 import inspect
 from functools import wraps
 
-from ai.schemas import ToolTrace
-from ai.agent_context import AgentCtx
+from ai.tracing.schemas import ToolTrace
+from ai.agent_manager.agent_context import AgentCtx
 
-from .tracer import Tracer
+from ai.tracing.tracer import Tracer
 
 def trace(ctx: AgentCtx):
     def trace_decorator(func):

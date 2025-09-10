@@ -1,6 +1,6 @@
 from langchain_tavily import TavilySearch
-from ai.tracing import trace
-from ai.agent_context import AgentCtx
+from ai.tracing.trace_decorator import trace
+from ai.agent_manager.agent_context import AgentCtx
 
 import json
 

@@ -1,6 +1,6 @@
-from ai.tracing import trace
+from ai.tracing.trace_decorator import trace
 from typing import Literal
-from ai.agent_context import AgentCtx
+from ai.agent_manager.agent_context import AgentCtx
 
 SwitchableAgent = Literal["coding_agent", "creator_agent", "planner_agent", "math_agent"]
 VALID_SWITCHABLE_AGENT = {"coding_agent", "creator_agent", "planner_agent", "math_agent"}

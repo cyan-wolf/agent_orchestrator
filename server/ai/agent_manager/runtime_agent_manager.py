@@ -2,7 +2,7 @@ from collections import defaultdict
 from dotenv import load_dotenv
 load_dotenv()
 
-from ai.schemas import AIMessageTrace, HumanMessageTrace
+from ai.tracing.schemas import AIMessageTrace, HumanMessageTrace
 from langchain_core.messages import BaseMessage
 from langgraph.checkpoint.memory import InMemorySaver
 
@@ -12,7 +12,7 @@ from ai.tools import control_flow, web_searching, image_generator, generic_tools
 from ai.tools.code_sandbox import coding_tools
 from ai.tools.scheduling import scheduling_tools
 from ai.tools.math import math_tools
-from ai.tracing import Tracer
+from ai.tracing.trace_decorator import Tracer
 from ai.agent import Agent
 
 from datetime import datetime, timezone
@@ -24,7 +24,7 @@ from chat.chat_summaries import chat_summaries
 
 from sqlalchemy.orm import Session
 
-from ai.agent_context import AgentCtx
+from ai.agent_manager.agent_context import AgentCtx
 
 import uuid
 

@@ -1,8 +1,8 @@
 from dotenv import load_dotenv
 
-from ai.schemas import ImageSideEffectTrace
-from ai.tracing import trace
-from ai.agent_context import AgentCtx
+from ai.tracing.schemas import ImageSideEffectTrace
+from ai.tracing.trace_decorator import trace
+from ai.agent_manager.agent_context import AgentCtx
 load_dotenv()
 
 from langchain_core.messages import BaseMessage

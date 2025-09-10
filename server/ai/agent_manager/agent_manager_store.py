@@ -1,4 +1,4 @@
-from ai.agent_manager_interface import IAgentManager
+from ai.agent_manager.agent_manager_interface import IAgentManager
 import uuid
 
 class AgentMangerInMemoryStore:

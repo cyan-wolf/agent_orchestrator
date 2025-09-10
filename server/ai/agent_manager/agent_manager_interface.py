@@ -1,5 +1,5 @@
 from typing import Protocol
-from ai.tracer import Tracer
+from ai.tracing.tracer import Tracer
 from ai.agent import Agent
 from sqlalchemy.orm import Session
 import uuid

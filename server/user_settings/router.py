@@ -8,7 +8,7 @@ from database.database import get_database
 from user_settings.schemas import UserSettings
 from user_settings.user_settings import get_settings_table_with_username, settings_to_schema
 from chat import chat
-from ai.agent_manager_store import AgentMangerInMemoryStore, get_manager_in_mem_store
+from ai.agent_manager.agent_manager_store import AgentMangerInMemoryStore, get_manager_in_mem_store
 
 router = APIRouter()
 

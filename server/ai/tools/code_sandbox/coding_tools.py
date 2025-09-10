@@ -1,5 +1,5 @@
-from ai.tracing import trace
-from ai.agent_context import AgentCtx
+from ai.tracing.trace_decorator import trace
+from ai.agent_manager.agent_context import AgentCtx
 from ai.tools.code_sandbox.sandbox_management import get_container, exec_command_on_container, add_file_to_container
 
 def prepare_run_command_tool(ctx: AgentCtx):

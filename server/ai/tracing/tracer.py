@@ -1,5 +1,5 @@
 from typing import Sequence
-from ai.schemas import Trace
+from ai.tracing.schemas import Trace
 
 class Tracer:
     def __init__(self, history: Sequence[Trace] | None = None):

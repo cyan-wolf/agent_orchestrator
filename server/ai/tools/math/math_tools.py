@@ -1,9 +1,9 @@
 import os
 import requests
 import base64
-from ai.schemas import ImageSideEffectTrace
-from ai.tracing import trace
-from ai.agent_context import AgentCtx
+from ai.tracing.schemas import ImageSideEffectTrace
+from ai.tracing.trace_decorator import trace
+from ai.agent_manager.agent_context import AgentCtx
 
 _URL = "https://www.wolframalpha.com/api/v1/llm-api"
 

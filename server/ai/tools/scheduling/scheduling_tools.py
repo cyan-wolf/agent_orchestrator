@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
-from ai.tracing import trace
-from ai.agent_context import AgentCtx
+from ai.tracing.trace_decorator import trace
+from ai.agent_manager.agent_context import AgentCtx
 from ai.tools.scheduling.tables import EventTable
 from ai.tools.scheduling.schemas import CreateEvent, EventBase, Event, Importance, EventModification
 

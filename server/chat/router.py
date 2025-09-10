@@ -4,8 +4,8 @@ from fastapi import Depends
 from fastapi.routing import APIRouter
 from pydantic import BaseModel
 
-from ai.schemas import Trace
-from ai.agent_manager_store import AgentMangerInMemoryStore, get_manager_in_mem_store
+from ai.tracing.schemas import Trace
+from ai.agent_manager.agent_manager_store import AgentMangerInMemoryStore, get_manager_in_mem_store
 from auth.tables import UserTable
 from auth.auth import get_current_user
 from chat.chat import chat_schema_from_db, initialize_new_chat_for_user, delete_chat, get_chat_by_id_from_user_throwing, get_or_init_agent_manager_for_chat
