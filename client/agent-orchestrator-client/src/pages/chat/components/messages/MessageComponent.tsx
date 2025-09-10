@@ -58,8 +58,15 @@ export default function MessageComponent({ message }: MessageComponentProps) {
             </Box>
         );
     }
-    else if (message.kind === "side_effect" && message.side_effect_kind === "image_generation") {
-        msgContent = <p><img src={`data:image/jpeg;base64,${message.base64_encoded_image}`} width={"50%"} alt="AI generated image" /></p>
+    else if (message.kind === "image") {
+        msgContent = (
+            <Box sx={{ width: '50%', textAlign: 'center' }}>
+                <img src={`data:image/jpeg;base64,${message.base64_encoded_image}`} alt={message.caption} style={{ maxWidth: '100%' }} />
+                <Typography variant="caption" display="block" sx={{ color: 'text.secondary', marginTop: '4px' }}>
+                    {message.caption}
+                </Typography>
+            </Box>
+        );
     }
     else if (message.kind === "tool") {
         const dateObj = new Date(message.timestamp * 1000);

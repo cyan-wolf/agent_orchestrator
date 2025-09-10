@@ -1,7 +1,7 @@
 import os
 import requests
 import base64
-from ai.tracing.schemas import ImageSideEffectTrace
+from ai.tracing.schemas import ImageCreationTrace
 from ai.tracing.trace_decorator import trace
 from ai.agent_manager.agent_context import AgentCtx
 
@@ -52,9 +52,9 @@ def _extract_image_links_from_api_response(tool_output: str) -> list[tuple[str, 
     return image_links
 
 
-def _add_image_to_trace_history(ctx: AgentCtx, image_base64: str):
+def _add_image_to_trace_history(ctx: AgentCtx, image_base64: str, caption: str):
     # Used for showing the image to the user.
-    ctx.manager.get_tracer().add(ImageSideEffectTrace(base64_encoded_image=image_base64))
+    ctx.manager.get_tracer().add(ImageCreationTrace(base64_encoded_image=image_base64, caption=caption))
 
 
 def prepare_run_wolfram_alpha_tool(ctx: AgentCtx):
@@ -78,12 +78,10 @@ def prepare_run_wolfram_alpha_tool(ctx: AgentCtx):
             output = resp.text
 
             for image_link, caption in _extract_image_links_from_api_response(output):
-                print(f"[{image_link}] ({caption})")
-
                 image_base64 = _get_image_as_base64(image_link)
 
                 if image_base64 is not None:
-                    _add_image_to_trace_history(ctx, image_base64)
+                    _add_image_to_trace_history(ctx, image_base64, caption)
 
             return output
         

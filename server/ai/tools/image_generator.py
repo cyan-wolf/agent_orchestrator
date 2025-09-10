@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 
-from ai.tracing.schemas import ImageSideEffectTrace
+from ai.tracing.schemas import ImageCreationTrace
 from ai.tracing.trace_decorator import trace
 from ai.agent_manager.agent_context import AgentCtx
 load_dotenv()
@@ -46,7 +46,7 @@ def prepare_image_generation_tool(ctx: AgentCtx):
         image_base64 = _generate_image_impl(query)
 
         # Used for showing the image to the user.
-        ctx.manager.get_tracer().add(ImageSideEffectTrace(base64_encoded_image=image_base64))
+        ctx.manager.get_tracer().add(ImageCreationTrace(base64_encoded_image=image_base64, caption=query))
 
         return "Successfully generated and showed image to user."
         

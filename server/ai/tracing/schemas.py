@@ -34,22 +34,11 @@ class ToolTrace(TraceBase):
     return_value: str
 
 
-class SideEffectTraceBase(TraceBase):
-    kind: Literal["side_effect"] = "side_effect"
-
-
-class ImageSideEffectTrace(SideEffectTraceBase):
-    side_effect_kind: Literal["image_generation"] = "image_generation"
+class ImageCreationTrace(TraceBase):
+    kind: Literal["image"] = "image"
     base64_encoded_image: str
+    caption: str
 
 
-class ProgramExecutionSideEffectTrace(SideEffectTraceBase):
-    side_effect_kind: Literal["program_execution"] = "program_execution"
-    source_code: str 
-    language: str
-    output: str
-
-
-SideEffectTrace = ImageSideEffectTrace | ProgramExecutionSideEffectTrace
-Trace = AIMessageTrace | HumanMessageTrace | ToolTrace | SideEffectTrace
+Trace = AIMessageTrace | HumanMessageTrace | ToolTrace | ImageCreationTrace
 

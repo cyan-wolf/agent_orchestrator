@@ -26,16 +26,8 @@ type MessagePayload =
         bound_arguments: object,
         return_value: string,
     }
-    | ({ kind: "side_effect" } & SideEffectPayload);
-
-type SideEffectPayload = 
     | {
-        side_effect_kind: "image_generation",
+        kind: "image",
         base64_encoded_image: string,
-    }
-    | {
-        side_effect_kind: "program_execution",
-        source_code: string,
-        language: string,
-        output: string,
+        caption: string,
     };
