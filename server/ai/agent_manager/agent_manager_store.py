@@ -11,6 +11,7 @@ class AgentMangerInMemoryStore:
 
     
     def register_manager_for_chat(self, manager: IAgentManager):
+        print(f"LOG: manager registered for chat {manager.get_chat_id()}")
         self.in_memory_store[manager.get_chat_id()] = manager
 
 

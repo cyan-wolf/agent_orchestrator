@@ -53,6 +53,13 @@ def _load_chat_summaries_as_default_dict(summaries: list[ChatSummaryTable]) -> d
 
 
 def _create_agent_manager_from_chat(db: Session, chat: ChatTable) -> IAgentManager:
+    """
+    WARNING: This method creates a manager, but doesn't register it to the chat.
+    Please call the `create_and_register_manager_for_chat` instead.
+    """
+    
+    print(f"LOG: new AM for chat {chat.id}")
+
     return RuntimeAgentManager(
         db=db,
         chat_id=chat.id,
@@ -60,6 +67,15 @@ def _create_agent_manager_from_chat(db: Session, chat: ChatTable) -> IAgentManag
         chat_summaries=_load_chat_summaries_as_default_dict(chat.summaries), 
         tracer=Tracer(chat.id), 
     )
+
+def create_and_register_agent_manager_for_chat(db: Session, chat: ChatTable, manager_store: AgentMangerInMemoryStore) -> IAgentManager:
+    """
+    Automatically creates and registers an Agent Manager for the given chat. Returns the registered manager.
+    """
+
+    manager = _create_agent_manager_from_chat(db, chat)
+    manager_store.register_manager_for_chat(manager)
+    return manager
 
 
 def initialize_new_chat_for_user(db: Session,  manager_store: AgentMangerInMemoryStore, chat_name: str, username: str) -> ChatTable:
@@ -75,8 +91,7 @@ def initialize_new_chat_for_user(db: Session,  manager_store: AgentMangerInMemor
     db.commit()
 
     # Initalize a runtime agent manager for the chat.
-    manager = _create_agent_manager_from_chat(db, new_chat)
-    manager_store.register_manager_for_chat(manager)
+    create_and_register_agent_manager_for_chat(db, new_chat, manager_store)
 
     return new_chat
 
@@ -87,7 +102,7 @@ def get_or_init_agent_manager_for_chat(db: Session, manager_store: AgentMangerIn
     if manager is None:
         chat = get_chat_by_id_from_user(db, owner, chat.id)
         assert chat
-        manager = _create_agent_manager_from_chat(db, chat)
+        manager = create_and_register_agent_manager_for_chat(db, chat, manager_store)
 
     return manager
 
@@ -95,8 +110,8 @@ def get_or_init_agent_manager_for_chat(db: Session, manager_store: AgentMangerIn
 def _reset_agent_manager_for_chat(db: Session, manager_store: AgentMangerInMemoryStore, owner: UserTable, chat_id: uuid.UUID):
     chat = get_chat_by_id_from_user(db, owner, chat_id)
     assert chat
-    new_manager = _create_agent_manager_from_chat(db, chat)
-    manager_store.register_manager_for_chat(new_manager)
+    # Replace the existing manager by just creating and registering a new one.
+    create_and_register_agent_manager_for_chat(db, chat, manager_store)
 
     print(f"LOG: resetted agent manager for chat '{chat.id}'")
 

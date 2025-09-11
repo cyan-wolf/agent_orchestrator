@@ -58,7 +58,10 @@ class Agent:
             * Country: {user_settings.country}
             * Time Zone: {user_settings.timezone}
 
-            The current date in UTC is {datetime.now(tz=timezone.utc)}.
+            The current date in UTC is {datetime.now(tz=timezone.utc)}. Please use this to adjust how you speak. 
+            If you talk about something that ocurred before this date, always speak of it in past tense. 
+            For example, if the current date were October 12, 2024 and a tool shows you that something occurred in 2022 
+            speak in past tense, always.
 
             Please speak in the user's preferred language. If the user tries to get you to speak in another language, 
             tell them to change their preferred language in the settings. Of course, tell them about the settings in 

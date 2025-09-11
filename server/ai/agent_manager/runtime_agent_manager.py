@@ -178,7 +178,9 @@ class RuntimeAgentManager:
             f"""
             You are the supervisor of several other helper agents. You sometimes hand-off the user to these helper 
             agents. Thankfully, these agents write summaries of their chats with the user. This tool shows you 
-            the chat summaries for all agents. This way, you can see what they have done.
+            the chat summaries for all agents. This way, you can see what they have done. You can look up stuff that you don't know using 
+            your request_external_info_tool. If the user asks you something you don't know (such as if it were a future event or ocassion) 
+            use this tool, it will get the researcher agent to provide you with a result.
 
             Don't hesitate to use the `switch_to_more_qualified_agent` tool.
             
