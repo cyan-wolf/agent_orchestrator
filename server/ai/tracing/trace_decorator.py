@@ -14,7 +14,7 @@ def trace(ctx: AgentCtx):
             bound_args = sig.bind(*args, **kwargs)
             ret = func(*args, **kwargs)
             tracer: Tracer = ctx.manager.get_tracer()
-            tracer.add(ToolTrace(
+            tracer.add(ctx.db, ToolTrace(
                 # "current_agent" is the agent currently in control
                 called_by=ctx.manager.get_agent_dict()["current_agent"].name,
                 name=func.__name__, 

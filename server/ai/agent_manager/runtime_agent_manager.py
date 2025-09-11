@@ -160,8 +160,6 @@ class RuntimeAgentManager:
             settings,
             self.chat_summaries,
             [generic_tools.prepare_get_current_date_tool(ctx),
-             generic_tools.prepare_get_user_timezone_tool(ctx),
-             generic_tools.prepare_get_user_location_tool(ctx),
              web_searching.prepare_request_external_info_tool(ctx),
              scheduling_tools.prepare_view_schedule_tool(ctx),
              scheduling_tools.prepare_add_new_event_tool(ctx),
@@ -254,7 +252,7 @@ class RuntimeAgentManager:
         )
         message = get_latest_agent_msg(res)
         content = str(message.content)
-        self.tracer.add(AIMessageTrace(agent_name=agent.name, content=content, is_main_agent=as_main_agent))
+        self.tracer.add(db, AIMessageTrace(agent_name=agent.name, content=content, is_main_agent=as_main_agent))
 
         # `agent` is no longer in control.
         # If the "main agent" did not switch during agent invocation, then it is 
@@ -270,6 +268,6 @@ class RuntimeAgentManager:
         Invokes the agent that is currently designated to be the main agent.
         """
         self.curr_db_session = db
-        self.tracer.add(HumanMessageTrace(username=username, content=user_input))
+        self.tracer.add(db, HumanMessageTrace(username=username, content=user_input))
 
         return self.invoke_agent(self.agents["main_agent"], user_input, db, as_main_agent=True)

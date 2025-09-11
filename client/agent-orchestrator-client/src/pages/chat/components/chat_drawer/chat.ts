@@ -3,7 +3,7 @@
  * Public chat type from the API.
  */
 export type ChatJson = {
-    chat_id: string,
+    id: string,
     name: string,
 };
 

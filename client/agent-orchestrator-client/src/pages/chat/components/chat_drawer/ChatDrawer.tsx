@@ -85,7 +85,7 @@ function ChatDrawer({ children }: ChatDrawerProps) {
 
     const chatJson: ChatJson = await resp.json();
 
-    handleChatSelect(chatJson.chat_id);
+    handleChatSelect(chatJson.id);
 
     // Close the modal.
     setNewChatModalOpen(false);

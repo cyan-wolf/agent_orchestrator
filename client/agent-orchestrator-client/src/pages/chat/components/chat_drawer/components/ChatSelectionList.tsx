@@ -33,9 +33,9 @@ export default function ChatSelectionList({ onSelectChat, onTryDeleteChat, refre
     return (
       <List>
         {chats.map((c) => (
-          <ListItem key={c.chat_id} disablePadding>
+          <ListItem key={c.id} disablePadding>
             <ListItemButton 
-              onClick={() => onSelectChat(c.chat_id)}
+              onClick={() => onSelectChat(c.id)}
               sx={{
                 width: "80%"
               }}
@@ -43,7 +43,7 @@ export default function ChatSelectionList({ onSelectChat, onTryDeleteChat, refre
               <ListItemText primary={c.name} /> 
             </ListItemButton>
             <Tooltip title="Delete Chat">
-              <ListItemButton onClick={() => onTryDeleteChat(c.chat_id)}>
+              <ListItemButton onClick={() => onTryDeleteChat(c.id)}>
                 <ListItemIcon
                   sx={{
                     display: "inline-block",

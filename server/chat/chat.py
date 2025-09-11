@@ -16,7 +16,7 @@ from collections import defaultdict
 
 def chat_schema_from_db(chat: ChatTable) -> Chat:
     return Chat(
-        chat_id=chat.id,
+        id=chat.id,
         name=chat.name,
     )
 
@@ -58,8 +58,7 @@ def _create_agent_manager_from_chat(db: Session, chat: ChatTable) -> IAgentManag
         chat_id=chat.id,
         owner_username=chat.user.username,
         chat_summaries=_load_chat_summaries_as_default_dict(chat.summaries), 
-        # TODO: this history should be obtained from the DB (backreferenced with the chat table)
-        tracer=Tracer(history=[]), 
+        tracer=Tracer(chat.id), 
     )
 
 

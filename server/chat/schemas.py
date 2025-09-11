@@ -6,5 +6,5 @@ class CreateNewChat(BaseModel):
 
 
 class Chat(BaseModel):
-    chat_id: uuid.UUID
+    id: uuid.UUID
     name: str

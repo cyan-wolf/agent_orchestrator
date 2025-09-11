@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 import uuid
 
 class TraceBase(BaseModel):
-    trace_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    id: uuid.UUID = Field(default_factory=lambda: uuid.uuid4())
     timestamp: float = Field(default_factory=lambda: datetime.now(tz=timezone.utc).timestamp())
 
 

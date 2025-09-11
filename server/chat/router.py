@@ -67,9 +67,7 @@ async def get_history(
     chat = get_chat_by_id_from_user_throwing(db, current_user, chat_id)
 
     agent_manager = get_or_init_agent_manager_for_chat(db, manager_store, current_user, chat)
-    hist = agent_manager.get_tracer().get_history()
-
-    return hist
+    return agent_manager.get_tracer().get_history(db)
 
 
 @router.get("/api/chat/{chat_id}/get-latest-messages/{latest_timestamp}/", tags=["chat"])
@@ -84,9 +82,7 @@ async def get_latest_messages(
     chat = get_chat_by_id_from_user_throwing(db, current_user, chat_id)
     
     agent_manager = get_or_init_agent_manager_for_chat(db, manager_store, current_user, chat)
-    hist = agent_manager.get_tracer().get_history()
-
-    return [t for t in hist if t.timestamp > latest_timestamp]
+    return agent_manager.get_tracer().get_traces_after_timestamp(db, latest_timestamp)
 
 
 class UserRequest(BaseModel):

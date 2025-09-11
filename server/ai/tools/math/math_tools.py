@@ -54,7 +54,7 @@ def _extract_image_links_from_api_response(tool_output: str) -> list[tuple[str, 
 
 def _add_image_to_trace_history(ctx: AgentCtx, image_base64: str, caption: str):
     # Used for showing the image to the user.
-    ctx.manager.get_tracer().add(ImageCreationTrace(base64_encoded_image=image_base64, caption=caption))
+    ctx.manager.get_tracer().add(ctx.db, ImageCreationTrace(base64_encoded_image=image_base64, caption=caption))
 
 
 def prepare_run_wolfram_alpha_tool(ctx: AgentCtx):
