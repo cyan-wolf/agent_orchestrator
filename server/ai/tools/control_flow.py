@@ -1,6 +1,7 @@
 from ai.tracing.trace_decorator import trace
 from typing import Literal
 from ai.agent_manager.agent_context import AgentCtx
+import json
 
 SwitchableAgent = Literal["coding_agent", "creator_agent", "planner_agent", "math_agent"]
 VALID_SWITCHABLE_AGENT = {"coding_agent", "creator_agent", "planner_agent", "math_agent"}
@@ -33,7 +34,7 @@ def prepare_supervisor_agent_tools(ctx: AgentCtx, extra_tools: list):
         """
         Used for checking what the helper agents have talked about with the user.
         """
-        return str(ctx.manager.get_chat_summary_dict())
+        return json.dumps(ctx.manager.get_chat_summary_dict())
 
     
     
