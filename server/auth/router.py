@@ -1,38 +1,28 @@
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, status, Response
+from fastapi import Depends, Response
 from fastapi.security import OAuth2PasswordRequestForm
 
 from fastapi.routing import APIRouter
 
 from auth.auth import *
 
-from auth.schemas import CreateNewUser, Token, User
+from auth.schemas import CreateNewUser, User
+from auth import services
 
 from sqlalchemy.orm import Session
 from database.database import get_database
 
 router = APIRouter()
 
-@router.post("/api/token/", tags=["auth"])
-async def login_for_access_token(
+@router.post("/api/login/", tags=["auth"])
+async def login_for_authorization_in_cookies(
     response: Response,
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: Annotated[Session, Depends(get_database)],
-) -> Token:
-    user = authenticate_user(db, form_data.username, form_data.password)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    access_token = create_and_set_access_token(response, user)
-
-    # TODO: try to remove this, 
-    # the client doesn't need the JWT token since it is set on a cookie
-    return Token(access_token=access_token, token_type="bearer")
+):
+    services.try_login_user(db, response, form_data.username, form_data.password)
+    return { "message": "Successfully authenticated." }
 
 
 @router.get("/api/auth-check/", tags=["auth"])
@@ -48,17 +38,13 @@ async def register(
     new_user: CreateNewUser,
     db: Annotated[Session, Depends(get_database)],
 ):    
-    user = create_user_with_default_settings(db, new_user)
-
-    # Logs in the user.
-    create_and_set_access_token(response, user)
-
+    services.try_register_and_login_user(db, response, new_user)
     return { "message": "Successfully registered." }
 
 
 @router.get("/api/logout/", tags=["auth"])
 async def logout(response: Response):
-    response.delete_cookie("access_token")
+    services.logout_user(response)
     return { "message": "Successful logout" }
 
 

@@ -51,7 +51,7 @@ const Login = () => {
         }
 
         try {
-            const response = await fetch("/api/token/", {
+            const response = await fetch("/api/login/", {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',

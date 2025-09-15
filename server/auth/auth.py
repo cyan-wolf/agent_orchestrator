@@ -12,7 +12,7 @@ from passlib.context import CryptContext
 
 import os
 
-from auth.schemas import AuthCheck, CreateNewUser, UserWithPass, TokenData
+from auth.schemas import AuthCheck, CreateNewUser, UserWithPass
 from auth.tables import UserTable
 from user_settings.tables import UserSettingsTable
 
@@ -64,7 +64,7 @@ class OAuth2PasswordBearerFromCookies(OAuth2):
                 return None
         return param
 
-oauth2_scheme = OAuth2PasswordBearerFromCookies(tokenUrl="/api/token/", auto_error=False)
+oauth2_scheme = OAuth2PasswordBearerFromCookies(tokenUrl="/api/login/", auto_error=False)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -99,7 +99,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     return encoded_jwt
 
 
-def create_and_set_access_token(response: Response, user: UserTable):
+def create_and_set_access_token(response: Response, user: UserTable) -> None:
     """
     Logs in the user by setting the JWT auth token in the response's cookies. 
     """
@@ -112,13 +112,11 @@ def create_and_set_access_token(response: Response, user: UserTable):
     # Set HTTP-only cookie!
     response.set_cookie("access_token", f"Bearer {access_token}", httponly=True)
 
-    # TODO: find a way of not needing to return this
-    return access_token
-
 
 async def _get_curr_user_from_db_impl(
-    token: Annotated[str, Depends(oauth2_scheme)], 
-    db: Session, should_raise_credentials_exception: bool = True
+    token: str, 
+    db: Session, 
+    should_raise_credentials_exception: bool = True,
 ) -> UserTable | None:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -134,7 +132,6 @@ async def _get_curr_user_from_db_impl(
             else:
                 return None
             
-        token_data = TokenData(username=username)
         user = get_user_by_username(db, username)
 
     except InvalidTokenError:
@@ -152,6 +149,8 @@ async def _get_curr_user_from_db_impl(
     return user
 
 
+# This function is used for dependency injection directly, so the token and 
+# database session need to be marked as FastAPI dependencies. 
 async def check_user_auth(token: Annotated[str, Depends(oauth2_scheme)], db: Annotated[Session, Depends(get_database)]) -> AuthCheck:
     user_from_db = await _get_curr_user_from_db_impl(token, db, should_raise_credentials_exception=False)
     curr_user_exists = user_from_db is not None
@@ -167,13 +166,15 @@ async def check_user_auth(token: Annotated[str, Depends(oauth2_scheme)], db: Ann
     )
 
 
+# This function is used for dependency injection directly, so the token and 
+# database session need to be marked as FastAPI dependencies. 
 async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: Annotated[Session, Depends(get_database)]) -> UserTable:
     user = await _get_curr_user_from_db_impl(token, db)
     assert user is not None
     return user
 
 
-def create_user_with_default_settings(db: Session, new_user: CreateNewUser) -> UserTable:
+def try_create_user_with_default_settings(db: Session, new_user: CreateNewUser) -> UserTable:
     """
     This method adds a new user to the DB along with some default settings.
     """

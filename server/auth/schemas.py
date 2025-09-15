@@ -19,6 +19,12 @@ class UserBase(BaseModel):
 class CreateNewUser(UserBase):
     password: str
 
+    @field_validator('username')
+    def validate_username(cls, value: str) -> str:
+        if len(value) <= 5:
+            raise ValueError("Username must be at least 5 characters in length")
+        return value
+
     @field_validator('password')
     def valdiate_password(cls, value: str) -> str:
         if len(value) < 8:
