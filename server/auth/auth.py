@@ -116,7 +116,10 @@ def create_and_set_access_token(response: Response, user: UserTable):
     return access_token
 
 
-async def _get_curr_user_from_db_impl(token: Annotated[str, Depends(oauth2_scheme)], db: Session, should_raise_credentials_exception: bool = True) -> UserTable | None:
+async def _get_curr_user_from_db_impl(
+    token: Annotated[str, Depends(oauth2_scheme)], 
+    db: Session, should_raise_credentials_exception: bool = True
+) -> UserTable | None:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",

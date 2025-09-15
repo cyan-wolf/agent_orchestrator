@@ -3,11 +3,8 @@ from ai.tracing.trace_decorator import trace
 from ai.agent_manager.agent_context import AgentCtx
 from ai.tools.scheduling.tables import EventTable
 from ai.tools.scheduling.schemas import CreateEvent, EventBase, Event, Importance, EventModification
-
 import uuid
-
 from sqlalchemy.orm import Session
-
 from auth.auth import get_user_by_username
 
 def _add_utc_timezone_to_event(event: EventBase):

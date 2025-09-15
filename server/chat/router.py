@@ -101,8 +101,5 @@ async def recieve_user_input(
     agent_manager = get_or_init_agent_manager_for_chat(db, manager_store, current_user, chat)
 
     _ = agent_manager.invoke_main_agent_with_text(current_user.username, user_req.user_message, db)
-
-    # TODO: Store the latest traces from the manager after it has finished processing (OR STORE THEM SOMEWHERE ELSE (?)).
-    # ...
     
     return { "result": "finished processing" }
