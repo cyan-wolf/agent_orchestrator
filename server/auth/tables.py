@@ -18,6 +18,6 @@ class UserTable(Base):
     full_name: Mapped[str] = mapped_column(Text)
     hashed_password: Mapped[str] = mapped_column(Text)
 
-    events: Mapped[list["EventTable"]] = relationship(back_populates="user")
-    settings: Mapped["UserSettingsTable"] = relationship(back_populates="user")
-    chats: Mapped[list["ChatTable"]] = relationship(back_populates="user")
+    events: Mapped[list["EventTable"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    settings: Mapped["UserSettingsTable"] = relationship(back_populates="user", cascade="all, delete-orphan")
+    chats: Mapped[list["ChatTable"]] = relationship(back_populates="user", cascade="all, delete-orphan")

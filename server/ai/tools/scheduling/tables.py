@@ -16,5 +16,5 @@ class EventTable(Base):
     end_time: Mapped[int] = mapped_column(Integer)
     importance: Mapped[str] = mapped_column(Text)
 
-    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete='CASCADE'))
     user: Mapped["UserTable"] = relationship(back_populates="events")

@@ -13,6 +13,6 @@ class ChatSummaryTable(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     agent_name: Mapped[str] = mapped_column(Text)
     content: Mapped[str] = mapped_column(Text)
-    chat_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("chats.id"))
+    chat_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("chats.id", ondelete='CASCADE'))
 
     chat: Mapped["ChatTable"] = relationship(back_populates="summaries")

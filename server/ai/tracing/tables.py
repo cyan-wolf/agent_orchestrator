@@ -13,7 +13,7 @@ class TraceTable(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     timestamp: Mapped[float] = mapped_column(Float)
     kind: Mapped[str] = mapped_column(Text)
-    chat_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("chats.id"))
+    chat_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("chats.id", ondelete='CASCADE'))
 
     chat: Mapped["ChatTable"] = relationship(back_populates="trace_history")
 

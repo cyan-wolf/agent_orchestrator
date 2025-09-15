@@ -17,7 +17,7 @@ class UserSettingsTable(Base):
     city: Mapped[str] = mapped_column(Text, default="Unknown")
     country: Mapped[str] = mapped_column(Text, default="Unknown")
 
-    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), unique=True, nullable=False)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete='CASCADE'), unique=True, nullable=False)
 
     user: Mapped["UserTable"] = relationship(back_populates="settings")
     

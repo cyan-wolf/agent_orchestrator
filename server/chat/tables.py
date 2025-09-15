@@ -14,8 +14,8 @@ class ChatTable(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = mapped_column(Text)
-    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete='CASCADE'), nullable=False)
 
     user: Mapped["UserTable"] = relationship(back_populates="chats")
-    summaries: Mapped[list["ChatSummaryTable"]] = relationship(back_populates="chat")
-    trace_history: Mapped[list["TraceTable"]] = relationship(back_populates="chat")
+    summaries: Mapped[list["ChatSummaryTable"]] = relationship(back_populates="chat", cascade="all, delete-orphan")
+    trace_history: Mapped[list["TraceTable"]] = relationship(back_populates="chat", cascade="all, delete-orphan")
