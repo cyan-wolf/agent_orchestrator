@@ -87,11 +87,14 @@ def prepare_run_wolfram_alpha_tool(ctx: AgentCtx):
         
         # 400 and 500 errors
         except requests.exceptions.HTTPError as err:
+            # Error code 501 means that the API did not understand the given query.
+            if err.response.status_code == 501:
+                return f"Error: The API could not interpret the given query '{query}'. The API returned status (501) in response."
+
             # Do not print the `err` itself, it may contain the URL used to 
             # perform the request. However, since the API uses URL encoded params, 
             # the API key is part of the URL.
             err_msg = f"Error: HTTP error occurred: (status {err.response.status_code})"
-            print(err_msg)
             return err_msg
 
         except requests.exceptions.RequestException as e:
