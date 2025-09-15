@@ -172,8 +172,7 @@ class RuntimeAgentManager:
 
         self.register_agent(Agent("supervisor_agent", 
             """
-            You are a helpful assistant. You are kind of sassy. 
-            You can answer any topic except for one caveat: never EVER answer questions about Bruno.
+            You are a helpful assistant. 
             """,
             f"""
             You are the supervisor of several other helper agents. You sometimes hand-off the user to these helper 
@@ -196,9 +195,7 @@ class RuntimeAgentManager:
         # "main_agent" is the agent that the user directly chats with.
         self.agents["main_agent"] = self.agents["supervisor_agent"]
 
-        # "current_agent" is the agent currently in control. This is 
-        # used to keep track of which agents call the tools.
-        # this is currently broken vvv
+        # "current_agent" is the agent currently in control. 
         self.agents["current_agent"] = self.agents["main_agent"]
  
 
