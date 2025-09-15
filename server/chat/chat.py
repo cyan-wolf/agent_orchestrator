@@ -1,5 +1,7 @@
 import uuid
 
+from fastapi import HTTPException
+
 from ai.agent_manager.runtime_agent_manager import RuntimeAgentManager
 from ai.agent_manager.agent_manager_interface import IAgentManager
 from ai.tracing.trace_decorator import Tracer
@@ -27,6 +29,8 @@ def chat_belongs_to_user(chat: ChatTable, user: UserTable) -> bool:
 
 def get_chat_by_id_from_user(db: Session, user: UserTable, chat_id: uuid.UUID) -> ChatTable | None:
     chat = db.get(ChatTable, chat_id)
+    if chat is None:
+        return None
 
     # A user should not be able to view other user's chats.
     if not chat_belongs_to_user(chat, user):
@@ -38,7 +42,7 @@ def get_chat_by_id_from_user(db: Session, user: UserTable, chat_id: uuid.UUID) -
 def get_chat_by_id_from_user_throwing(db: Session, user: UserTable, chat_id: uuid.UUID) -> ChatTable:
     chat = get_chat_by_id_from_user(db, user, chat_id)
     if chat is None:
-        raise ValueError("invalid chat ID")
+        raise HTTPException(status_code=400, detail=f"Invalid chat ID '{chat_id}'")
     
     return chat
 
