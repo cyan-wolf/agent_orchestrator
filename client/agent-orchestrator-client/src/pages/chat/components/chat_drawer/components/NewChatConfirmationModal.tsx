@@ -41,7 +41,7 @@ export default function NewChatConfirmationFormModal({ isOpen, onSubmit, onClose
               label="Chat Name"
               type="text"
               onChange={e => setChatName(e.target.value)}
-              slotProps={{ htmlInput: { pattern: "^.{1,10}$" } }}
+              slotProps={{ htmlInput: { pattern: "^.{1,15}$" } }}
               fullWidth
               variant="standard"
             />
