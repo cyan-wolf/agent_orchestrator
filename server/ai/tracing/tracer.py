@@ -6,6 +6,20 @@ from ai.tracing.schemas import Trace, AIMessageTrace, HumanMessageTrace, ToolTra
 from ai.tracing.tables import TraceTable, AIMessageTraceTable, HumanMessageTraceTable, ToolTraceTable, ImageCreationTraceTable
 from sqlalchemy.orm import Session
 import json
+from pydantic import BaseModel
+from datetime import datetime
+
+def custom_json_fallback_serializer(obj: object) -> object:
+    if isinstance(obj, BaseModel):
+        return obj.model_dump()
+    
+    elif isinstance(obj, datetime):
+        return obj.isoformat()
+
+    else:
+        # Unkwown object, serialize as the string representation.
+        return str(obj)
+
 
 def trace_table_to_schema(trace_table: TraceTable) -> Trace:
     if trace_table.kind == 'ai_message':
@@ -78,7 +92,7 @@ def trace_schema_to_table(trace_schema: Trace) -> TraceTable:
             timestamp=trace_schema.timestamp,
 
             called_by=trace_schema.called_by,
-            bound_arguments=json.dumps(trace_schema.bound_arguments),
+            bound_arguments=json.dumps(trace_schema.bound_arguments, default=custom_json_fallback_serializer),
             name=trace_schema.name,
             return_value=trace_schema.return_value,
         )

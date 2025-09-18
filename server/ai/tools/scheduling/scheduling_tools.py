@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from ai.tracing.trace_decorator import trace
 from ai.agent_manager.agent_context import AgentCtx
 from ai.tools.scheduling.tables import EventTable
-from ai.tools.scheduling.schemas import CreateEvent, EventBase, Event, Importance, EventModification
+from ai.tools.scheduling.schemas import CreateEvent, EventBase, Event, EventModification
 import uuid
 from sqlalchemy.orm import Session
 from auth.auth import get_user_by_username
@@ -62,20 +62,15 @@ def prepare_view_schedule_tool(ctx: AgentCtx):
 
 def prepare_add_new_event_tool(ctx: AgentCtx):
     @trace(ctx)
-    def add_new_event(event_name: str, start_time: datetime, end_time: datetime, importance: Importance):
+    def add_new_event(event_creation: CreateEvent):
         """
         Adds a new event to the schedule. Note that the start_time and end_time parameters are 
         Python datetime objects. Please convert from the user's timezone to UTC and work with start and endtimes in UTC. 
         Of course, refer to them in the user's timezone when communicating with them as to not confuse them, but the tool works with UTC only.
         """
-        create_event = CreateEvent(
-            name=event_name, 
-            start_time=start_time, 
-            end_time=end_time, 
-            importance=importance)
-        _add_utc_timezone_to_event(create_event)
+        _add_utc_timezone_to_event(event_creation)
 
-        add_new_event_in_db(ctx.db, ctx.manager.get_owner_user_id(), create_event)
+        add_new_event_in_db(ctx.db, ctx.manager.get_owner_user_id(), event_creation)
 
         return "successfully added event"
     
