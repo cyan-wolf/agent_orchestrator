@@ -20,8 +20,8 @@ def _event_from_db_to_schema(event: EventTable) -> Event:
     return Event(
         id=event.id,
         name=event.name,
-        start_time=datetime.fromtimestamp(event.start_time),
-        end_time=datetime.fromtimestamp(event.end_time),
+        start_time=datetime.fromtimestamp(event.start_time, tz=timezone.utc),
+        end_time=datetime.fromtimestamp(event.end_time, tz=timezone.utc),
         importance=event.importance, # type: ignore # assume that the importance from the DB is valid
     )
 
