@@ -90,9 +90,20 @@ export default function MessageComponent({ message }: MessageComponentProps) {
                 <Typography><ToolLabel text="Tool Name:"/> {message.name}</Typography>
                 <Typography component="div">
                     <ToolLabel text="Arguments:"/>
-                    <pre>
-                        <code>{args}</code>
-                    </pre>
+                </Typography>
+
+                <Typography 
+                    sx={{ 
+                        whiteSpace: 'pre', 
+                        overflowX: 'auto', 
+                        boxSizing: 'border-box',
+                        fontFamily: 'monospace',
+
+                        '@media (orientation: portrait)': {
+                            whiteSpace: 'pre-line',
+                        },
+                    }}>
+                    {args}
                 </Typography>
                 <Typography><ToolLabel text="Return Value:"/> {message.return_value}</Typography>
             </Alert>
