@@ -8,6 +8,7 @@ dependencies = [
     "bcrypt>=4.3.0",
     "docker>=7.1.0",
     "fastapi[standard]>=0.115.13",
+    "furo>=2025.7.19",
     "langchain>=0.3.26",
     "langchain-google-genai>=2.1.5",
     "langchain-tavily>=0.2.4",
