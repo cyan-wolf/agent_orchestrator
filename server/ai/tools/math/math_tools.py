@@ -1,3 +1,7 @@
+"""
+This module defines the tools used by the math agent, along with helper functions.
+"""
+
 import os
 import requests
 import base64

@@ -8,6 +8,10 @@ if TYPE_CHECKING:
     from auth.tables import UserTable
 
 class EventTable(Base):
+    """
+    Class representing the `events` table in the DB. Used for SqlAlchemy's ORM system.
+    """
+
     __tablename__ = "events"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

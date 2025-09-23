@@ -1,3 +1,8 @@
+"""
+This module defines tools and helper functions relating to image generation. 
+Mostly used by the creator agent.
+"""
+
 from dotenv import load_dotenv
 
 from ai.tracing.schemas import ImageCreationTrace

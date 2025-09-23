@@ -1,7 +1,11 @@
+"""
+This module is for defining tools that are equally applicable to 
+all agents.
+"""
+
 from datetime import datetime, timezone
 from ai.tracing.trace_decorator import trace
 from ai.agent_manager.agent_context import AgentCtx
-from user_settings import user_settings
 
 def prepare_get_current_date_tool(ctx: AgentCtx):
     @trace(ctx)

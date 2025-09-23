@@ -1,3 +1,8 @@
+"""
+This module defines tools mainly used by the supervisor agent 
+to switch the identity of the current agent.
+"""
+
 from ai.tracing.trace_decorator import trace
 from typing import Literal
 from ai.agent_manager.agent_context import AgentCtx

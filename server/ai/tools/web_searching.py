@@ -1,3 +1,7 @@
+"""
+This module is for defining tools relating to web searches.
+"""
+
 from langchain_tavily import TavilySearch
 from ai.tracing.trace_decorator import trace
 from ai.agent_manager.agent_context import AgentCtx

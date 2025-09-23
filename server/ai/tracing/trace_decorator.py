@@ -7,6 +7,11 @@ from ai.agent_manager.agent_context import AgentCtx
 from ai.tracing.tracer import Tracer
 
 def trace(ctx: AgentCtx):
+    """
+    This function acts as a decorator that takes an agent context `ctx` object. 
+    This decorator logs the arguments and return value of the function that it decorates onto 
+    the `Tracer` associated with the agent manager in the context object.
+    """
     def trace_decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):

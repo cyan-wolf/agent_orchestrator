@@ -1,3 +1,7 @@
+"""
+This module defines tools for managing events. These tools are meant for use by the planner agent.
+"""
+
 from datetime import datetime, timezone
 from ai.tracing.trace_decorator import trace
 from ai.agent_manager.agent_context import AgentCtx

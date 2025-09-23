@@ -1,3 +1,7 @@
+"""
+This module manages the sandbox environment used by the coding tools.
+"""
+
 import docker
 import docker.errors
 from docker.models.containers import Container

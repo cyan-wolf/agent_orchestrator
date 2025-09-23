@@ -1,3 +1,9 @@
+"""
+This module defines the `traces` table in the DB. The different trace types 
+are modeled using table inheritance. Each table subtype corresponds to a 
+trace schema as defined in the `ai.tracing.schemas` module.
+"""
+
 from sqlalchemy import ForeignKey, Text, UUID, Float, Boolean
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 from database.database import Base
