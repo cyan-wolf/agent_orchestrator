@@ -15,7 +15,7 @@ def prepare_run_command_tool(ctx: AgentCtx):
             A tuple where the first element represents the exit code and the second element the output of the command.
         """
 
-        container = get_container(ctx.manager.get_chat_id())
+        container = get_container(str(ctx.manager.get_chat_id()))
         exit_code, output = exec_command_on_container(container, command)
         return exit_code, output
     
@@ -35,7 +35,7 @@ def prepare_create_file_tool(ctx: AgentCtx):
         Returns:
             bool: True if the operation succeeded.
         """
-        container = get_container(ctx.manager.get_chat_id())
+        container = get_container(str(ctx.manager.get_chat_id()))
         succeeded = add_file_to_container(container, file_path, file_content)
         return succeeded
     
