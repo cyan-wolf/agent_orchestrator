@@ -9,6 +9,10 @@ from auth.tables import UserTable
 from user_settings.tables import UserSettingsTable
 
 class Agent:
+    """
+    The runtime representation of an agent. Internally builds a chat model using `langchain` and 
+    then constructs a ReAct agent using `langgraph`.
+    """
 
     def __init__(
         self, 
@@ -42,6 +46,15 @@ class Agent:
         user_settings: UserSettingsTable,
         chat_summaries: dict[str, str],
     ) -> str:
+        """
+        Args:
+            persona: The personality of the agent.
+            purpose: The functionality that the agent is meant to provide.
+            user: The user associated to this agent.
+            user_settings: The settings set by the user associated to this agent.
+            chat_summaries: The chat summaries associated with the current chat.
+        """
+
         master_prompt = (
             f"""
             Persona:

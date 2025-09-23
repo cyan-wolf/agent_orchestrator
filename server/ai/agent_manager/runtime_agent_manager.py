@@ -33,9 +33,20 @@ def get_latest_agent_msg(agent_response: dict) -> BaseMessage:
 
 
 class RuntimeAgentManager:
+    """
+    The runtime representation of an agent manager. 
+    """
+
     def __init__(self, db: Session, chat_id: uuid.UUID, owner_username: str, chat_summaries: defaultdict[str, str], tracer: Tracer):
         """
         Initializes an agent manager.
+
+        Args:
+            db: The DB session to use during initialization.
+            chat_id: The ID of the chat associated with this agent manager.
+            owner_username: The username of the user associated with this manager.
+            chat_summaries: The current chat summaries present when this manager was created.
+            tracer: The tracer associated with this manager.
         """
         self.agents: dict[str, Agent] = {}
 
