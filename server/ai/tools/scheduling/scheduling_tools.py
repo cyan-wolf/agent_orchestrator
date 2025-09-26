@@ -11,47 +11,6 @@ import uuid
 from sqlalchemy.orm import Session
 from auth.auth import get_user_by_username
 
-def _add_utc_timezone_to_event(event: EventBase):
-    """
-    Modifies the given event such that its start and end times are 
-    proper datetimes (i.e. not naive) by adding UTC as their timezone.
-    """
-    event.start_time = event.start_time.replace(tzinfo=timezone.utc)
-    event.end_time = event.end_time.replace(tzinfo=timezone.utc)
-
-
-def _event_from_db_to_schema(event: EventTable) -> Event:
-    return Event(
-        id=event.id,
-        name=event.name,
-        start_time=datetime.fromtimestamp(event.start_time, tz=timezone.utc),
-        end_time=datetime.fromtimestamp(event.end_time, tz=timezone.utc),
-        importance=event.importance, # type: ignore # assume that the importance from the DB is valid
-    )
-
-
-# NOTE: Creates an event without an ID. The ID is auto-generated.
-def _event_from_schema_to_db(event: EventBase, user_id: uuid.UUID) -> EventTable:
-    return EventTable(
-        name=event.name,
-        start_time=int(event.start_time.timestamp()),
-        end_time=int(event.end_time.timestamp()),
-        importance=event.importance,
-        user_id=user_id,
-    )
-
-
-def get_all_user_events(db: Session, username: str) -> list[EventTable]:
-    user = get_user_by_username(db, username)
-    assert user
-    return user.events
-
-
-def add_new_event_in_db(db: Session, user_id: uuid.UUID, create_event: CreateEvent):
-    event = _event_from_schema_to_db(create_event, user_id)
-    db.add(event)
-    db.commit()
-
 
 def prepare_view_schedule_tool(ctx: AgentCtx):
     @trace(ctx)
@@ -59,7 +18,7 @@ def prepare_view_schedule_tool(ctx: AgentCtx):
         """
         Returns a list of events on the schedule.
         """
-        return list(map(_event_from_db_to_schema, get_all_user_events(ctx.db, ctx.manager.get_owner_username())))
+        return list(map(_event_from_db_to_schema, _get_all_user_events(ctx.db, ctx.manager.get_owner_username())))
     
     return view_schedule
 
@@ -74,7 +33,7 @@ def prepare_add_new_event_tool(ctx: AgentCtx):
         """
         _add_utc_timezone_to_event(event_creation)
 
-        add_new_event_in_db(ctx.db, ctx.manager.get_owner_user_id(), event_creation)
+        _add_new_event_in_db(ctx.db, ctx.manager.get_owner_user_id(), event_creation)
 
         return "successfully added event"
     
@@ -138,3 +97,45 @@ def prepare_modify_event_tool(ctx: AgentCtx):
         
     
     return modify_event
+
+
+def _add_utc_timezone_to_event(event: EventBase):
+    """
+    Modifies the given event such that its start and end times are 
+    proper datetimes (i.e. not naive) by adding UTC as their timezone.
+    """
+    event.start_time = event.start_time.replace(tzinfo=timezone.utc)
+    event.end_time = event.end_time.replace(tzinfo=timezone.utc)
+
+
+def _event_from_db_to_schema(event: EventTable) -> Event:
+    return Event(
+        id=event.id,
+        name=event.name,
+        start_time=datetime.fromtimestamp(event.start_time, tz=timezone.utc),
+        end_time=datetime.fromtimestamp(event.end_time, tz=timezone.utc),
+        importance=event.importance, # type: ignore # assume that the importance from the DB is valid
+    )
+
+
+# NOTE: Creates an event without an ID. The ID is auto-generated.
+def _event_from_schema_to_db(event: EventBase, user_id: uuid.UUID) -> EventTable:
+    return EventTable(
+        name=event.name,
+        start_time=int(event.start_time.timestamp()),
+        end_time=int(event.end_time.timestamp()),
+        importance=event.importance,
+        user_id=user_id,
+    )
+
+
+def _get_all_user_events(db: Session, username: str) -> list[EventTable]:
+    user = get_user_by_username(db, username)
+    assert user
+    return user.events
+
+
+def _add_new_event_in_db(db: Session, user_id: uuid.UUID, create_event: CreateEvent):
+    event = _event_from_schema_to_db(create_event, user_id)
+    db.add(event)
+    db.commit()
