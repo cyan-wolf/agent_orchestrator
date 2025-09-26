@@ -12,6 +12,54 @@ from ai.agent_manager.agent_context import AgentCtx
 _URL = "https://www.wolframalpha.com/api/v1/llm-api"
 
 
+def prepare_run_wolfram_alpha_tool(ctx: AgentCtx):
+    @trace(ctx)
+    def run_wolfram_alpha_tool(query: str) -> str:
+        """
+        Invokes Wolfram Alpha with the given query. Only use when necessary, 
+        for example if the user asks you basic arithmetic just answer it without 
+        using this tool. If the user explicitly tells you to use this tool, then use it, but 
+        avoid using it unless absolutely necessary. When the tool output contains plots, they 
+        are automatically shown to the user.
+        """
+        try:
+            params = {
+                "input": query,
+                "appid": _get_wolfram_alpha_app_id(),
+            }
+            resp = requests.get(_URL, params=params)
+            resp.raise_for_status()
+            
+            output = resp.text
+
+            for image_link, caption in _extract_image_links_from_api_response(output):
+                image_base64 = _get_image_as_base64(image_link)
+
+                if image_base64 is not None:
+                    _add_image_to_trace_history(ctx, image_base64, caption)
+
+            return output
+        
+        # 400 and 500 errors
+        except requests.exceptions.HTTPError as err:
+            # Error code 501 means that the API did not understand the given query.
+            if err.response.status_code == 501:
+                return f"Error: The API could not interpret the given query '{query}'. The API returned status (501) in response."
+
+            # Do not print the `err` itself, it may contain the URL used to 
+            # perform the request. However, since the API uses URL encoded params, 
+            # the API key is part of the URL.
+            err_msg = f"Error: HTTP error occurred: (status {err.response.status_code})"
+            return err_msg
+
+        except requests.exceptions.RequestException as e:
+            err_msg = f"Error: Other request error occurred: {e}"
+            print(err_msg)
+            return err_msg
+    
+    return run_wolfram_alpha_tool
+
+
 def _get_wolfram_alpha_app_id() -> str:
     app_id = os.getenv("WOLFRAM_ALPHA_APPID")
     assert app_id, "Wolfram APP ID was None"
@@ -59,51 +107,3 @@ def _extract_image_links_from_api_response(tool_output: str) -> list[tuple[str, 
 def _add_image_to_trace_history(ctx: AgentCtx, image_base64: str, caption: str):
     # Used for showing the image to the user.
     ctx.manager.get_tracer().add(ctx.db, ImageCreationTrace(base64_encoded_image=image_base64, caption=caption))
-
-
-def prepare_run_wolfram_alpha_tool(ctx: AgentCtx):
-    @trace(ctx)
-    def run_wolfram_alpha_tool(query: str) -> str:
-        """
-        Invokes Wolfram Alpha with the given query. Only use when necessary, 
-        for example if the user asks you basic arithmetic just answer it without 
-        using this tool. If the user explicitly tells you to use this tool, then use it, but 
-        avoid using it unless absolutely necessary. When the tool output contains plots, they 
-        are automatically shown to the user.
-        """
-        try:
-            params = {
-                "input": query,
-                "appid": _get_wolfram_alpha_app_id(),
-            }
-            resp = requests.get(_URL, params=params)
-            resp.raise_for_status()
-            
-            output = resp.text
-
-            for image_link, caption in _extract_image_links_from_api_response(output):
-                image_base64 = _get_image_as_base64(image_link)
-
-                if image_base64 is not None:
-                    _add_image_to_trace_history(ctx, image_base64, caption)
-
-            return output
-        
-        # 400 and 500 errors
-        except requests.exceptions.HTTPError as err:
-            # Error code 501 means that the API did not understand the given query.
-            if err.response.status_code == 501:
-                return f"Error: The API could not interpret the given query '{query}'. The API returned status (501) in response."
-
-            # Do not print the `err` itself, it may contain the URL used to 
-            # perform the request. However, since the API uses URL encoded params, 
-            # the API key is part of the URL.
-            err_msg = f"Error: HTTP error occurred: (status {err.response.status_code})"
-            return err_msg
-
-        except requests.exceptions.RequestException as e:
-            err_msg = f"Error: Other request error occurred: {e}"
-            print(err_msg)
-            return err_msg
-    
-    return run_wolfram_alpha_tool
