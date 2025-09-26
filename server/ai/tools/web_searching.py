@@ -9,6 +9,10 @@ from ai.agent_manager.agent_context import AgentCtx
 import json
 
 def prepare_web_search_tool(ctx: AgentCtx):
+    """
+    Prepares a tool that looks for information on the internet with a query.
+    """
+
     search_tool = TavilySearch(max_results=5)
 
     @trace(ctx)
@@ -31,6 +35,10 @@ def prepare_web_search_tool(ctx: AgentCtx):
 
 
 def prepare_request_external_info_tool(ctx: AgentCtx):
+    """
+    Prepares a tool that requests external information from the research agent.
+    """
+
     @trace(ctx)
     def request_external_information(query: str) -> str:
         """Asks the research agent for help whenever external information is needed, such as external websites or the current date."""

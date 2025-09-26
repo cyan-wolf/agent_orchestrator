@@ -17,6 +17,11 @@ _IMAGE_LLM = ChatGoogleGenerativeAI(model="models/gemini-2.0-flash-preview-image
 
 
 def prepare_image_generation_tool(ctx: AgentCtx):
+    """
+    Prepares a tool that generates the image specified by the query and automatically 
+    shows the image to the user.
+    """
+
     @trace(ctx)
     def generate_image_and_show_it_to_user(query: str) -> str:
         """

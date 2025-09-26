@@ -13,6 +13,10 @@ from auth.auth import get_user_by_username
 
 
 def prepare_view_schedule_tool(ctx: AgentCtx):
+    """
+    Prepares a tool that returns a list of events on the schedule.
+    """
+
     @trace(ctx)
     def view_schedule() -> list[Event]:
         """
@@ -24,6 +28,10 @@ def prepare_view_schedule_tool(ctx: AgentCtx):
 
 
 def prepare_add_new_event_tool(ctx: AgentCtx):
+    """
+    Prepares a tool that adds a new event to the schedule.
+    """
+
     @trace(ctx)
     def add_new_event(event_creation: CreateEvent):
         """

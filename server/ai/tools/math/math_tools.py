@@ -13,6 +13,10 @@ _API_URL = "https://www.wolframalpha.com/api/v1/llm-api"
 
 
 def prepare_run_wolfram_alpha_tool(ctx: AgentCtx):
+    """
+    Prepares a tool that sends queries to the Wolfram Alpha API.
+    """
+
     @trace(ctx)
     def run_wolfram_alpha_tool(query: str) -> str:
         """

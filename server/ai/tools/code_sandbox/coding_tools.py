@@ -7,6 +7,10 @@ from ai.agent_manager.agent_context import AgentCtx
 from ai.tools.code_sandbox.sandbox_management import get_container, exec_command_on_container, add_file_to_container
 
 def prepare_run_command_tool(ctx: AgentCtx):
+    """
+    Prepares a tool that runs a given command in a secure environment.
+    """
+
     @trace(ctx)
     def run_command(command: str) -> tuple[int, str]:
         """
@@ -27,6 +31,10 @@ def prepare_run_command_tool(ctx: AgentCtx):
 
 
 def prepare_create_file_tool(ctx: AgentCtx):
+    """
+    Prepares a tool that creates a file inside of the secure Linux environment.
+    """
+
     @trace(ctx)
     def create_file(file_path: str, file_content: str) -> bool:
         """

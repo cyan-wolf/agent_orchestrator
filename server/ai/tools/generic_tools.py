@@ -8,6 +8,10 @@ from ai.tracing.trace_decorator import trace
 from ai.agent_manager.agent_context import AgentCtx
 
 def prepare_get_current_date_tool(ctx: AgentCtx):
+    """
+    Prepares a tool that returns the current date in ISO format.
+    """
+
     @trace(ctx)
     def get_current_date():
         """

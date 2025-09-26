@@ -12,6 +12,10 @@ SwitchableAgent = Literal["coding_agent", "creator_agent", "planner_agent", "mat
 VALID_SWITCHABLE_AGENT = {"coding_agent", "creator_agent", "planner_agent", "math_agent"}
 
 def prepare_supervisor_agent_tools(ctx: AgentCtx, extra_tools: list):
+    """
+    Prepares the supervisor agent's main tools.
+    """
+
     @trace(ctx)
     def switch_to_more_qualified_agent(agent_name: SwitchableAgent, reason: str | None) -> str:
         """
@@ -52,6 +56,10 @@ def prepare_supervisor_agent_tools(ctx: AgentCtx, extra_tools: list):
 
 
 def prepare_summarization_tool(ctx: AgentCtx):
+    """
+    Prepares a tool that stores a summary of the current current agent's chat with the user.
+    """
+
     @trace(ctx)
     def summarize_chat(chat_summary: str):
         """
@@ -65,6 +73,10 @@ def prepare_summarization_tool(ctx: AgentCtx):
 
 
 def prepare_switch_back_to_supervisor_tool(ctx: AgentCtx):
+    """
+    Prepares a tool that switches the current agent back to the supervisor.
+    """
+
     @trace(ctx)
     def switch_back_to_supervisor():
         """
