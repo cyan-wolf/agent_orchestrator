@@ -67,20 +67,65 @@ class RuntimeAgentManager:
         self._initialize_agents(db)
 
 
-    def _set_chat_summary(self, db: Session, chat_summary_content: str):
+    # ===== Protocol methods for `AgentManager` interface. =====
+
+    def get_owner_username(self) -> str:
+        return self.owner_username
+    
+    def get_owner_user_id(self) -> uuid.UUID:
+        return self.owner_user_id
+
+    def get_chat_id(self) -> uuid.UUID:
+        return self.chat_id
+
+    def get_tracer(self) -> Tracer:
+        return self.tracer
+    
+    def get_agent_dict(self) -> dict[str, Agent]:
+        return self.agents
+    
+    def get_chat_summary_dict(self) -> defaultdict[str, str]:
+        return self.chat_summaries
+    
+    def set_chat_summary_for_current(self, db: Session, chat_summary_content: str) -> None:
+        self._set_chat_summary(db, chat_summary_content)
+
+    def invoke_agent(self, agent: Agent, user_input: str, db: Session, as_main_agent: bool = False) -> str:
         """
-        Sets the chat summary for the current agent.
+        Invokes the given agent using the provided user input.
         """
-        agent_name = self._get_current_agent_name()
 
-        # Save the chat summary to both the DB and the manager's runtime dictionary.
-        chat_summaries.set_agent_chat_summary_in_db(db, self.chat_id, agent_name, chat_summary_content)
-        self.chat_summaries[agent_name] = chat_summary_content
+        # Bookeeping to keep track of the agent currently in control.
+        prev_agent = self.agents["current_agent"]
+        self.agents["current_agent"] = agent
+
+        res = agent.graph.invoke(
+            {"messages": [{"role": "user", "content": user_input}]},
+            self.config,
+        )
+        message = get_latest_agent_msg(res)
+        content = str(message.content)
+        self.tracer.add(db, AIMessageTrace(agent_name=agent.name, content=content, is_main_agent=as_main_agent))
+
+        # `agent` is no longer in control.
+        # If the "main agent" did not switch during agent invocation, then it is 
+        # safe to switch back to `prev_agent`.
+        if prev_agent.name == self.agents["main_agent"].name:
+            self.agents["current_agent"] = prev_agent
+
+        return content
+
+    def invoke_main_agent_with_text(self, username: str, user_input: str, db: Session) -> str:
+        """
+        Invokes the agent that is currently designated to be the main agent.
+        """
+        self.curr_db_session = db
+        self.tracer.add(db, HumanMessageTrace(username=username, content=user_input))
+
+        return self.invoke_agent(self.agents["main_agent"], user_input, db, as_main_agent=True)
 
 
-    def _to_ctx(self, db: Session) -> AgentCtx:
-        return AgentCtx(manager=self, db=db)
-
+    # ===== Other methods =====
 
     def _initialize_agents(self, db: Session):
         """
@@ -210,6 +255,10 @@ class RuntimeAgentManager:
         self.agents["current_agent"] = self.agents["main_agent"]
  
 
+    def _to_ctx(self, db: Session) -> AgentCtx:
+        return AgentCtx(manager=self, db=db)
+    
+
     def _register_agent(self, agent: Agent):
         """
         Registers the given agent to the agent manager. Allows the agent to be 
@@ -218,64 +267,18 @@ class RuntimeAgentManager:
         self.agents[agent.name] = agent
 
 
+    def _set_chat_summary(self, db: Session, chat_summary_content: str):
+        """
+        Sets the chat summary for the current agent.
+        """
+        agent_name = self._get_current_agent_name()
+
+        # Save the chat summary to both the DB and the manager's runtime dictionary.
+        chat_summaries.set_agent_chat_summary_in_db(db, self.chat_id, agent_name, chat_summary_content)
+        self.chat_summaries[agent_name] = chat_summary_content
+
+
     def _get_current_agent_name(self) -> str:
         return self.agents["current_agent"].name
     
         
-    # == Protocol methods for `AgentContext` ==
-
-    def get_owner_username(self) -> str:
-        return self.owner_username
-    
-    def get_owner_user_id(self) -> uuid.UUID:
-        return self.owner_user_id
-
-    def get_chat_id(self) -> uuid.UUID:
-        return self.chat_id
-
-    def get_tracer(self) -> Tracer:
-        return self.tracer
-    
-    def get_agent_dict(self) -> dict[str, Agent]:
-        return self.agents
-    
-    def get_chat_summary_dict(self) -> defaultdict[str, str]:
-        return self.chat_summaries
-    
-    def set_chat_summary_for_current(self, db: Session, chat_summary_content: str) -> None:
-        self._set_chat_summary(db, chat_summary_content)
-
-    def invoke_agent(self, agent: Agent, user_input: str, db: Session, as_main_agent: bool = False) -> str:
-        """
-        Invokes the given agent using the provided user input.
-        """
-
-        # Bookeeping to keep track of the agent currently in control.
-        prev_agent = self.agents["current_agent"]
-        self.agents["current_agent"] = agent
-
-        res = agent.graph.invoke(
-            {"messages": [{"role": "user", "content": user_input}]},
-            self.config,
-        )
-        message = get_latest_agent_msg(res)
-        content = str(message.content)
-        self.tracer.add(db, AIMessageTrace(agent_name=agent.name, content=content, is_main_agent=as_main_agent))
-
-        # `agent` is no longer in control.
-        # If the "main agent" did not switch during agent invocation, then it is 
-        # safe to switch back to `prev_agent`.
-        if prev_agent.name == self.agents["main_agent"].name:
-            self.agents["current_agent"] = prev_agent
-
-        return content
-
-
-    def invoke_main_agent_with_text(self, username: str, user_input: str, db: Session) -> str:
-        """
-        Invokes the agent that is currently designated to be the main agent.
-        """
-        self.curr_db_session = db
-        self.tracer.add(db, HumanMessageTrace(username=username, content=user_input))
-
-        return self.invoke_agent(self.agents["main_agent"], user_input, db, as_main_agent=True)
