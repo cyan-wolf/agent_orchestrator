@@ -35,3 +35,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 html_theme = 'furo'
 html_static_path = ['_static']
+
+# Mocking environment variables.
+os.environ['AUTH_SECRET_KEY'] = 'DUMMY_FOR_DOCS'
+os.environ['AUTH_ALGORITHM'] = 'DUMMY_FOR_DOCS'
