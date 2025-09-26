@@ -9,7 +9,7 @@ import json
 from pydantic import BaseModel
 from datetime import datetime
 
-def custom_json_fallback_serializer(obj: object) -> object:
+def _custom_json_fallback_serializer(obj: object) -> object:
     if isinstance(obj, BaseModel):
         return obj.model_dump()
     
@@ -21,7 +21,7 @@ def custom_json_fallback_serializer(obj: object) -> object:
         return str(obj)
 
 
-def trace_table_to_schema(trace_table: TraceTable) -> Trace:
+def _trace_table_to_schema(trace_table: TraceTable) -> Trace:
     if trace_table.kind == 'ai_message':
         return AIMessageTrace(
             id=trace_table.id,
@@ -66,7 +66,7 @@ def trace_table_to_schema(trace_table: TraceTable) -> Trace:
         raise ValueError(err_msg)
 
 
-def trace_schema_to_table(trace_schema: Trace) -> TraceTable:
+def _trace_schema_to_table(trace_schema: Trace) -> TraceTable:
     if trace_schema.kind == 'ai_message':
         return AIMessageTraceTable(
             id=trace_schema.id,
@@ -92,7 +92,7 @@ def trace_schema_to_table(trace_schema: Trace) -> TraceTable:
             timestamp=trace_schema.timestamp,
 
             called_by=trace_schema.called_by,
-            bound_arguments=json.dumps(trace_schema.bound_arguments, default=custom_json_fallback_serializer),
+            bound_arguments=json.dumps(trace_schema.bound_arguments, default=_custom_json_fallback_serializer),
             name=trace_schema.name,
             return_value=trace_schema.return_value,
         )
@@ -132,7 +132,7 @@ class Tracer:
             db: The DB session; used for inserting the traces to the DB.
             trace: The trace schema to convert to the ORM version for DB insertion.
         """
-        trace_for_db = trace_schema_to_table(trace)
+        trace_for_db = _trace_schema_to_table(trace)
         trace_for_db.chat_id = self.chat_id
 
         db.add(trace_for_db)
@@ -146,7 +146,7 @@ class Tracer:
         """
         stmt = select(TraceTable).filter(TraceTable.chat_id == self.chat_id).order_by(TraceTable.timestamp)
         results = db.execute(stmt).scalars().all()
-        schemas = [trace_table_to_schema(tr) for tr in results]
+        schemas = [_trace_table_to_schema(tr) for tr in results]
 
         return schemas
     
@@ -157,6 +157,6 @@ class Tracer:
         """
         stmt = select(TraceTable).filter(TraceTable.chat_id == self.chat_id, TraceTable.timestamp > timestamp).order_by(TraceTable.timestamp)
         results = db.execute(stmt).scalars().all()
-        schemas = [trace_table_to_schema(tr) for tr in results]
+        schemas = [_trace_table_to_schema(tr) for tr in results]
 
         return schemas

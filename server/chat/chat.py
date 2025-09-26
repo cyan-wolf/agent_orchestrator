@@ -23,24 +23,24 @@ def chat_schema_from_db(chat: ChatTable) -> Chat:
     )
 
 
-def chat_belongs_to_user(chat: ChatTable, user: UserTable) -> bool:
+def _chat_belongs_to_user(chat: ChatTable, user: UserTable) -> bool:
     return chat.user.username == user.username
 
 
-def get_chat_by_id_from_user(db: Session, user: UserTable, chat_id: uuid.UUID) -> ChatTable | None:
+def _get_chat_by_id_from_user(db: Session, user: UserTable, chat_id: uuid.UUID) -> ChatTable | None:
     chat = db.get(ChatTable, chat_id)
     if chat is None:
         return None
 
     # A user should not be able to view other user's chats.
-    if not chat_belongs_to_user(chat, user):
+    if not _chat_belongs_to_user(chat, user):
         return None
 
     return chat
 
 
 def get_chat_by_id_from_user_throwing(db: Session, user: UserTable, chat_id: uuid.UUID) -> ChatTable:
-    chat = get_chat_by_id_from_user(db, user, chat_id)
+    chat = _get_chat_by_id_from_user(db, user, chat_id)
     if chat is None:
         raise HTTPException(status_code=400, detail=f"Invalid chat ID '{chat_id}'")
     
@@ -72,7 +72,7 @@ def _create_agent_manager_from_chat(db: Session, chat: ChatTable) -> IAgentManag
         tracer=Tracer(chat.id), 
     )
 
-def create_and_register_agent_manager_for_chat(db: Session, chat: ChatTable, manager_store: AgentMangerInMemoryStore) -> IAgentManager:
+def _create_and_register_agent_manager_for_chat(db: Session, chat: ChatTable, manager_store: AgentMangerInMemoryStore) -> IAgentManager:
     """
     Automatically creates and registers an Agent Manager for the given chat. Returns the registered manager.
     """
@@ -95,7 +95,7 @@ def initialize_new_chat_for_user(db: Session,  manager_store: AgentMangerInMemor
     db.commit()
 
     # Initalize a runtime agent manager for the chat.
-    create_and_register_agent_manager_for_chat(db, new_chat, manager_store)
+    _create_and_register_agent_manager_for_chat(db, new_chat, manager_store)
 
     return new_chat
 
@@ -104,18 +104,18 @@ def get_or_init_agent_manager_for_chat(db: Session, manager_store: AgentMangerIn
     manager = manager_store.get_manager_for_chat(chat.id)
 
     if manager is None:
-        chat = get_chat_by_id_from_user(db, owner, chat.id)
+        chat = _get_chat_by_id_from_user(db, owner, chat.id)
         assert chat
-        manager = create_and_register_agent_manager_for_chat(db, chat, manager_store)
+        manager = _create_and_register_agent_manager_for_chat(db, chat, manager_store)
 
     return manager
 
 
 def _reset_agent_manager_for_chat(db: Session, manager_store: AgentMangerInMemoryStore, owner: UserTable, chat_id: uuid.UUID):
-    chat = get_chat_by_id_from_user(db, owner, chat_id)
+    chat = _get_chat_by_id_from_user(db, owner, chat_id)
     assert chat
     # Replace the existing manager by just creating and registering a new one.
-    create_and_register_agent_manager_for_chat(db, chat, manager_store)
+    _create_and_register_agent_manager_for_chat(db, chat, manager_store)
 
     print(f"LOG: resetted agent manager for chat '{chat.id}'")
 
@@ -127,7 +127,7 @@ def reset_all_agent_managers_for_user(db: Session, manager_store: AgentMangerInM
 
 def delete_chat(db: Session, manager_store: AgentMangerInMemoryStore, owner: UserTable, chat: ChatTable) -> bool:
     # A user should not be able to delete other user's chats.
-    if not chat_belongs_to_user(chat, owner):
+    if not _chat_belongs_to_user(chat, owner):
         return False
 
     db.delete(chat)

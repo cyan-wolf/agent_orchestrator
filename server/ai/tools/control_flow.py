@@ -50,7 +50,7 @@ def prepare_supervisor_agent_tools(ctx: AgentCtx, extra_tools: list):
     ] + extra_tools
 
 
-def run_agent_specific_cleanup(ctx: AgentCtx):
+def _run_agent_specific_cleanup(ctx: AgentCtx):
     from ai.tools.code_sandbox.sandbox_management import clean_up_container_for_chat
 
     if ctx.manager.get_agent_dict()["main_agent"].name == "coding_agent":
@@ -77,7 +77,7 @@ def prepare_switch_back_to_supervisor_tool(ctx: AgentCtx):
         """
         Switches back to the supervisor. 
         """
-        run_agent_specific_cleanup(ctx)
+        _run_agent_specific_cleanup(ctx)
 
         ctx.manager.get_agent_dict()["main_agent"] = ctx.manager.get_agent_dict()["supervisor_agent"]
         return "switched back to supervisor"

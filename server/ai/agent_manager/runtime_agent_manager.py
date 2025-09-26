@@ -64,25 +64,25 @@ class RuntimeAgentManager:
         assert owner
         self.owner_user_id = owner.id
 
-        self.initialize_agents(db)
+        self._initialize_agents(db)
 
 
-    def set_chat_summary(self, db: Session, chat_summary_content: str):
+    def _set_chat_summary(self, db: Session, chat_summary_content: str):
         """
         Sets the chat summary for the current agent.
         """
-        agent_name = self.get_current_agent_name()
+        agent_name = self._get_current_agent_name()
 
         # Save the chat summary to both the DB and the manager's runtime dictionary.
         chat_summaries.set_agent_chat_summary_in_db(db, self.chat_id, agent_name, chat_summary_content)
         self.chat_summaries[agent_name] = chat_summary_content
 
 
-    def to_ctx(self, db: Session) -> AgentCtx:
+    def _to_ctx(self, db: Session) -> AgentCtx:
         return AgentCtx(manager=self, db=db)
 
 
-    def initialize_agents(self, db: Session):
+    def _initialize_agents(self, db: Session):
         """
         Initializes and registers several agents.
         """
@@ -90,9 +90,9 @@ class RuntimeAgentManager:
         user_owner = get_user_by_username(db, self.owner_username)
         settings = user_settings.get_settings_table_with_username(db, self.owner_username)
 
-        ctx = self.to_ctx(db)
+        ctx = self._to_ctx(db)
 
-        self.register_agent(Agent("math_agent", 
+        self._register_agent(Agent("math_agent", 
             "You are a helpful math assistant.",
             """
             You can mainly use your Wolfram Alpha tool to solve math problems. 
@@ -107,7 +107,7 @@ class RuntimeAgentManager:
             checkpointer=InMemorySaver(),
         ))
 
-        self.register_agent(Agent("coding_agent", 
+        self._register_agent(Agent("coding_agent", 
             "You are a helpful coding assistant.",
             """
             You only work with Python, no other programming language.
@@ -124,7 +124,7 @@ class RuntimeAgentManager:
             checkpointer=InMemorySaver(),
         ))
 
-        self.register_agent(Agent("research_agent",  
+        self._register_agent(Agent("research_agent",  
             "You are a helpful research agent.",
             f"""
             Use the web search tool to look for information. 
@@ -136,7 +136,7 @@ class RuntimeAgentManager:
             checkpointer=InMemorySaver(),
         ))
 
-        self.register_agent(Agent("creator_agent", 
+        self._register_agent(Agent("creator_agent", 
             "You are a a content generation agent.",
             f"""
             You can help the user create images using your image generation tool. 
@@ -151,7 +151,7 @@ class RuntimeAgentManager:
             checkpointer=InMemorySaver(),
         ))
 
-        self.register_agent(Agent("planner_agent", 
+        self._register_agent(Agent("planner_agent", 
             "You are a planner agent.",
             f"""
             You help the user make a schedule along with helping them organize it. 
@@ -181,7 +181,7 @@ class RuntimeAgentManager:
             checkpointer=InMemorySaver(),
         ))
 
-        self.register_agent(Agent("supervisor_agent", 
+        self._register_agent(Agent("supervisor_agent", 
             """
             You are a helpful assistant. 
             """,
@@ -210,7 +210,7 @@ class RuntimeAgentManager:
         self.agents["current_agent"] = self.agents["main_agent"]
  
 
-    def register_agent(self, agent: Agent):
+    def _register_agent(self, agent: Agent):
         """
         Registers the given agent to the agent manager. Allows the agent to be 
         called by other agents using its name.
@@ -218,12 +218,10 @@ class RuntimeAgentManager:
         self.agents[agent.name] = agent
 
 
-
-    def get_current_agent_name(self) -> str:
+    def _get_current_agent_name(self) -> str:
         return self.agents["current_agent"].name
     
         
-
     # == Protocol methods for `AgentContext` ==
 
     def get_owner_username(self) -> str:
@@ -245,7 +243,7 @@ class RuntimeAgentManager:
         return self.chat_summaries
     
     def set_chat_summary_for_current(self, db: Session, chat_summary_content: str) -> None:
-        self.set_chat_summary(db, chat_summary_content)
+        self._set_chat_summary(db, chat_summary_content)
 
     def invoke_agent(self, agent: Agent, user_input: str, db: Session, as_main_agent: bool = False) -> str:
         """

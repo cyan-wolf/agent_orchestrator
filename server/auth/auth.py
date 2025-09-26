@@ -22,7 +22,7 @@ from sqlalchemy.orm import Session
 
 class MissingEnvVarException(Exception): pass
 
-def get_env_raise_if_none(var_name: str) -> str:
+def _get_env_raise_if_none(var_name: str) -> str:
     value = os.getenv(var_name)
 
     if value is None:
@@ -30,8 +30,8 @@ def get_env_raise_if_none(var_name: str) -> str:
     else:
         return value
 
-SECRET_KEY = get_env_raise_if_none("AUTH_SECRET_KEY")
-ALGORITHM = get_env_raise_if_none("AUTH_ALGORITHM")
+SECRET_KEY = _get_env_raise_if_none("AUTH_SECRET_KEY")
+ALGORITHM = _get_env_raise_if_none("AUTH_ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
@@ -67,11 +67,11 @@ class OAuth2PasswordBearerFromCookies(OAuth2):
 oauth2_scheme = OAuth2PasswordBearerFromCookies(tokenUrl="/api/login/", auto_error=False)
 
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
+def _verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def get_password_hash(password: str) -> str:
+def _get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 
@@ -83,12 +83,12 @@ def authenticate_user(db: Session, username: str, password: str):
     user = get_user_by_username(db, username)
     if not user:
         return False
-    if not verify_password(password, user.hashed_password):
+    if not _verify_password(password, user.hashed_password):
         return False
     return user
 
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
+def _create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
@@ -105,7 +105,7 @@ def create_and_set_access_token(response: Response, user: UserTable) -> None:
     """
 
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
+    access_token = _create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
 
@@ -182,7 +182,7 @@ def try_create_user_with_default_settings(db: Session, new_user: CreateNewUser) 
     if get_user_by_username(db, new_user.username.strip()) is not None:
         raise HTTPException(status_code=400, detail=f"User '{new_user.username}' already exists.")
     
-    hashed_password = get_password_hash(new_user.password)
+    hashed_password = _get_password_hash(new_user.password)
     
     user = UserTable(
         username=new_user.username,
