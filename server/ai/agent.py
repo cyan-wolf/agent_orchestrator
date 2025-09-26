@@ -33,12 +33,11 @@ class Agent:
         """
         self.name = name
 
-        self.master_prompt = self.prepare_master_prompt(persona, purpose, user, user_settings, chat_summaries)
+        self.master_prompt = self._prepare_master_prompt(persona, purpose, user, user_settings, chat_summaries)
+        self.graph = self._prepare_agent_graph(tools, model, checkpointer)
 
-        self.graph = self.prepare_agent_graph(tools, model, checkpointer)
 
-
-    def prepare_master_prompt(
+    def _prepare_master_prompt(
         self,         
         persona: str, 
         purpose: str, 
@@ -95,7 +94,7 @@ class Agent:
         return master_prompt
 
 
-    def prepare_default_chat_model(self) -> BaseChatModel:
+    def _prepare_default_chat_model(self) -> BaseChatModel:
         """
         Prepares a default chat model for an agent.
         """
@@ -105,12 +104,12 @@ class Agent:
         )
 
 
-    def prepare_agent_graph(self, tools: list, model: BaseChatModel | None = None, checkpointer: Checkpointer = None) -> CompiledGraph:
+    def _prepare_agent_graph(self, tools: list, model: BaseChatModel | None = None, checkpointer: Checkpointer = None) -> CompiledGraph:
         """
         Prepares the graph that the agent uses for control flow.
         """
         if model is None:
-            model = self.prepare_default_chat_model()
+            model = self._prepare_default_chat_model()
 
         return create_react_agent(
             model=model,  
