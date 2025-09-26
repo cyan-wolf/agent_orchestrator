@@ -24,5 +24,3 @@ def set_agent_chat_summary_in_db(db: Session, chat_id: uuid.UUID, agent_name: st
 
     db.commit()
     
-
-
