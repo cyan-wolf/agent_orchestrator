@@ -13,7 +13,25 @@ load_dotenv()
 from langchain_core.messages import BaseMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
 
-llm = ChatGoogleGenerativeAI(model="models/gemini-2.0-flash-preview-image-generation")
+_IMAGE_LLM = ChatGoogleGenerativeAI(model="models/gemini-2.0-flash-preview-image-generation")
+
+
+def prepare_image_generation_tool(ctx: AgentCtx):
+    @trace(ctx)
+    def generate_image_and_show_it_to_user(query: str) -> str:
+        """
+        Generates the image specified by the query. This tool automatically 
+        shows the image to the user.
+        """
+        image_base64 = _generate_image_impl(query)
+
+        # Used for showing the image to the user.
+        ctx.manager.get_tracer().add(ctx.db, ImageCreationTrace(base64_encoded_image=image_base64, caption=query))
+
+        return "Successfully generated and showed image to user."
+        
+    return generate_image_and_show_it_to_user
+
 
 def _get_image_base64(response: BaseMessage):
     image_block = next(
@@ -33,27 +51,10 @@ def _generate_image_impl(query: str) -> str:
         "content": query,
     }
 
-    response = llm.invoke(
+    response = _IMAGE_LLM.invoke(
         [message],
         generation_config=dict(response_modalities=["TEXT", "IMAGE"]),
     )
 
     image_base64: str = _get_image_base64(response)
     return image_base64
-
-def prepare_image_generation_tool(ctx: AgentCtx):
-    @trace(ctx)
-    def generate_image_and_show_it_to_user(query: str) -> str:
-        """
-        Generates the image specified by the query. This tool automatically 
-        shows the image to the user.
-        """
-        image_base64 = _generate_image_impl(query)
-
-        # Used for showing the image to the user.
-        ctx.manager.get_tracer().add(ctx.db, ImageCreationTrace(base64_encoded_image=image_base64, caption=query))
-
-        return "Successfully generated and showed image to user."
-        
-    return generate_image_and_show_it_to_user
-

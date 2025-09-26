@@ -9,7 +9,7 @@ from ai.tracing.schemas import ImageCreationTrace
 from ai.tracing.trace_decorator import trace
 from ai.agent_manager.agent_context import AgentCtx
 
-_URL = "https://www.wolframalpha.com/api/v1/llm-api"
+_API_URL = "https://www.wolframalpha.com/api/v1/llm-api"
 
 
 def prepare_run_wolfram_alpha_tool(ctx: AgentCtx):
@@ -27,7 +27,7 @@ def prepare_run_wolfram_alpha_tool(ctx: AgentCtx):
                 "input": query,
                 "appid": _get_wolfram_alpha_app_id(),
             }
-            resp = requests.get(_URL, params=params)
+            resp = requests.get(_API_URL, params=params)
             resp.raise_for_status()
             
             output = resp.text
