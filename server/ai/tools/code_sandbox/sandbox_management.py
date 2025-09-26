@@ -34,15 +34,6 @@ def get_container(chat_id: str) -> Container:
             raise Exception(f"Error: could not create Docker image for chat {chat_id}")
 
 
-def get_chat_id_from_container(container: Container) -> str:
-    """
-    Get the ID of the chat this container "belongs to" by demangling its name.
-    """
-    assert container.name
-    chat_id = container.name.split("-")[-1]
-    return chat_id
-
-
 def _create_simple_python_container(container_name: str):
     """
     Creates and runs a Docker container using the python:3.12-slim image.
