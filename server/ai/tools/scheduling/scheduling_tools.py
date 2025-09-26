@@ -49,6 +49,10 @@ def prepare_add_new_event_tool(ctx: AgentCtx):
 
 
 def prepare_delete_event_tool(ctx: AgentCtx):
+    """
+    Prepares a tool that removes the event with the given ID from the schedule.
+    """
+
     @trace(ctx)
     def remove_event_with_id(event_id: uuid.UUID) -> str:
         """
@@ -69,6 +73,10 @@ def prepare_delete_event_tool(ctx: AgentCtx):
 
 
 def prepare_modify_event_tool(ctx: AgentCtx):
+    """
+    Prepares a tool that modifies an existing event on the schedule.
+    """
+
     @trace(ctx)
     def modify_event(event_modification: EventModification):
         """
