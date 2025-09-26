@@ -9,6 +9,58 @@ import json
 from pydantic import BaseModel
 from datetime import datetime
 
+
+class Tracer:
+    """
+    A tracer is an object which is meant to be used by the agent manager associated with the given chat. 
+    It takes in trace schemas and transforms them into their ORM versions for insertion to the database. 
+    This class also returns the trace history for a chat as a sequence of trace schemas.
+    """
+    def __init__(self, chat_id: uuid.UUID):
+        """
+        Initializes the given tracer with the ID of the chat that it is associated with.
+        """
+        self.chat_id = chat_id
+
+
+    def add(self, db: Session, trace: Trace):
+        """
+        Adds a new trace to the trace history.
+
+        Args:
+            db: The DB session; used for inserting the traces to the DB.
+            trace: The trace schema to convert to the ORM version for DB insertion.
+        """
+        trace_for_db = _trace_schema_to_table(trace)
+        trace_for_db.chat_id = self.chat_id
+
+        db.add(trace_for_db)
+        db.commit()
+
+
+    def get_history(self, db: Session) -> Sequence[Trace]:
+        """
+        Returns the entire history of the chat associated with this tracer as a 
+        sequence of trace schemas.
+        """
+        stmt = select(TraceTable).filter(TraceTable.chat_id == self.chat_id).order_by(TraceTable.timestamp)
+        results = db.execute(stmt).scalars().all()
+        schemas = [_trace_table_to_schema(tr) for tr in results]
+
+        return schemas
+    
+
+    def get_traces_after_timestamp(self, db: Session, timestamp: float) -> Sequence[Trace]:
+        """
+        Returns the traces created after the given timestamp as a sequence of trace schemas.
+        """
+        stmt = select(TraceTable).filter(TraceTable.chat_id == self.chat_id, TraceTable.timestamp > timestamp).order_by(TraceTable.timestamp)
+        results = db.execute(stmt).scalars().all()
+        schemas = [_trace_table_to_schema(tr) for tr in results]
+
+        return schemas
+    
+
 def _custom_json_fallback_serializer(obj: object) -> object:
     if isinstance(obj, BaseModel):
         return obj.model_dump()
@@ -109,54 +161,3 @@ def _trace_schema_to_table(trace_schema: Trace) -> TraceTable:
     else:
         err_msg = f"unknown trace kind '{trace_schema.kind}'"
         raise ValueError(err_msg)
-
-
-class Tracer:
-    """
-    A tracer is an object which is meant to be used by the agent manager associated with the given chat. 
-    It takes in trace schemas and transforms them into their ORM versions for insertion to the database. 
-    This class also returns the trace history for a chat as a sequence of trace schemas.
-    """
-    def __init__(self, chat_id: uuid.UUID):
-        """
-        Initializes the given tracer with the ID of the chat that it is associated with.
-        """
-        self.chat_id = chat_id
-
-
-    def add(self, db: Session, trace: Trace):
-        """
-        Adds a new trace to the trace history.
-
-        Args:
-            db: The DB session; used for inserting the traces to the DB.
-            trace: The trace schema to convert to the ORM version for DB insertion.
-        """
-        trace_for_db = _trace_schema_to_table(trace)
-        trace_for_db.chat_id = self.chat_id
-
-        db.add(trace_for_db)
-        db.commit()
-
-
-    def get_history(self, db: Session) -> Sequence[Trace]:
-        """
-        Returns the entire history of the chat associated with this tracer as a 
-        sequence of trace schemas.
-        """
-        stmt = select(TraceTable).filter(TraceTable.chat_id == self.chat_id).order_by(TraceTable.timestamp)
-        results = db.execute(stmt).scalars().all()
-        schemas = [_trace_table_to_schema(tr) for tr in results]
-
-        return schemas
-    
-
-    def get_traces_after_timestamp(self, db: Session, timestamp: float) -> Sequence[Trace]:
-        """
-        Returns the traces created after the given timestamp as a sequence of trace schemas.
-        """
-        stmt = select(TraceTable).filter(TraceTable.chat_id == self.chat_id, TraceTable.timestamp > timestamp).order_by(TraceTable.timestamp)
-        results = db.execute(stmt).scalars().all()
-        schemas = [_trace_table_to_schema(tr) for tr in results]
-
-        return schemas
