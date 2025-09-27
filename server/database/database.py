@@ -11,6 +11,9 @@ engine = create_engine(URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
+"""
+The base class for all ORM table classes.
+"""
 
 def get_database():
     db = SessionLocal()

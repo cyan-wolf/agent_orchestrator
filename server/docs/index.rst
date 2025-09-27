@@ -14,6 +14,19 @@ System documentation for the Agent Orchestrator Server. Packages usually contain
 - tables.py
    * Holds all the ORM table classes used for storing application data. 
    * The table classes usually correspond exactly to the schemas classes.
+   * This module must be "side-effect" imported in :py:attr:`main.py` to load the module before the database engine loads its metadata. For example:
+
+   .. code-block:: python
+
+      # For making sure the database is setup.
+      from database.database import Base, engine
+
+      # Side-effect import all the tables to make sure they are loaded.
+      import auth.tables as _ # only the auth tables here as an example
+
+      # Create the metadata on the engine.
+      Base.metadata.create_all(bind=engine)
+
 - router.py
    * Defines the FastAPI endpoints on a local :py:class:`fastapi.routing.APIRouter` API router conventionally called :py:attr:`router`. 
    * The local router must be exported and included into the main router that is created in :py:attr:`main.py`. For example: 
