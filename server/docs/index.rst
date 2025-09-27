@@ -9,7 +9,7 @@ Agent Orchestrator documentation
 System documentation for the Agent Orchestrator Server. Packages usually contain the following modules:
 
 - schemas.py
-   * Holds all the Pydantic model classes used for validating the data integrity of the data types.
+   * Holds all the Pydantic model classes (schemas) used for validating the data integrity of the data types.
    * The schemas are used for interfacing with FastAPI as DTOs.
 - tables.py
    * Holds all the ORM table classes used for storing application data. 
