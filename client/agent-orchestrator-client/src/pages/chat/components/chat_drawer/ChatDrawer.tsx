@@ -200,12 +200,14 @@ function ChatDrawer({ children }: ChatDrawerProps) {
           {drawer}
         </Drawer>
       </Box>
-      <Box
+      <Box                // <--- this is the Box that contains the chat box UI (!)
         component="main"
         sx={{
           flexGrow: 1, 
           p: 3, 
           width: { sm: `calc(100% - ${drawerWidth}px)` },
+
+          height: '85vh', // <--- forces this Box to be a fixed-height 85% of the viewport's height
 
           minWidth: 0, // <--- prevents the inner content from growing out of control
         }}

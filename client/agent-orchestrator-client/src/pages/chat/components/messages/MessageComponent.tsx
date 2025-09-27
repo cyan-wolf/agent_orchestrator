@@ -104,8 +104,7 @@ export default function MessageComponent({ message }: MessageComponentProps) {
                 <Typography 
                     sx={{ overflowX: 'auto' }} // <--- adds scrollbar for the return value if it's too long
                 >
-                    <ToolLabel text="Return Value:"/> 
-                    {message.return_value}
+                    <ToolLabel text="Return Value:"/> {message.return_value}
                 </Typography>
             </Alert>
         );

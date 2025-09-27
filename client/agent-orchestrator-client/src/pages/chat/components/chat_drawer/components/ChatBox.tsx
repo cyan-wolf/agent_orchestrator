@@ -96,9 +96,11 @@ function ChatBoxDisplay({ chatId }: ChatBoxProps) {
     }
 
     return (
-        <Box sx={{ p: { xs: 1, sm: 3 } }}>
+        <Box sx={{ p: { xs: 1, sm: 3 }, height: '100%' }}>
             <Stack spacing={1} sx={{
-                height: { xs: 'calc(100vh - 32px)', sm: '550px' }, // Responsive height
+                // Width and height are determined by the outermost parent component, 
+                // which in this case is the `Box` component in the `ChatDrawer` which holds its children.
+                height: '100%',
                 width: '100%',
             }}>
                 <Box
