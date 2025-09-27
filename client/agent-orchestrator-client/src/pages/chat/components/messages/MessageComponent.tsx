@@ -95,17 +95,18 @@ export default function MessageComponent({ message }: MessageComponentProps) {
                 <Typography 
                     sx={{ 
                         whiteSpace: 'pre', 
-                        overflowX: 'auto', 
+                        overflowX: 'auto', // <--- adds scrollbar to the tool args if they're too long
                         boxSizing: 'border-box',
                         fontFamily: 'monospace',
-
-                        '@media (orientation: portrait)': {
-                            whiteSpace: 'pre-line',
-                        },
                     }}>
                     {args}
                 </Typography>
-                <Typography><ToolLabel text="Return Value:"/> {message.return_value}</Typography>
+                <Typography 
+                    sx={{ overflowX: 'auto' }} // <--- adds scrollbar for the return value if it's too long
+                >
+                    <ToolLabel text="Return Value:"/> 
+                    {message.return_value}
+                </Typography>
             </Alert>
         );
     }

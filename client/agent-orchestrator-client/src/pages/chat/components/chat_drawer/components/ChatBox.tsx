@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Loading from "../../../../../components/loading/Loading";
-import { Box, Container, Stack, TextField } from "@mui/material";
+import { Box, Stack, TextField } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import type { Message } from "../../messages/message";
 import MessageList from "../../messages/MessageList";
@@ -96,14 +96,20 @@ function ChatBoxDisplay({ chatId }: ChatBoxProps) {
     }
 
     return (
-        <Container>
+        <Box sx={{ p: { xs: 1, sm: 3 } }}>
             <Stack spacing={1} sx={{
                 height: { xs: 'calc(100vh - 32px)', sm: '550px' }, // Responsive height
+                width: '100%',
             }}>
                 <Box
                     sx={{
                         border: '1px solid',
                         flexGrow: 1,
+
+                        minWidth: 0,
+                        maxWidth: '100%',
+                        overflowX: 'hidden',
+
                         borderColor: 'primary.main', // Uses a color from your theme
                         borderRadius: '8px',
                         p: 2, // Adds padding for better visual spacing
@@ -137,7 +143,7 @@ function ChatBoxDisplay({ chatId }: ChatBoxProps) {
                     />
                 </Box>
             </Stack>
-        </Container>
+        </Box>
     );
 }
 
