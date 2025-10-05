@@ -4,6 +4,12 @@ from typing import Literal
 from pydantic import BaseModel, Field
 import uuid
 
+
+TraceKind = Literal['ai_message', 'human_message', 'tool', 'image']
+"""
+Used for filtering.
+"""
+
 class TraceBase(BaseModel):
     """
     The base class for all traces. This class is only meant for 

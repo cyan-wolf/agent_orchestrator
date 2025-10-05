@@ -1,9 +1,9 @@
 from typing import Annotated, Sequence
 import uuid
-from fastapi import Depends
+from fastapi import Depends, Query
 from fastapi.routing import APIRouter
 
-from ai.tracing.schemas import Trace
+from ai.tracing.schemas import Trace, TraceKind
 from ai.agent_manager.agent_manager_store import AgentMangerInMemoryStore, get_manager_in_mem_store
 from auth.tables import UserTable
 from auth.auth import get_current_user
@@ -61,12 +61,20 @@ async def get_history(
 @router.get("/api/chat/{chat_id}/get-latest-messages/{latest_timestamp}/", tags=["chat"])
 async def get_latest_messages(
     chat_id: uuid.UUID, 
-    latest_timestamp: float, 
     current_user: Annotated[UserTable, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_database)],
     manager_store: Annotated[AgentMangerInMemoryStore, Depends(get_manager_in_mem_store)],
+    latest_timestamp: float, 
+    exclude_filters: list[TraceKind] = Query(None),
 ) -> Sequence[Trace]:
-    return services.get_trace_schemas_after_timestamp_for_user_chat(db, manager_store, chat_id, current_user, latest_timestamp)
+    return services.get_trace_schemas_after_timestamp_for_user_chat(
+        db, 
+        manager_store, 
+        chat_id, 
+        current_user, 
+        latest_timestamp,
+        exclude_filters,
+    )
 
 
 @router.post("/api/chat/{chat_id}/send-message/", tags=["chat"])

@@ -1,7 +1,7 @@
 from typing import Sequence
 import uuid
 
-from ai.tracing.schemas import Trace
+from ai.tracing.schemas import Trace, TraceKind
 from ai.agent_manager.agent_manager_store import AgentMangerInMemoryStore
 from auth.tables import UserTable
 from chat.chat import *
@@ -61,6 +61,7 @@ def get_trace_schemas_after_timestamp_for_user_chat(
     chat_id: uuid.UUID, 
     user: UserTable, 
     timestamp: float,
+    exclude_filters: list[TraceKind],
 ) -> Sequence[Trace]:
     """
     Similar to the :py:func:`chat.services.get_full_trace_schema_history_for_user_chat` service, except that 
@@ -69,7 +70,7 @@ def get_trace_schemas_after_timestamp_for_user_chat(
     chat = get_chat_by_id_from_user_throwing(db, user, chat_id)
     
     agent_manager = get_or_init_agent_manager_for_chat(db, manager_store, user, chat)
-    return agent_manager.get_tracer().get_traces_after_timestamp(db, timestamp)
+    return agent_manager.get_tracer().get_traces_after_timestamp(db, timestamp, exclude_filters)
 
 
 def invoke_agent_manager_for_chat_with_text(

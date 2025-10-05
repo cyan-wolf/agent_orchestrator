@@ -2,7 +2,7 @@ from typing import Sequence
 import uuid
 
 from sqlalchemy import select
-from ai.tracing.schemas import Trace, AIMessageTrace, HumanMessageTrace, ToolTrace, ImageCreationTrace
+from ai.tracing.schemas import Trace, AIMessageTrace, HumanMessageTrace, ToolTrace, ImageCreationTrace, TraceKind
 from ai.tracing.tables import TraceTable, AIMessageTraceTable, HumanMessageTraceTable, ToolTraceTable, ImageCreationTraceTable
 from sqlalchemy.orm import Session
 import json
@@ -50,11 +50,17 @@ class Tracer:
         return schemas
     
 
-    def get_traces_after_timestamp(self, db: Session, timestamp: float) -> Sequence[Trace]:
+    def get_traces_after_timestamp(self, db: Session, timestamp: float, exclude_filters: list[TraceKind]) -> Sequence[Trace]:
         """
         Returns the traces created after the given timestamp as a sequence of trace schemas.
         """
-        stmt = select(TraceTable).filter(TraceTable.chat_id == self.chat_id, TraceTable.timestamp > timestamp).order_by(TraceTable.timestamp)
+        stmt = select(TraceTable)\
+            .filter(
+                TraceTable.chat_id == self.chat_id, 
+                TraceTable.timestamp > timestamp,
+                TraceTable.kind.notin_(exclude_filters))\
+            .order_by(TraceTable.timestamp)
+        
         results = db.execute(stmt).scalars().all()
         schemas = [_trace_table_to_schema(tr) for tr in results]
 
