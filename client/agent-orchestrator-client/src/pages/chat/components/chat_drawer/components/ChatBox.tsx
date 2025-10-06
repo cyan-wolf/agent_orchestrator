@@ -27,10 +27,7 @@ function ChatBoxDisplay({ chatId }: ChatBoxProps) {
 
     useEffect(() => {
         const fetchChatHistory = async () => {
-            const resp = await fetch(`/api/chat/${chatId}/history/`);
-            const history = await resp.json();
-
-            processMessages(history);
+            fetchNewestChatMessages();
 
             setWaitingForServer(false);
         };
