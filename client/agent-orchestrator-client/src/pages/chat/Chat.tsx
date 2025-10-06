@@ -6,6 +6,8 @@ import { createContext, useContext, useState } from "react";
 type ChatContextData = {
     excludeFilters: MessageFilter[],
     setExcludeFilters: (excludeFilters: MessageFilter[]) => void,
+    toggleCurrentChatRefresh: () => void,
+    currentChatRefreshToggle: boolean,
 };
 
 const ChatContext = createContext<ChatContextData | null>(null);
@@ -15,10 +17,13 @@ const ChatContext = createContext<ChatContextData | null>(null);
  */
 export default function Chat() {
     const [excludeFilters, setExcludeFilters] = useState<MessageFilter[]>([]);
+    const [currentChatRefreshToggle, setCurrentChatRefreshToggle] = useState(false);
 
     const value: ChatContextData = {
         excludeFilters,
         setExcludeFilters,
+        currentChatRefreshToggle,
+        toggleCurrentChatRefresh: () => setCurrentChatRefreshToggle(prev => !prev),
     };
 
     return (

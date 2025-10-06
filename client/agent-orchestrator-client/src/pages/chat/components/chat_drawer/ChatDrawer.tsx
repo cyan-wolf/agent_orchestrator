@@ -10,11 +10,11 @@ import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { ChatJson, NewChatData } from './chat';
-import type { MessageFilter } from '../messages/message';
 import ChatSelectionList from './components/ChatSelectionList';
 import NewChatConfirmationFormModal from './components/NewChatConfirmationModal';
 import DeleteChatConfirmationModal from './components/DeleteChatModalConfirmation';
 import ChatExcludeFilterSelectionList from './components/ChatExcludeFilterSelectionList';
+import { useChatContext } from '../../Chat';
 
 const drawerWidth = 240;
 
@@ -35,6 +35,8 @@ function ChatDrawer({ children }: ChatDrawerProps) {
 
   // Used for forcing the chat list to re-render.
   const [chatListRefreshTriggerToggle, setChatListTriggerToggle] = useState(false);
+
+  const { toggleCurrentChatRefresh } = useChatContext()!;
 
   function handleChatSelect(chatId: string) {
       // Change the URL to include the chat ID.
@@ -97,6 +99,10 @@ function ChatDrawer({ children }: ChatDrawerProps) {
     setChatListTriggerToggle(prev => !prev);
   }
 
+  function handleRefreshCurrentChatButtonClick() {
+    toggleCurrentChatRefresh();
+  }
+
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
 
@@ -138,6 +144,14 @@ function ChatDrawer({ children }: ChatDrawerProps) {
         onClick={handleOpenModalForNewChat}
       >
         Create New Chat
+      </Button>
+      <Divider />
+      <Button 
+        sx={{ width: "100%" }}
+        variant="outlined"
+        onClick={handleRefreshCurrentChatButtonClick}
+      >
+        Refresh Current Chat
       </Button>
       <Divider />
 

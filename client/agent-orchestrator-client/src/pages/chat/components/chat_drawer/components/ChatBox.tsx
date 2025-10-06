@@ -21,28 +21,49 @@ function ChatBoxDisplay({ chatId }: ChatBoxProps) {
 
     const [waitingForServer, setWaitingForServer] = useState(true); 
 
-    const { excludeFilters } = useChatContext()!;
+    const { excludeFilters, currentChatRefreshToggle } = useChatContext()!;
 
     const navigate = useNavigate();
 
     useEffect(() => {
+        // Reset the chat state since it might still be lingering.
+        // This effect fires whenever the chat is told to refresh, to ensure 
+        // that it is actually refreshed, the state must be reset.
+        const resetTimestamp = 0.0;
+        resetChatState(resetTimestamp);
+
+        const controller = new AbortController();
+        const signal = controller.signal;
+
         const fetchChatHistory = async () => {
-            fetchNewestChatMessages();
+            // This always fetches the entire history for this chat.
+            await fetchNewestChatMessages(resetTimestamp, signal);
 
             setWaitingForServer(false);
         };
         fetchChatHistory();
 
+        // Cleanup function. Required to avoid state issues with React.
+        return () => {
+            controller.abort();
+        };
+
         // The dependency on chatId on useEffect is required so that 
         // the component re-fetches the chat history whenever a parent component 
         // changes the chat ID.
-    }, [chatId]);
+    }, [chatId, currentChatRefreshToggle]);
+
+    function resetChatState(resetTimestamp: number) {
+        setWaitingForServer(true);
+        setMessages([]);
+        setLatestMsgTimestamp(resetTimestamp);
+    }
 
     function processMessages(newMessages: Message[]) {
         if (newMessages.length > 0) {
             setLatestMsgTimestamp(newMessages.at(-1)!.timestamp);
         }
-        setMessages([...messages, ...newMessages]);
+        setMessages(prevMessages => [...prevMessages, ...newMessages]);
     }
 
     function buildChatMessageExcludeFilterQueryUrlParams() {
@@ -58,17 +79,17 @@ function ChatBoxDisplay({ chatId }: ChatBoxProps) {
         return `?${excludeFilterQueries.toString()}`;
     }
 
-    function buildFetchNewstMessagesUrl() {
-        const basePath = `/api/chat/${chatId}/get-latest-messages/${latestMsgTimestamp}/`;
+    function buildFetchNewstMessagesUrl(timestamp: number) {
+        const basePath = `/api/chat/${chatId}/get-latest-messages/${timestamp}/`;
         const excludeFilterParams = buildChatMessageExcludeFilterQueryUrlParams();
 
         return `${basePath}${excludeFilterParams}`;
     }
 
-    async function fetchNewestChatMessages() {
-        const fetchUrl = buildFetchNewstMessagesUrl();
+    async function fetchNewestChatMessages(timestamp: number, abortSignal?: AbortSignal) {
+        const fetchUrl = buildFetchNewstMessagesUrl(timestamp);
 
-        const resp = await fetch(fetchUrl);
+        const resp = await fetch(fetchUrl, { signal: abortSignal });
         const latestMessages: Message[] = await resp.json();
 
         processMessages(latestMessages);
@@ -99,7 +120,7 @@ function ChatBoxDisplay({ chatId }: ChatBoxProps) {
         const respJson = await resp.json();
         console.log(respJson);  // this response does not contain useful info
 
-        await fetchNewestChatMessages();
+        await fetchNewestChatMessages(latestMsgTimestamp);
     }
 
     async function handleChatTextFieldKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
