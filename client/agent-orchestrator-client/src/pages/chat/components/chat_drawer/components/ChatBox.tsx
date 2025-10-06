@@ -4,6 +4,7 @@ import { Box, Stack, TextField } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import type { Message } from "../../messages/message";
 import MessageList from "../../messages/MessageList";
+import { useChatContext } from "../../../Chat";
 
 type ChatBoxProps = {
     chatId: string
@@ -19,6 +20,8 @@ function ChatBoxDisplay({ chatId }: ChatBoxProps) {
     const [messages, setMessages] = useState<Message[]>([]);
 
     const [waitingForServer, setWaitingForServer] = useState(true); 
+
+    const { excludeFilters } = useChatContext()!;
 
     const navigate = useNavigate();
 
@@ -45,8 +48,30 @@ function ChatBoxDisplay({ chatId }: ChatBoxProps) {
         setMessages([...messages, ...newMessages]);
     }
 
+    function buildChatMessageExcludeFilterQueryUrlParams() {
+        if (excludeFilters.length === 0) {
+            return "";
+        }
+
+        const excludeFilterQueries = new URLSearchParams();
+        for (const filter of excludeFilters) {
+            excludeFilterQueries.append("exclude_filters", filter);
+        }
+        
+        return `?${excludeFilterQueries.toString()}`;
+    }
+
+    function buildFetchNewstMessagesUrl() {
+        const basePath = `/api/chat/${chatId}/get-latest-messages/${latestMsgTimestamp}/`;
+        const excludeFilterParams = buildChatMessageExcludeFilterQueryUrlParams();
+
+        return `${basePath}${excludeFilterParams}`;
+    }
+
     async function fetchNewestChatMessages() {
-        const resp = await fetch(`/api/chat/${chatId}/get-latest-messages/${latestMsgTimestamp}/`);
+        const fetchUrl = buildFetchNewstMessagesUrl();
+
+        const resp = await fetch(fetchUrl);
         const latestMessages: Message[] = await resp.json();
 
         processMessages(latestMessages);

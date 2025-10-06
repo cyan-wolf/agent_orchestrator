@@ -31,3 +31,5 @@ type MessagePayload =
         base64_encoded_image: string,
         caption: string,
     };
+
+export type MessageFilter = 'tool' | 'image' | 'ai_message' | 'human_message';

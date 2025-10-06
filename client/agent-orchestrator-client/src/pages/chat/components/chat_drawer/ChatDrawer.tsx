@@ -10,9 +10,11 @@ import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { ChatJson, NewChatData } from './chat';
+import type { MessageFilter } from '../messages/message';
 import ChatSelectionList from './components/ChatSelectionList';
 import NewChatConfirmationFormModal from './components/NewChatConfirmationModal';
 import DeleteChatConfirmationModal from './components/DeleteChatModalConfirmation';
+import ChatExcludeFilterSelectionList from './components/ChatExcludeFilterSelectionList';
 
 const drawerWidth = 240;
 
@@ -137,6 +139,9 @@ function ChatDrawer({ children }: ChatDrawerProps) {
       >
         Create New Chat
       </Button>
+      <Divider />
+
+      <ChatExcludeFilterSelectionList />
     </div>
   );
 
