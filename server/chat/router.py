@@ -65,7 +65,7 @@ async def get_latest_messages(
     db: Annotated[Session, Depends(get_database)],
     manager_store: Annotated[AgentMangerInMemoryStore, Depends(get_manager_in_mem_store)],
     latest_timestamp: float, 
-    exclude_filters: list[TraceKind] = Query(None),
+    exclude_filters: list[TraceKind] | None = Query(None),
 ) -> Sequence[Trace]:
     return services.get_trace_schemas_after_timestamp_for_user_chat(
         db, 
@@ -73,7 +73,7 @@ async def get_latest_messages(
         chat_id, 
         current_user, 
         latest_timestamp,
-        exclude_filters,
+        exclude_filters or [],  # pass an empty list if no queries were provided
     )
 
 
