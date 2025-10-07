@@ -5,7 +5,10 @@ from ai.tracing.schemas import Trace, TraceKind
 from ai.agent_manager.agent_manager_store import AgentMangerInMemoryStore
 from auth.tables import UserTable
 from chat.chat import *
-from chat.schemas import CreateNewChat, Chat, UserTextRequest
+from chat.schemas import CreateNewChat, Chat, UserTextRequest, ChatModification
+
+from pydantic import ValidationError
+from fastapi.exceptions import RequestValidationError
 
 from sqlalchemy.orm import Session
 
@@ -37,6 +40,31 @@ def try_delete_chat_for_user(db: Session, manager_store: AgentMangerInMemoryStor
     chat = get_chat_by_id_from_user_throwing(db, user, chat_id)
     could_delete = delete_chat(db, manager_store, user, chat)
     return could_delete
+
+
+def try_modify_chat(db: Session, chat_id: uuid.UUID, user: UserTable, chat_modification: ChatModification) -> bool:
+    chat_in_db = get_chat_by_id_from_user_throwing(db, user, chat_id)
+    chat_schema = chat_schema_from_db(chat_in_db)
+
+    # Update the name if it was present in the modification payload.
+    if chat_modification.name is not None:
+        # Use the chat schema for validatiing the incoming payload.
+        chat_schema.name = chat_modification.name
+
+    try:
+        # This raises `ValidationError` if the format is incorrect.
+        Chat.model_validate(chat_schema.model_dump())
+
+    except ValidationError as ex:
+        # NOTE: FastAPI only seems to recognize `HTTPException` and `RequestValidationError`, 
+        # so Pydantic's `ValidationError` is turned into the error type that FastAPI recognizes.
+        raise RequestValidationError(ex.errors())
+
+    # Update the DB if no error was raised.
+    chat_in_db.name = chat_schema.name
+    db.commit()
+    
+    return True
 
 
 def get_full_trace_schema_history_for_user_chat(

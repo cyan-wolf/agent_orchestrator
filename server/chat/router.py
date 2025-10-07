@@ -7,7 +7,7 @@ from ai.tracing.schemas import Trace, TraceKind
 from ai.agent_manager.agent_manager_store import AgentMangerInMemoryStore, get_manager_in_mem_store
 from auth.tables import UserTable
 from auth.auth import get_current_user
-from chat.schemas import CreateNewChat, Chat, UserTextRequest
+from chat.schemas import ChatModification, CreateNewChat, Chat, UserTextRequest
 from chat import services
 
 from sqlalchemy.orm import Session
@@ -46,6 +46,22 @@ async def delete_chat_with_id(
     
     else:
         return { "response": "could not delete chat" }
+
+
+@router.patch("/api/chat/{chat_id}/modify/", tags=["chat"])
+async def modify_chat(
+    chat_id: uuid.UUID,
+    current_user: Annotated[UserTable, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_database)],
+    chat_modification: ChatModification,
+):
+    could_modify = services.try_modify_chat(db, chat_id, current_user, chat_modification)
+
+    if could_modify:
+        return { "response": f"modified chat {chat_id}" }
+    
+    else:
+        return { "response": "could not modify chat" }
 
 
 @router.get("/api/chat/{chat_id}/history/", tags=["chat"])

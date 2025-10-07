@@ -12,8 +12,11 @@ class ChatBase(BaseModel):
         return value
 
 
-class CreateNewChat(ChatBase):
-    pass
+class CreateNewChat(ChatBase): pass
+
+
+class ChatModification(BaseModel):
+    name: str | None 
 
 
 class Chat(ChatBase):
