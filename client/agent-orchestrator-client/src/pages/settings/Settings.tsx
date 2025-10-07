@@ -1,6 +1,7 @@
-import { Alert, Box, Button, Card, CardContent, Container, Divider, InputLabel, MenuItem, Select, TextField, Typography } from "@mui/material";
-import { useEffect, useState } from "react";
+import { Alert, Box, Button, Card, CardContent, Container, InputLabel, MenuItem, Paper, Select, TextField, Typography } from "@mui/material";
+import { useEffect, useRef, useState } from "react";
 import { getTimeZones } from '@vvo/tzdb';
+import Loading from "../../components/loading/Loading";
 
 // Get the list of time zones and sort them alphabetically.
 const timezones = getTimeZones({ includeUtc: true }).sort((a, b) => {
@@ -46,6 +47,17 @@ export default function Settings() {
     
     const [confirmationMessage, setConfirmationMessage] = useState("");
 
+    const [waitingForServer, setWaitingForServer] = useState(false);
+
+    // For scrolling to the success alert box.
+    const successAlertRef = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        if (successAlertRef?.current !== null) {
+            // Scrolls to the the success alert box.
+            successAlertRef.current!.scrollIntoView({ behavior: "smooth" });
+        }
+    }, [waitingForServer]);
+
     useEffect(() => {
         const fetchCurrentSettings = async () => {
             const resp = await fetch('/api/settings/all/');
@@ -90,6 +102,8 @@ export default function Settings() {
     async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
+        setConfirmationMessage("");
+
         const newSettings: Settings = {
             timezone,
             language,
@@ -102,9 +116,10 @@ export default function Settings() {
         };
 
         if (!validateSettings(newSettings)) {
-            setConfirmationMessage("");
             return;
         }
+
+        setWaitingForServer(true);
 
         const resp = await fetch('/api/settings/modify-all/', {
             method: "POST",
@@ -115,6 +130,8 @@ export default function Settings() {
         });
         const confirmationMsgJson = await resp.json();
         setConfirmationMessage(confirmationMsgJson['result']);
+
+        setWaitingForServer(false);
     }
 
     return (
@@ -122,85 +139,100 @@ export default function Settings() {
             <Card>
                 <CardContent>
                     <Typography variant="h1" align="center">Settings</Typography>
-                    <Divider />
 
                     <Box>
-                        <form onSubmit={onSubmit}>
-                            <InputLabel id="label-timezone">Time Zone</InputLabel>
-                            <Select
-                                labelId="label-timezone"
-                                id="select-timezone"
-                                value={timezone}
-                                label="timezone"
-                                onChange={e => setTimezone(e.target.value as string)}
-                            >
-                                {timezones.map((tz) => (
-                                    <MenuItem key={tz.name} value={tz.name}>
-                                        {tz.name} (UTC{tz.currentTimeFormat.split(' ')[0]})
-                                    </MenuItem>
-                                ))}
-                            </Select>
+                        <Paper
+                            elevation={8}
+                            sx={{
+                                ml: { xs: 0, md: 12 }, // 0 margin on 'xs' screens, 12 on 'md' and up
+                                mr: { xs: 0, md: 12 }, // 0 margin on 'xs' screens, 12 on 'md' and up
 
-                            <InputLabel id="label-language">Language</InputLabel>
-                            <Select
-                                labelId="label-language"
-                                id="select-langauge"
-                                value={language}
-                                label="Language"
-                                onChange={e => setLanguage(e.target.value as string)}
-                            >
-                                {validLanguages.map((lang) => (
-                                    <MenuItem key={lang} value={lang}>
-                                        {lang}
-                                    </MenuItem>
-                                ))}
-                            </Select>
+                                // Padding all sides
+                                p: { xs: 2, md: 5 },            
+                            }}
+                        >
+                            <form onSubmit={onSubmit}>
+                                <InputLabel id="label-timezone">Time Zone</InputLabel>
+                                <Select
+                                    labelId="label-timezone"
+                                    id="select-timezone"
+                                    value={timezone}
+                                    label="timezone"
+                                    onChange={e => setTimezone(e.target.value as string)}
+                                >
+                                    {timezones.map((tz) => (
+                                        <MenuItem key={tz.name} value={tz.name}>
+                                            {tz.name} (UTC{tz.currentTimeFormat.split(' ')[0]})
+                                        </MenuItem>
+                                    ))}
+                                </Select>
 
-                            <TextField 
-                                label="City"
-                                type="text"
-                                value={city}
-                                sx={{ display: "block" }}
-                                margin="normal"
-                                onChange={e => setCity(e.target.value)}
-                                helperText={cityValidationErrMsg}
-                            />
-                            <TextField 
-                                label="Country"
-                                type="text"
-                                value={country}
-                                sx={{ display: "block" }}
-                                margin="normal"
-                                onChange={e => setCountry(e.target.value)}
-                                helperText={countryValidationErrMsg}
-                            />
+                                <InputLabel id="label-language">Language</InputLabel>
+                                <Select
+                                    labelId="label-language"
+                                    id="select-langauge"
+                                    value={language}
+                                    label="Language"
+                                    onChange={e => setLanguage(e.target.value as string)}
+                                >
+                                    {validLanguages.map((lang) => (
+                                        <MenuItem key={lang} value={lang}>
+                                            {lang}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
 
-                            <TextField 
-                                label="Full Name"
-                                type="text"
-                                value={fullName}
-                                sx={{ display: "block" }}
-                                margin="normal"
-                                onChange={e => setFullName(e.target.value)}
-                                helperText={fullNameValidationErrMsg}
-                            />
+                                <TextField 
+                                    label="City"
+                                    type="text"
+                                    value={city}
+                                    sx={{ display: "block" }}
+                                    margin="normal"
+                                    onChange={e => setCity(e.target.value)}
+                                    helperText={cityValidationErrMsg}
+                                />
+                                <TextField 
+                                    label="Country"
+                                    type="text"
+                                    value={country}
+                                    sx={{ display: "block" }}
+                                    margin="normal"
+                                    onChange={e => setCountry(e.target.value)}
+                                    helperText={countryValidationErrMsg}
+                                />
 
-                            <TextField 
-                                label="Email"
-                                type="email"
-                                value={email}
-                                sx={{ display: "block" }}
-                                margin="normal"
-                                onChange={e => setEmail(e.target.value)}
-                                helperText={emailValidationErrMsg}
-                            />
+                                <TextField 
+                                    label="Full Name"
+                                    type="text"
+                                    value={fullName}
+                                    sx={{ display: "block" }}
+                                    margin="normal"
+                                    onChange={e => setFullName(e.target.value)}
+                                    helperText={fullNameValidationErrMsg}
+                                />
 
-                            <Button type="submit" variant="contained">Submit</Button>
-                        </form>
+                                <TextField 
+                                    label="Email"
+                                    type="email"
+                                    value={email}
+                                    sx={{ display: "block" }}
+                                    margin="normal"
+                                    onChange={e => setEmail(e.target.value)}
+                                    helperText={emailValidationErrMsg}
+                                />
+
+                                {(waitingForServer) ? <Loading /> : <></>}
+                                <Box textAlign="center">
+                                    <Button type="submit" variant="contained" fullWidth>
+                                        Submit
+                                    </Button>
+                                </Box>
+                            </form>
+                        </Paper>
                     </Box>
 
                     {(confirmationMessage.length === 0) ? <></> : (
-                        <Alert severity="success">
+                        <Alert severity="success" sx={{ mt: 2 }} ref={successAlertRef}>
                             {confirmationMessage}
                         </Alert>
                     )}
