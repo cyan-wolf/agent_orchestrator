@@ -9,6 +9,7 @@ import { Tooltip } from '@mui/material';
 
 type ChatSelectProps = {
     onSelectChat: (chatId: string) => void,
+    onTryEditChat: (chatId: string) => void,
     onTryDeleteChat: (chatId: string) => void, 
     // For forcing the chat list to re-render.
     refreshTriggerToggle: boolean,
@@ -17,7 +18,7 @@ type ChatSelectProps = {
 /**
  * Drawer list for selecting between available chats.
  */
-export default function ChatSelectionList({ onSelectChat, onTryDeleteChat, refreshTriggerToggle }: ChatSelectProps) {
+export default function ChatSelectionList({ onSelectChat, onTryEditChat, onTryDeleteChat, refreshTriggerToggle }: ChatSelectProps) {
     const [chats, setChats] = useState<ChatJson[]>([]);
 
     useEffect(() => {
@@ -37,11 +38,23 @@ export default function ChatSelectionList({ onSelectChat, onTryDeleteChat, refre
             <ListItemButton 
               onClick={() => onSelectChat(c.id)}
               sx={{
-                width: "80%"
+                width: "50%"
               }}
             >
               <ListItemText primary={c.name} /> 
             </ListItemButton>
+            <Tooltip title="Edit Chat">
+              <ListItemButton onClick={() => onTryEditChat(c.id)}>
+                <ListItemIcon
+                  sx={{
+                    display: "inline-block",
+                    textAlign: "center",
+                  }}
+                >
+                  E
+                </ListItemIcon>
+              </ListItemButton>
+            </Tooltip>
             <Tooltip title="Delete Chat">
               <ListItemButton onClick={() => onTryDeleteChat(c.id)}>
                 <ListItemIcon

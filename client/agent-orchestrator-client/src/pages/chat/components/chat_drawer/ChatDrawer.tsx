@@ -9,12 +9,13 @@ import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { ChatJson, NewChatData } from './chat';
+import type { ChatJson, ChatModificationJson, NewChatData } from './chat';
 import ChatSelectionList from './components/ChatSelectionList';
 import NewChatConfirmationFormModal from './components/NewChatConfirmationModal';
 import DeleteChatConfirmationModal from './components/DeleteChatModalConfirmation';
 import ChatExcludeFilterSelectionList from './components/ChatExcludeFilterSelectionList';
 import { useChatContext } from '../../Chat';
+import ChatModificationModal from './components/ChatModificationModal';
 
 const drawerWidth = 240;
 
@@ -30,12 +31,18 @@ function ChatDrawer({ children }: ChatDrawerProps) {
   const navigate = useNavigate();
   const [newChatModalOpen, setNewChatModalOpen] = useState(false);
 
+  // For managing the chat modification modal.
+  const [chatEditModalChatId, setChatEditModalChatId] = useState<string | null>(null);
+  const [chatEditModalOpen, setChatEditModalOpen] = useState(false);
+
+  // For managing the chat delete modal.
   const [chatDeleteModalChatId, setChatDeleteModalChatId] = useState<string | null>(null);
   const [chatDeleteModalOpen, setChatDeleteModalOpen] = useState(false);
 
   // Used for forcing the chat list to re-render.
   const [chatListRefreshTriggerToggle, setChatListTriggerToggle] = useState(false);
 
+  // For forcing the chat box UI (the one with the messages) to refresh.
   const { toggleCurrentChatRefresh } = useChatContext()!;
 
   function handleChatSelect(chatId: string) {
@@ -44,9 +51,33 @@ function ChatDrawer({ children }: ChatDrawerProps) {
       navigate(chatId);
   }
 
+  function handleChatEditAttempt(chatId: string) {
+    setChatEditModalChatId(chatId);
+    setChatEditModalOpen(true);
+  }
+
   function handleChatDeleteAttempt(chatId: string) {
     setChatDeleteModalChatId(chatId);
     setChatDeleteModalOpen(true);
+  }
+
+  async function handleActualChatModification(chatId: string, chatModification: ChatModificationJson) {
+    const resp = await fetch(`/api/chat/${chatId}/modify/`, {
+      method: "PATCH",
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(chatModification),
+    });
+    const respJson = await resp.json();
+
+    console.log(respJson);
+
+    closeChatEditModal();
+
+    // Refresh the chat list by forcing a prop change.
+    // This state variable is a boolean, and (prev => !prev) just toggles it.
+    setChatListTriggerToggle(prev => !prev);
   }
 
   async function handleActualChatDeletion(chatId: string) {
@@ -65,6 +96,11 @@ function ChatDrawer({ children }: ChatDrawerProps) {
     // Refresh the chat list by forcing a prop change.
     // This state variable is a boolean, and (prev => !prev) just toggles it.
     setChatListTriggerToggle(prev => !prev);
+  }
+
+  function closeChatEditModal() {
+    setChatEditModalOpen(false);
+    setChatEditModalChatId(null);
   }
 
   function closeChatDeleteModal() {
@@ -134,6 +170,7 @@ function ChatDrawer({ children }: ChatDrawerProps) {
       <Divider />
       <ChatSelectionList 
         onSelectChat={handleChatSelect} 
+        onTryEditChat={handleChatEditAttempt}
         onTryDeleteChat={handleChatDeleteAttempt}
         refreshTriggerToggle={chatListRefreshTriggerToggle} 
       />
@@ -239,6 +276,13 @@ function ChatDrawer({ children }: ChatDrawerProps) {
         isOpen={newChatModalOpen} 
         onSubmit={chatData => handleCreatingNewChat(chatData)} 
         onClose={() => setNewChatModalOpen(false)}
+      />
+
+      <ChatModificationModal 
+        chatId={chatEditModalChatId!}
+        isOpen={chatEditModalOpen}
+        onChatEdit={handleActualChatModification}
+        onClose={closeChatEditModal}
       />
 
       <DeleteChatConfirmationModal 
