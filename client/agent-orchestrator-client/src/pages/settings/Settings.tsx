@@ -15,11 +15,18 @@ const timezones = getTimeZones({ includeUtc: true }).sort((a, b) => {
 
 const validLanguages = ["English", "Spanish", "French", "German", "Russian", "Chinese", "Arabic"];
 
+type EditableUserProfile = {
+    email: string,
+    full_name: string,
+};
+
 type Settings = {
     timezone: string,
     language: string,
-    city: string | null,
-    country: string | null,
+    city: string,
+    country: string,
+
+    profile: EditableUserProfile,
 };
 
 export default function Settings() {
@@ -28,8 +35,14 @@ export default function Settings() {
     const [city, setCity] = useState("");
     const [country, setCountry] = useState("");
 
+    const [fullName, setFullName] = useState("");
+    const [email, setEmail] = useState("");
+
     const [cityValidationErrMsg, setCityValidationErrMsg] = useState("");
     const [countryValidationErrMsg, setCountryValdiationErrMsg] = useState("");
+
+    const [fullNameValidationErrMsg, setFullNameValdiationErrMsg] = useState("");
+    const [emailValidationErrMsg, setEmailValdiationErrMsg] = useState("");
     
     const [confirmationMessage, setConfirmationMessage] = useState("");
 
@@ -42,6 +55,9 @@ export default function Settings() {
             setLanguage(settings.language);
             setCity(settings.city ?? "");
             setCountry(settings.country ?? "");
+
+            setFullName(settings.profile.full_name);
+            setEmail(settings.profile.email);
         };
         fetchCurrentSettings();
     }, []);
@@ -55,8 +71,19 @@ export default function Settings() {
             setCountryValdiationErrMsg("Country field is too long.");
             return false;
         }
+        else if (newSettings.profile.full_name === null || newSettings.profile.full_name.length > 100) {
+            setFullNameValdiationErrMsg("Full name field is too long.");
+            return false;
+        }
+        else if (newSettings.profile.email === null || newSettings.profile.email.length > 100) {
+            setEmailValdiationErrMsg("Email field is too long.");
+            return false;
+        }
+        
         setCityValidationErrMsg("");
         setCountryValdiationErrMsg("");
+        setFullNameValdiationErrMsg("");
+        setEmailValdiationErrMsg("");
         return true;
     }
 
@@ -68,6 +95,10 @@ export default function Settings() {
             language,
             city, 
             country,
+            profile: {
+                email,
+                full_name: fullName,
+            }
         };
 
         if (!validateSettings(newSettings)) {
@@ -142,6 +173,26 @@ export default function Settings() {
                                 margin="normal"
                                 onChange={e => setCountry(e.target.value)}
                                 helperText={countryValidationErrMsg}
+                            />
+
+                            <TextField 
+                                label="Full Name"
+                                type="text"
+                                value={fullName}
+                                sx={{ display: "block" }}
+                                margin="normal"
+                                onChange={e => setFullName(e.target.value)}
+                                helperText={fullNameValidationErrMsg}
+                            />
+
+                            <TextField 
+                                label="Email"
+                                type="email"
+                                value={email}
+                                sx={{ display: "block" }}
+                                margin="normal"
+                                onChange={e => setEmail(e.target.value)}
+                                helperText={emailValidationErrMsg}
                             />
 
                             <Button type="submit" variant="contained">Submit</Button>

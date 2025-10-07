@@ -4,11 +4,19 @@ import zoneinfo
 
 SupportedLanguage = Literal["English", "Spanish", "French", "German", "Russian", "Chinese", "Arabic"]
 
+
+class EditableUserProfile(BaseModel):
+    email: str 
+    full_name: str
+
+
 class UserSettings(BaseModel):
     timezone: str = Field(default='Etc/UTC')
     language: SupportedLanguage = Field(default='English')
     city: str = Field(default='Unknown')
     country: str = Field(default='Unknown')
+
+    profile: EditableUserProfile
 
     @field_validator('timezone')
     def validate_timezone(cls, value: str) -> str:

@@ -27,11 +27,20 @@ def set_settings(
     manager_store: Annotated[AgentMangerInMemoryStore, Depends(get_manager_in_mem_store)],
     new_settings: UserSettings,
 ):
+    # Change core settings on the settings table.
+
     settings = get_settings_table_with_username(db, current_user.username)
     settings.timezone = new_settings.timezone
     settings.language = new_settings.language
     settings.city = new_settings.city
     settings.country = new_settings.country
+    db.commit()
+
+    # Change user fields associated with the user's profile.
+
+    current_user.full_name = new_settings.profile.full_name
+    current_user.email = new_settings.profile.email
+
     db.commit()
 
     # Resets all the user's agents so that they can properly adapt to the new settings.

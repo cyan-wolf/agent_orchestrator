@@ -1,5 +1,5 @@
 from auth.auth import get_user_by_username
-from user_settings.schemas import UserSettings
+from user_settings.schemas import UserSettings, EditableUserProfile
 from user_settings.tables import UserSettingsTable
 from sqlalchemy.orm import Session
 
@@ -15,5 +15,10 @@ def settings_to_schema(settings_from_db: UserSettingsTable) -> UserSettings:
         language=settings_from_db.language, # type: ignore # assume that the settings from the DB are valid
         city=settings_from_db.city,
         country=settings_from_db.country,
+        
+        profile=EditableUserProfile(
+            full_name=settings_from_db.user.full_name,
+            email=settings_from_db.user.email,
+        ),
     )
 
