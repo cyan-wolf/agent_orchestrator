@@ -15,6 +15,7 @@ import NavBar from './components/nav/NavBar';
 import ChatBox from './pages/chat/components/chat_drawer/components/ChatBox';
 import Register from './pages/register/Register';
 import Manual from './pages/manual/Manual';
+import NoChatSelectedDisplay from './pages/chat/components/chat_drawer/components/NoChatSelectedDisplay';
 
 export default function App() {
   return (
@@ -35,6 +36,8 @@ export default function App() {
         <Route path="/" element={<Home/>} />
 
         <Route path="/chat" element={<ProtectedRoute children={<Chat/>} />}>
+          <Route index element={<ProtectedRoute children={<NoChatSelectedDisplay />} />} />
+
           <Route path=":chatId" element={<ProtectedRoute children={<ChatBox />} />} />
         </Route>
 
