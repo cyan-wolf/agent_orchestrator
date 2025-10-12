@@ -22,6 +22,15 @@ async def get_all_chats(
     return services.get_all_user_chat_schemas(current_user)
 
 
+@router.get("/api/chat/{chat_id}/info/", tags=["chat"])
+async def get_chat_info(
+    chat_id: uuid.UUID, 
+    current_user: Annotated[UserTable, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_database)],
+):
+    return services.get_chat_info(db, current_user, chat_id)
+
+
 @router.post("/api/chat/create/", tags=["chat"])
 async def create_new_chat(
     current_user: Annotated[UserTable, Depends(get_current_user)],

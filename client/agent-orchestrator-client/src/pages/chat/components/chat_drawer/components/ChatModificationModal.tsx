@@ -4,23 +4,33 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
-import type { ChatModificationJson } from '../chat';
+import type { ChatJson, ChatModificationJson } from '../chat';
 import { TextField } from '@mui/material';
 
 type ChatModificationModalProps = {
-    chatId: string,
+    chatId: string | null, // the chat ID can be `null` due to React-isms
     isOpen: boolean,
     onChatEdit: (chatId: string, chatModification: ChatModificationJson) => void,
     onClose: () => void,
 };
 
 export default function ChatModificationModal({ chatId, isOpen, onChatEdit, onClose }: ChatModificationModalProps) {
+  // If the chat ID ever technically is null, then do not try to render anything.
+  if (chatId === null) {
+    return null;
+  }
+
   const [name, setName] = React.useState("");
 
   React.useEffect(() => {
-    // TODO: make this fetch the name (and possibly other fields) of the chat, 
-    // to autofill the form fields with the current values.
-    setName("");
+    // Autofill the form fields with the current values of the chat.
+    const fetchChatData = async () => {
+      const resp = await fetch(`/api/chat/${chatId}/info/`);
+      const chat: ChatJson = await resp.json();
+
+      setName(chat.name);
+    };
+    fetchChatData();
   }, [chatId]);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -30,7 +40,7 @@ export default function ChatModificationModal({ chatId, isOpen, onChatEdit, onCl
         name
     };
 
-    onChatEdit(chatId, chatModification)
+    onChatEdit(chatId!, chatModification)
   }
 
   return (

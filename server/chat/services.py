@@ -19,6 +19,10 @@ def get_all_user_chat_schemas(user: UserTable) -> Sequence[Chat]:
     return [chat_schema_from_db(chat) for chat in user.chats]
 
 
+def get_chat_info(db: Session, user: UserTable, chat_id: uuid.UUID) -> Chat:
+    return chat_schema_from_db(get_chat_by_id_from_user_throwing(db, user, chat_id))
+
+
 def create_and_return_new_chat_for_user(db: Session, manager_store: AgentMangerInMemoryStore, new_chat_schema: CreateNewChat, user: UserTable) -> Chat:
     """
     Create a new chat using the provided chat creation data :py:attr:`new_chat_schema`. Returns the schema of the newly created chat.
