@@ -8,7 +8,7 @@ import IconButton from '@mui/material/IconButton';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import type { ChatJson, ChatModificationJson, NewChatData } from './chat';
 import ChatSelectionList from './components/ChatSelectionList';
 import NewChatConfirmationFormModal from './components/NewChatConfirmationModal';
@@ -45,10 +45,21 @@ function ChatDrawer({ children }: ChatDrawerProps) {
   // For forcing the chat box UI (the one with the messages) to refresh.
   const { toggleCurrentChatRefresh } = useChatContext()!;
 
+  const location = useLocation();
+
   function handleChatSelect(chatId: string) {
       // Change the URL to include the chat ID.
       // React Router and the chat box UI automatically render the correct chat based on the URL.
       navigate(chatId);
+  }
+
+  function getCurrentlySelectedChatId(): string | null {
+    const fields = location.pathname.split('/');
+
+    if (fields.length === 2) {
+      return null;
+    }
+    return fields[2];
   }
 
   function handleChatEditAttempt(chatId: string) {
@@ -96,6 +107,11 @@ function ChatDrawer({ children }: ChatDrawerProps) {
     // Refresh the chat list by forcing a prop change.
     // This state variable is a boolean, and (prev => !prev) just toggles it.
     setChatListTriggerToggle(prev => !prev);
+
+    if (chatId === getCurrentlySelectedChatId()) {
+      // Unselect the chat if it was the one we just deleted.
+      navigate('/chat');
+    }
   }
 
   function closeChatEditModal() {
