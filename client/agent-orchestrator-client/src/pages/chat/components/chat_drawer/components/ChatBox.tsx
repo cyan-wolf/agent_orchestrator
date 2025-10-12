@@ -1,20 +1,21 @@
 import { useEffect, useState } from "react";
 import Loading from "../../../../../components/loading/Loading";
-import { Box, Stack, TextField } from "@mui/material";
+import { Alert, AlertTitle, Box, Stack, TextField } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import type { Message } from "../../messages/message";
 import MessageList from "../../messages/MessageList";
 import { useChatContext } from "../../../Chat";
+import type { ChatJson } from "../chat";
 
 type ChatBoxProps = {
-    chatId: string
+    chat: ChatJson
 };
 
 /**
  * Displays the chat box UI that allows the user to enter messages
  * and view the message history. Renders within the broader chat drawer UI.
  */
-function ChatBoxDisplay({ chatId }: ChatBoxProps) {
+function ChatBoxDisplay({ chat }: ChatBoxProps) {
     const [userMessage, setUserMessage] = useState("");
     const [latestMsgTimestamp, setLatestMsgTimestamp] = useState(0.0);
     const [messages, setMessages] = useState<Message[]>([]);
@@ -51,7 +52,7 @@ function ChatBoxDisplay({ chatId }: ChatBoxProps) {
         // The dependency on chatId on useEffect is required so that 
         // the component re-fetches the chat history whenever a parent component 
         // changes the chat ID.
-    }, [chatId, currentChatRefreshToggle]);
+    }, [chat.id, currentChatRefreshToggle]);
 
     function resetChatState(resetTimestamp: number) {
         setWaitingForServer(true);
@@ -80,7 +81,7 @@ function ChatBoxDisplay({ chatId }: ChatBoxProps) {
     }
 
     function buildFetchNewstMessagesUrl(timestamp: number) {
-        const basePath = `/api/chat/${chatId}/get-latest-messages/${timestamp}/`;
+        const basePath = `/api/chat/${chat.id}/get-latest-messages/${timestamp}/`;
         const excludeFilterParams = buildChatMessageExcludeFilterQueryUrlParams();
 
         return `${basePath}${excludeFilterParams}`;
@@ -97,7 +98,7 @@ function ChatBoxDisplay({ chatId }: ChatBoxProps) {
 
     async function submitUserMessage() {
         setWaitingForServer(true);
-        const resp = await fetch(`/api/chat/${chatId}/send-message/`, {
+        const resp = await fetch(`/api/chat/${chat.id}/send-message/`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -199,12 +200,46 @@ function ChatBoxDisplay({ chatId }: ChatBoxProps) {
 export default function ChatBox() {
     // Read the chat ID from the URL.
     const { chatId } = useParams();
+    const [chat, setChat] = useState<ChatJson | null | undefined>();
 
-    return (
-        // Load the actual chat box UI.
-        //
-        // Making the chat ID be part of the chat box display's key 
-        // guarantees that the display re-renders when the chat ID changes.
-        <ChatBoxDisplay chatId={chatId!} key={chatId} />
-    );
+    useEffect(() => {
+        const fetchChat = async () => {
+            const resp = await fetch(`/api/chat/${chatId}/info/`);
+            if (!resp.ok) {
+                setChat(null);
+                return;
+            }
+            const chatInfo: ChatJson = await resp.json();
+            setChat(chatInfo);
+        };
+        fetchChat();
+
+    }, [chatId]);
+
+    let content;
+
+    // Chat data fetching failed.
+    if (chat === null) {
+        content = (
+            <Alert severity="error">
+                <AlertTitle>Error Loading Chat</AlertTitle>
+                Could not fetch chat with ID {chatId}.
+            </Alert>
+        );
+    }
+    // No chat data has been loaded yet.
+    else if (chat === undefined) {
+        content = <Loading />;
+    }
+    // Chat data was able to be fetched.
+    else {
+        content = (
+            // Load the actual chat box UI.
+            //
+            // Making the chat ID be part of the chat box display's key 
+            // guarantees that the display re-renders when the chat ID changes.
+            <ChatBoxDisplay chat={chat} key={chatId} />
+        );
+    }
+    return content;
 }
