@@ -37,35 +37,47 @@ export default function ChatSelectionList({ onSelectChat, onTryEditChat, onTryDe
     return (
       <List>
         {chats.map((c) => (
-          <ListItem key={c.id} disablePadding>
+          <ListItem 
+            key={c.id} 
+            disablePadding 
+            sx={{
+              width: '100%',
+              display: 'flex', 
+              alignItems: 'center', 
+            }}
+          >
             <ListItemButton 
               onClick={() => onSelectChat(c.id)}
               sx={{
-                width: "50%"
+                flexShrink: 0,
+                width: '70%', 
+                minWidth: 0, // Prevent text overflow issues.
               }}
             >
               <ListItemText primary={c.name} /> 
             </ListItemButton>
             <Tooltip title="Edit Chat">
-              <ListItemButton onClick={() => onTryEditChat(c.id)}>
-                <ListItemIcon
-                  sx={{
-                    display: "inline-block",
-                    textAlign: "center",
-                  }}
-                >
+              <ListItemButton 
+                onClick={() => onTryEditChat(c.id)}
+                sx={{
+                  flexShrink: 0,
+                  p: 0.5,
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 0 }}>
                   <EditIcon />
                 </ListItemIcon>
               </ListItemButton>
             </Tooltip>
             <Tooltip title="Delete Chat">
-              <ListItemButton onClick={() => onTryDeleteChat(c.id)}>
-                <ListItemIcon
-                  sx={{
-                    display: "inline-block",
-                    textAlign: "center",
-                  }}
-                >
+              <ListItemButton 
+                onClick={() => onTryDeleteChat(c.id)}
+                sx={{
+                  flexShrink: 0,
+                  p: 0.5,
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 0 }}>
                   <DeleteIcon />
                 </ListItemIcon>
               </ListItemButton>
