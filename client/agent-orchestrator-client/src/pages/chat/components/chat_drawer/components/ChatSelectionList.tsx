@@ -7,6 +7,9 @@ import { useEffect, useState } from 'react';
 import type { ChatJson } from '../chat';
 import { Tooltip } from '@mui/material';
 
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+
 type ChatSelectProps = {
     onSelectChat: (chatId: string) => void,
     onTryEditChat: (chatId: string) => void,
@@ -51,7 +54,7 @@ export default function ChatSelectionList({ onSelectChat, onTryEditChat, onTryDe
                     textAlign: "center",
                   }}
                 >
-                  E
+                  <EditIcon />
                 </ListItemIcon>
               </ListItemButton>
             </Tooltip>
@@ -63,7 +66,7 @@ export default function ChatSelectionList({ onSelectChat, onTryEditChat, onTryDe
                     textAlign: "center",
                   }}
                 >
-                  X
+                  <DeleteIcon />
                 </ListItemIcon>
               </ListItemButton>
             </Tooltip>
