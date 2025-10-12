@@ -65,7 +65,7 @@ export default function ChatSelectionList({ onSelectChat, onTryEditChat, onTryDe
                 }}
               >
                 <ListItemIcon sx={{ minWidth: 0 }}>
-                  <EditIcon />
+                  <EditIcon color="primary" />
                 </ListItemIcon>
               </ListItemButton>
             </Tooltip>
@@ -78,7 +78,7 @@ export default function ChatSelectionList({ onSelectChat, onTryEditChat, onTryDe
                 }}
               >
                 <ListItemIcon sx={{ minWidth: 0 }}>
-                  <DeleteIcon />
+                  <DeleteIcon color="primary" />
                 </ListItemIcon>
               </ListItemButton>
             </Tooltip>
