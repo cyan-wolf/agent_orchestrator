@@ -50,6 +50,9 @@ const NavBar = ({ pages }: NavBarProps) => {
             textColor="primary"
             indicatorColor="primary"
             aria-label="secondary tabs example"
+
+            variant="scrollable" 
+            scrollButtons="auto"
         >
             {pages.map(p => (
                 <Tab value={p.to} label={p.title} key={p.title} />
