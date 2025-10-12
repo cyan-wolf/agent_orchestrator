@@ -1,4 +1,5 @@
 import { Alert, Card, CardContent, Container, Typography, useMediaQuery, useTheme } from "@mui/material";
+import TryIcon from '@mui/icons-material/Try';
 
 export default function NoChatSelectedDisplay() {
     const theme = useTheme();
@@ -11,7 +12,17 @@ export default function NoChatSelectedDisplay() {
     const chatDrawerOpenByDefault = chatDrawerIsOpenByDefault();
     const extraMessageContentWhenModalNotVisibleByDefault = (chatDrawerOpenByDefault) ? <></> :
         <Alert severity="info">
-            You must open the drawer on the left hand side first.
+            You must open the drawer on the left hand side first. Click the 
+            <TryIcon 
+                fontSize="small" 
+                sx={{ 
+                    verticalAlign: 'middle', 
+                    // Adjust margin for spacing from surrounding text.
+                    ml: 0.5,
+                    mr: 0.5,
+                }}
+            /> 
+            icon.
         </Alert>;
 
     return (

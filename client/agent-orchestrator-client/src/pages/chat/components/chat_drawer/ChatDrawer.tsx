@@ -17,6 +17,8 @@ import ChatExcludeFilterSelectionList from './components/ChatExcludeFilterSelect
 import { useChatContext } from '../../Chat';
 import ChatModificationModal from './components/ChatModificationModal';
 
+import TryIcon from '@mui/icons-material/Try';
+
 const drawerWidth = 240;
 
 type ChatDrawerProps = {
@@ -230,7 +232,7 @@ function ChatDrawer({ children }: ChatDrawerProps) {
             onClick={handleDrawerToggle}
             sx={{ mr: 2, display: { sm: 'none' }, zIndex: 9 }}
           >
-            M
+            <TryIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div">
             Chat
