@@ -11,14 +11,29 @@ type NavBarProps = {
     pages: NavPageInfo[]
 };
 
-const NavBar = (props: NavBarProps) => {
+function locationIsValidPage(locationPath: string, pages: NavPageInfo[]): boolean {
+    for (const page of pages) {
+        if (locationPath === page.to) {
+            return true;
+        }
+    }
+    return false;
+}
+
+const NavBar = ({ pages }: NavBarProps) => {
     const location = useLocation();
-    const [pageName, setPageName] = useState<string>(location.pathname);
+    const [pageName, setPageName] = useState<string>('/');
     const navigate = useNavigate();
 
     // This useEffect is needed to update the nav bar UI itself 
     // whenever the location is changed dynamically (for example, by the authentication protected routes).
     useEffect(() => {
+        // Check if the current location is a valid page for the nav bar to try to 
+        // select.
+        if (!locationIsValidPage(location.pathname, pages)) {
+            return;
+        }
+
         setPageName(location.pathname);
     }, [location.pathname]);
 
@@ -36,7 +51,7 @@ const NavBar = (props: NavBarProps) => {
             indicatorColor="primary"
             aria-label="secondary tabs example"
         >
-            {props.pages.map(p => (
+            {pages.map(p => (
                 <Tab value={p.to} label={p.title} key={p.title} />
             ))}
         </Tabs>
