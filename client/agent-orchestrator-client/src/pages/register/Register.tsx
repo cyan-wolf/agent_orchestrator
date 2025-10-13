@@ -111,7 +111,7 @@ export default function Register() {
         </Container>
     );
 
-    const toLoginView = (
+    const toRegisterView = (
         <Container maxWidth="sm">
             <Card>
                 <CardContent sx={{
@@ -129,6 +129,7 @@ export default function Register() {
                             margin="normal"
                             onChange={e => setUsername(e.target.value)}
                             helperText={usernameErrMsg}
+                            error={!!usernameErrMsg}
                         />
                         <TextField 
                             label="Email"
@@ -138,6 +139,7 @@ export default function Register() {
                             margin="normal"
                             onChange={e => setEmail(e.target.value)}
                             helperText={emailErrMsg}
+                            error={!!emailErrMsg}
                         />
                         <TextField 
                             label="Full Name"
@@ -147,6 +149,7 @@ export default function Register() {
                             margin="normal"
                             onChange={e => setFullName(e.target.value)}
                             helperText={fullNameErrMsg}
+                            error={!!fullNameErrMsg}
                         />
                         <TextField 
                             label="Password"
@@ -156,6 +159,7 @@ export default function Register() {
                             margin="normal"
                             onChange={e => setPassword(e.target.value)}
                             helperText={passwordErrMsg}
+                            error={!!passwordErrMsg}
                         />
                         <Button
                             sx={{ display: "block" }}
@@ -177,5 +181,5 @@ export default function Register() {
         </Container>
     );
 
-    return (user !== null) ? alreadyLoggedInView : toLoginView;
+    return (user !== null) ? alreadyLoggedInView : toRegisterView;
 }

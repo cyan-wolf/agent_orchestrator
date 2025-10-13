@@ -110,6 +110,7 @@ const Login = () => {
                             margin="normal"
                             onChange={e => setUsername(e.target.value)}
                             helperText={userNameValidationErrorMsg}
+                            error={!!userNameValidationErrorMsg}
                         />
                         <TextField 
                             label="Password"
@@ -119,6 +120,7 @@ const Login = () => {
                             margin="normal"
                             onChange={e => setPassword(e.target.value)}
                             helperText={passwordValidationErrorMsg}
+                            error={!!passwordValidationErrorMsg}
                         />
                         <Button
                             sx={{ display: "block" }}
