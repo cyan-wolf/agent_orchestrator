@@ -4,6 +4,7 @@ import { useAuth } from "../../auth/useAuth";
 import Loading from "../../components/loading/Loading";
 import { Alert, AlertTitle, Button, Card, CardContent, Container, Paper, TextField, Typography } from "@mui/material";
 import { Link } from "react-router-dom";
+import { apiErrorToMessage } from "../../api_errors/api_errors";
 
 export default function Register() {
     const [username, setUsername] = useState("");
@@ -83,8 +84,9 @@ export default function Register() {
             });
 
             if (!response.ok) {
-                const detailBody = await response.json();
-                setFormErrMsg(detailBody.detail ?? "Could not complete registration.");
+                const apiErrorJson = await response.json();
+
+                setFormErrMsg(apiErrorToMessage(apiErrorJson, "Unexpected error during registration."));
                 return;
             }
 
