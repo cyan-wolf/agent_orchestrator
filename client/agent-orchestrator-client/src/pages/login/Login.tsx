@@ -4,6 +4,7 @@ import { useAuth } from "../../auth/useAuth";
 import Loading from "../../components/loading/Loading";
 import { Alert, AlertTitle, Button, Card, CardContent, Container, Paper, TextField, Typography } from "@mui/material";
 import { Link } from "react-router-dom";
+import { apiErrorToMessage } from "../../api_errors/api_errors";
 
 const Login = () => {
     const [username, setUsername] = useState("");
@@ -64,7 +65,8 @@ const Login = () => {
                     setFormErrorMessage("Could not complete authentication. Invalid credentials.");
                 }
                 else {
-                    console.log(response);
+                    const apiErrorJson = await response.json();
+                    setFormErrorMessage(apiErrorToMessage(apiErrorJson, "Unexpected error while logging in."));
                 }
                 return;
             }
