@@ -166,10 +166,13 @@ function ChatBoxDisplay({ chat }: ChatBoxProps) {
                         scrollbarWidth: 'thin', 
                         scrollbarColor: 'rgba(0, 0, 0, 0.2) transparent',
                     }}
+                    role="log"
+                    aria-live="polite"
+                    aria-label={`Message History for chat '${chat.name}'`}
                 >
                     <MessageList messages={messages} />
                 </Box>
-                <Box>
+                <Box aria-live="polite">
                     {(waitingForServer) ? <Loading /> : <></>}
                     <TextField 
                         fullWidth
@@ -186,6 +189,7 @@ function ChatBoxDisplay({ chat }: ChatBoxProps) {
                         sx={{
                             marginTop: '10px'
                         }}
+                        aria-label="Type your message"
                     />
                 </Box>
             </Stack>
