@@ -25,8 +25,8 @@ export default function Register() {
     }
 
     function validateUsername(): boolean {
-        if (username.trim().length === 0) {
-            setUsernameErrMsg("Username cannot be empty.");
+        if (username.trim().length < 5) {
+            setUsernameErrMsg("Username length must be > 4.");
             return false;
         }
         setUsernameErrMsg("");
@@ -52,8 +52,8 @@ export default function Register() {
     }
 
     function validatePassword(): boolean {
-        if (password.trim().length === 0) {
-            setPasswordErrMsg("Password cannot be empty.");
+        if (password.trim().length < 8) {
+            setPasswordErrMsg("Password length must be > 7.");
             return false;
         }
         setPasswordErrMsg("");
