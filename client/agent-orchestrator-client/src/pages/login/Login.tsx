@@ -60,7 +60,7 @@ const Login = () => {
             });
 
             if (!response.ok) {
-                if (response.statusText === "Unauthorized") {
+                if (response.status === 401) {
                     setFormErrorMessage("Could not complete authentication. Invalid credentials.");
                 }
                 else {

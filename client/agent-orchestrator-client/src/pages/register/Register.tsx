@@ -84,8 +84,7 @@ export default function Register() {
 
             if (!response.ok) {
                 const detailBody = await response.json();
-                // NOTE: It may be dangerous to assume this detail field exists.
-                setFormErrMsg(detailBody.detail);
+                setFormErrMsg(detailBody.detail ?? "Could not complete registration.");
                 return;
             }
 
