@@ -21,6 +21,7 @@ export default function NoChatSelectedDisplay() {
                     ml: 0.5,
                     mr: 0.5,
                 }}
+                aria-hidden="true"
             /> 
             icon.
         </Alert>;
@@ -44,7 +45,6 @@ export default function NoChatSelectedDisplay() {
 
                 </CardContent>
             </Card>
-
         </Container>
     );
 }
