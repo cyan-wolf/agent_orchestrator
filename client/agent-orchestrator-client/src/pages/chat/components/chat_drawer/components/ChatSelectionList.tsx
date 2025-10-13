@@ -53,6 +53,7 @@ export default function ChatSelectionList({ onSelectChat, onTryEditChat, onTryDe
                 width: '70%', 
                 minWidth: 0, // Prevent text overflow issues.
               }}
+              aria-label={`Select chat '${c.name}'`}
             >
               <ListItemText primary={c.name} /> 
             </ListItemButton>
@@ -63,6 +64,7 @@ export default function ChatSelectionList({ onSelectChat, onTryEditChat, onTryDe
                   flexShrink: 0,
                   p: 0.5,
                 }}
+                aria-label={`Edit chat '${c.name}'`}
               >
                 <ListItemIcon sx={{ minWidth: 0 }}>
                   <EditIcon color="primary" />
@@ -76,6 +78,7 @@ export default function ChatSelectionList({ onSelectChat, onTryEditChat, onTryDe
                   flexShrink: 0,
                   p: 0.5,
                 }}
+                aria-label={`Delete chat '${c.name}'`}
               >
                 <ListItemIcon sx={{ minWidth: 0 }}>
                   <DeleteIcon color="primary" />

@@ -49,7 +49,6 @@ export default function ChatModificationModal({ chatId, isOpen, onChatEdit, onCl
         open={isOpen}
         onClose={onClose}
         aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
       >
         <DialogTitle id="alert-dialog-title">
           Chat Modification
