@@ -242,11 +242,10 @@ function ChatDrawer({ children }: ChatDrawerProps) {
       <Box
         component="nav"
         sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
-        aria-label="chats"
+        aria-label="Chat Options and Navigation"
       >
         {/* The implementation can be swapped with js to avoid SEO duplication of links. */}
         <Drawer
-          // container={container}
           variant="temporary"
           open={mobileOpen}
           onTransitionEnd={handleDrawerTransitionEnd}
@@ -285,6 +284,7 @@ function ChatDrawer({ children }: ChatDrawerProps) {
 
           minWidth: 0, // <--- prevents the inner content from growing out of control
         }}
+        aria-label='Current Chat'
       >
         <Toolbar />
         {children}
