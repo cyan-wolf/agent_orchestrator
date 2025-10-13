@@ -36,18 +36,6 @@ class Tracer:
 
         db.add(trace_for_db)
         db.commit()
-
-
-    def get_history(self, db: Session) -> Sequence[Trace]:
-        """
-        Returns the entire history of the chat associated with this tracer as a 
-        sequence of trace schemas.
-        """
-        stmt = select(TraceTable).filter(TraceTable.chat_id == self.chat_id).order_by(TraceTable.timestamp)
-        results = db.execute(stmt).scalars().all()
-        schemas = [_trace_table_to_schema(tr) for tr in results]
-
-        return schemas
     
 
     def get_traces_after_timestamp(self, db: Session, timestamp: float, exclude_filters: list[TraceKind]) -> Sequence[Trace]:

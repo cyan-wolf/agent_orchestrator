@@ -71,22 +71,6 @@ def try_modify_chat(db: Session, chat_id: uuid.UUID, user: UserTable, chat_modif
     return True
 
 
-def get_full_trace_schema_history_for_user_chat(
-    db: Session, 
-    manager_store: AgentMangerInMemoryStore, 
-    chat_id: uuid.UUID, 
-    user: UserTable
-) -> Sequence[Trace]:
-    """
-    Returns the entire chat history for the given chat for the given user as a sequence of trace schemas. 
-    Raises the :py:class:`fastapi.HTTPException` exception if an issue occurs.
-    """
-    chat = get_chat_by_id_from_user_throwing(db, user, chat_id)
-
-    agent_manager = get_or_init_agent_manager_for_chat(db, manager_store, user, chat)
-    return agent_manager.get_tracer().get_history(db)
-
-
 def get_trace_schemas_after_timestamp_for_user_chat(
     db: Session, 
     manager_store: AgentMangerInMemoryStore, 

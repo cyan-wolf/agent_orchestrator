@@ -71,16 +71,6 @@ async def modify_chat(
     
     else:
         return { "response": "could not modify chat" }
-
-
-@router.get("/api/chat/{chat_id}/history/", tags=["chat"])
-async def get_history(
-    chat_id: uuid.UUID, 
-    current_user: Annotated[UserTable, Depends(get_current_user)],
-    db: Annotated[Session, Depends(get_database)],
-    manager_store: Annotated[AgentMangerInMemoryStore, Depends(get_manager_in_mem_store)],
- ) -> Sequence[Trace]:
-    return services.get_full_trace_schema_history_for_user_chat(db, manager_store, chat_id, current_user)
     
 
 @router.get("/api/chat/{chat_id}/get-latest-messages/{latest_timestamp}/", tags=["chat"])
