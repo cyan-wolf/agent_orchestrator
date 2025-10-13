@@ -1,4 +1,4 @@
-import { Alert, Box, Button, Card, CardContent, Container, InputLabel, MenuItem, Paper, Select, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, Card, CardContent, Container, FormControl, InputLabel, MenuItem, Paper, Select, TextField, Typography } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { getTimeZones } from '@vvo/tzdb';
 import Loading from "../../components/loading/Loading";
@@ -152,35 +152,39 @@ export default function Settings() {
                             }}
                         >
                             <form onSubmit={onSubmit}>
-                                <InputLabel id="label-timezone">Time Zone</InputLabel>
-                                <Select
-                                    labelId="label-timezone"
-                                    id="select-timezone"
-                                    value={timezone}
-                                    label="timezone"
-                                    onChange={e => setTimezone(e.target.value as string)}
-                                >
-                                    {timezones.map((tz) => (
-                                        <MenuItem key={tz.name} value={tz.name}>
-                                            {tz.name} (UTC{tz.currentTimeFormat.split(' ')[0]})
-                                        </MenuItem>
-                                    ))}
-                                </Select>
+                                <FormControl fullWidth margin="normal">
+                                    <InputLabel id="label-timezone">Time Zone</InputLabel>
+                                    <Select
+                                        labelId="label-timezone"
+                                        id="select-timezone"
+                                        value={timezone}
+                                        label="timezone"
+                                        onChange={e => setTimezone(e.target.value as string)}
+                                    >
+                                        {timezones.map((tz) => (
+                                            <MenuItem key={tz.name} value={tz.name}>
+                                                {tz.name} (UTC{tz.currentTimeFormat.split(' ')[0]})
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
 
-                                <InputLabel id="label-language">Language</InputLabel>
-                                <Select
-                                    labelId="label-language"
-                                    id="select-langauge"
-                                    value={language}
-                                    label="Language"
-                                    onChange={e => setLanguage(e.target.value as string)}
-                                >
-                                    {validLanguages.map((lang) => (
-                                        <MenuItem key={lang} value={lang}>
-                                            {lang}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
+                                <FormControl fullWidth margin="normal">
+                                    <InputLabel id="label-language">Language</InputLabel>
+                                    <Select
+                                        labelId="label-language"
+                                        id="select-langauge"
+                                        value={language}
+                                        label="Language"
+                                        onChange={e => setLanguage(e.target.value as string)}
+                                    >
+                                        {validLanguages.map((lang) => (
+                                            <MenuItem key={lang} value={lang}>
+                                                {lang}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
 
                                 <TextField 
                                     label="City"
@@ -190,6 +194,7 @@ export default function Settings() {
                                     margin="normal"
                                     onChange={e => setCity(e.target.value)}
                                     helperText={cityValidationErrMsg}
+                                    error={!!cityValidationErrMsg}
                                 />
                                 <TextField 
                                     label="Country"
@@ -199,6 +204,7 @@ export default function Settings() {
                                     margin="normal"
                                     onChange={e => setCountry(e.target.value)}
                                     helperText={countryValidationErrMsg}
+                                    error={!!countryValidationErrMsg}
                                 />
 
                                 <TextField 
@@ -209,6 +215,7 @@ export default function Settings() {
                                     margin="normal"
                                     onChange={e => setFullName(e.target.value)}
                                     helperText={fullNameValidationErrMsg}
+                                    error={!!fullNameValidationErrMsg}
                                 />
 
                                 <TextField 
@@ -219,6 +226,7 @@ export default function Settings() {
                                     margin="normal"
                                     onChange={e => setEmail(e.target.value)}
                                     helperText={emailValidationErrMsg}
+                                    error={!!emailValidationErrMsg}
                                 />
 
                                 {(waitingForServer) ? <Loading /> : <></>}
