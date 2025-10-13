@@ -48,14 +48,14 @@ export default function ChatExcludeFilterSelectionList() {
   return (
     <div>
       <FormControl sx={{ m: 1, width: 200 }}>
-        <InputLabel id="demo-multiple-name-label">Exclude Filters</InputLabel>
+        <InputLabel id="exlcude-filters-label">Exclude Filters</InputLabel>
         <Select
-          labelId="demo-multiple-name-label"
-          id="demo-multiple-name"
+          labelId="exlcude-filters-label"
+          id="exclude-filters-select"
           multiple
           value={messageFilters}
           onChange={handleChange}
-          input={<OutlinedInput label="Name" />}
+          input={<OutlinedInput label="Exclude Filters" />}
           MenuProps={MenuProps}
         >
           {Object.keys(filterNames).map((name) => (
