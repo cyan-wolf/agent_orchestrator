@@ -43,21 +43,21 @@ const NavBar = ({ pages }: NavBarProps) => {
     };
 
     return (
-        <Box sx={{ width: '100%' }}>
-        <Tabs
-            value={pageName}
-            onChange={(_, newPageName) => handlePageChange(newPageName)}
-            textColor="primary"
-            indicatorColor="primary"
-            aria-label="secondary tabs example"
+        <Box sx={{ width: '100%' }} role="navigation">
+            <Tabs
+                value={pageName}
+                onChange={(_, newPageName) => handlePageChange(newPageName)}
+                textColor="primary"
+                indicatorColor="primary"
+                aria-label="Top navigation bar with tabs"
 
-            variant="scrollable" 
-            scrollButtons="auto"
-        >
-            {pages.map(p => (
-                <Tab value={p.to} label={p.title} key={p.title} />
-            ))}
-        </Tabs>
+                variant="scrollable" 
+                scrollButtons="auto"
+            >
+                {pages.map(p => (
+                    <Tab value={p.to} label={p.title} key={p.title} />
+                ))}
+            </Tabs>
         </Box>
     );
 };
