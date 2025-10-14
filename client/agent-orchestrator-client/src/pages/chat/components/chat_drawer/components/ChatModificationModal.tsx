@@ -22,6 +22,7 @@ export default function ChatModificationModal({ chatId, isOpen, errorMsg, onChat
   }
 
   const [name, setName] = React.useState("");
+  const [nameErrMsg, setNameErrMsg] = React.useState("");
 
   React.useEffect(() => {
     // Autofill the form fields with the current values of the chat.
@@ -34,8 +35,21 @@ export default function ChatModificationModal({ chatId, isOpen, errorMsg, onChat
     fetchChatData();
   }, [chatId]);
 
+  function validateFormFields(): boolean {
+    if (name.trim().length === 0 || name.trim().length > 20) {
+      setNameErrMsg("Name length must be between 1 and 19 characters in length.");
+      return false;
+    }
+    setNameErrMsg("");
+    return true;
+  }
+
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    if (!validateFormFields()) {
+      return;
+    }
 
     const chatModification: ChatModificationJson = {
       name: name.trim(),
@@ -60,13 +74,15 @@ export default function ChatModificationModal({ chatId, isOpen, errorMsg, onChat
                 <TextField
                     autoFocus
                     margin="dense"
-                    label="New Chat Name"
+                    label="Chat Name"
                     type="text"
                     fullWidth
                     variant="standard"
                     value={name}
                     onChange={e => setName(e.target.value)}
                     required
+                    helperText={nameErrMsg}
+                    error={!!nameErrMsg}
                 />
             </DialogContent>
 
