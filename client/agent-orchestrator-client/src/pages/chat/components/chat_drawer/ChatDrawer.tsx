@@ -18,6 +18,7 @@ import { useChatContext } from '../../Chat';
 import ChatModificationModal from './components/ChatModificationModal';
 
 import TryIcon from '@mui/icons-material/Try';
+import { apiErrorToMessage } from '../../../../api_errors/api_errors';
 
 const drawerWidth = 240;
 
@@ -34,6 +35,7 @@ function ChatDrawer({ children }: ChatDrawerProps) {
   const [newChatModalOpen, setNewChatModalOpen] = useState(false);
 
   // For managing the chat modification modal.
+  const [chatEditModalErrMsg, setChatEditModalErrMsg] = useState<string | null>(null);
   const [chatEditModalChatId, setChatEditModalChatId] = useState<string | null>(null);
   const [chatEditModalOpen, setChatEditModalOpen] = useState(false);
 
@@ -82,6 +84,13 @@ function ChatDrawer({ children }: ChatDrawerProps) {
       },
       body: JSON.stringify(chatModification),
     });
+
+    if (!resp.ok) {
+      const apiErrJson = await resp.json();
+      setChatEditModalErrMsg(apiErrorToMessage(apiErrJson, "Unexpected error while modifying chat."));
+      return;
+    }
+
     const respJson = await resp.json();
 
     console.log(respJson);
@@ -119,6 +128,7 @@ function ChatDrawer({ children }: ChatDrawerProps) {
   function closeChatEditModal() {
     setChatEditModalOpen(false);
     setChatEditModalChatId(null);
+    setChatEditModalErrMsg(null);
   }
 
   function closeChatDeleteModal() {
@@ -299,6 +309,7 @@ function ChatDrawer({ children }: ChatDrawerProps) {
       <ChatModificationModal 
         chatId={chatEditModalChatId!}
         isOpen={chatEditModalOpen}
+        errorMsg={chatEditModalErrMsg}
         onChatEdit={handleActualChatModification}
         onClose={closeChatEditModal}
       />

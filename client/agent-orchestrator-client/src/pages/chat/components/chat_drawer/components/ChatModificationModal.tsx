@@ -5,16 +5,17 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import type { ChatJson, ChatModificationJson } from '../chat';
-import { TextField } from '@mui/material';
+import { Alert, AlertTitle, TextField } from '@mui/material';
 
 type ChatModificationModalProps = {
     chatId: string | null, // the chat ID can be `null` due to React-isms
     isOpen: boolean,
+    errorMsg: string | null,
     onChatEdit: (chatId: string, chatModification: ChatModificationJson) => void,
     onClose: () => void,
 };
 
-export default function ChatModificationModal({ chatId, isOpen, onChatEdit, onClose }: ChatModificationModalProps) {
+export default function ChatModificationModal({ chatId, isOpen, errorMsg, onChatEdit, onClose }: ChatModificationModalProps) {
   // If the chat ID ever technically is null, then do not try to render anything.
   if (chatId === null) {
     return null;
@@ -37,7 +38,7 @@ export default function ChatModificationModal({ chatId, isOpen, onChatEdit, onCl
     e.preventDefault();
 
     const chatModification: ChatModificationJson = {
-        name
+      name: name.trim(),
     };
 
     onChatEdit(chatId!, chatModification)
@@ -49,6 +50,7 @@ export default function ChatModificationModal({ chatId, isOpen, onChatEdit, onCl
         open={isOpen}
         onClose={onClose}
         aria-labelledby="alert-dialog-title"
+        fullWidth
       >
         <DialogTitle id="alert-dialog-title">
           Chat Modification
@@ -78,6 +80,13 @@ export default function ChatModificationModal({ chatId, isOpen, onChatEdit, onCl
                 </Button>
             </DialogActions>
         </form>
+
+        {(errorMsg === null)? <></> : (
+          <Alert severity="error">
+            <AlertTitle>Server Error</AlertTitle>
+            {errorMsg}
+          </Alert>
+        )}
       </Dialog>
     </React.Fragment>
   );
