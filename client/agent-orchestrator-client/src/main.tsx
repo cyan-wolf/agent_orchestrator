@@ -16,8 +16,9 @@ import { AuthProvider } from './auth/useAuth.tsx';
 import { ThemeProvider } from '@emotion/react';
 import { createTheme, CssBaseline } from '@mui/material';
 import { red, yellow } from '@mui/material/colors';
+import { responsiveFontSizes } from '@mui/material/styles';
 
-const theme = createTheme({
+const theme = responsiveFontSizes(createTheme({
   palette: {
     primary: {
       main: red[500]
@@ -27,7 +28,7 @@ const theme = createTheme({
       paper: yellow[100]
     }
   }
-});
+}));
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
