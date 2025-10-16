@@ -4,6 +4,7 @@ This module manages the sandbox environment used by the coding tools.
 
 from daytona import Daytona, DaytonaConfig, Sandbox, DaytonaError, CreateSandboxFromSnapshotParams
 from daytona.common.charts import Chart
+from daytona_api_client.models.sandbox_state import SandboxState
 import shlex
 import uuid
 
@@ -31,7 +32,13 @@ def get_sandbox(chat_id: uuid.UUID) -> Sandbox | None:
     Returns `None` if a sandbox could not be fetched and could not be created.
     """
     try:
-        return daytona.get(f"chat-{chat_id}")
+        sandbox = daytona.get(f"chat-{chat_id}")
+
+        # Start the sandbox if it stopped.
+        if sandbox.state == SandboxState.STOPPED:
+            sandbox.start()
+
+        return sandbox
     
     except DaytonaError as ex:
         print(f"Log: {ex}")
