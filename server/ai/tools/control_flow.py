@@ -91,8 +91,8 @@ def prepare_switch_back_to_supervisor_tool(ctx: AgentCtx):
 
 
 def _run_agent_specific_cleanup(ctx: AgentCtx):
-    from ai.tools.code_sandbox.sandbox_management import clean_up_container_for_chat
+    from ai.tools.code_sandbox.sandbox_management import clean_up_sandbox_for_chat
 
     if ctx.manager.get_agent_dict()["main_agent"].name == "coding_agent":
         # Clean up container for current chat when the coding agent runs cleanup.
-        clean_up_container_for_chat(str(ctx.manager.get_chat_id()))
+        clean_up_sandbox_for_chat(ctx.manager.get_chat_id())

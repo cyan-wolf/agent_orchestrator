@@ -26,7 +26,8 @@ def create_sandbox(chat_id: uuid.UUID) -> Sandbox | None:
 
 def get_sandbox(chat_id: uuid.UUID) -> Sandbox | None:
     """
-    Gets the Docker container for the given chat. Creates one if one didn't exist.
+    Gets the sandbox for the given chat. Creates one if one didn't exist.
+    Returns `None` if a sandbox could not be fetched and could not be created.
     """
     try:
         return daytona.get(f"chat-{chat_id}")
@@ -36,9 +37,9 @@ def get_sandbox(chat_id: uuid.UUID) -> Sandbox | None:
         return create_sandbox(chat_id)
 
 
-def clean_up_container_for_chat(chat_id: uuid.UUID):
+def clean_up_sandbox_for_chat(chat_id: uuid.UUID):
     """
-    Cleans up the container associated with the chat with the given ID.
+    Cleans up the sandbox associated with the chat with the given ID.
     """
     sandbox = get_sandbox(chat_id)
     
@@ -54,7 +55,7 @@ def clean_up_container_for_chat(chat_id: uuid.UUID):
 
 def exec_command_on_sandbox(sandbox: Sandbox, command: str, workdir='/') -> tuple[int, str]:
     """
-    Executes the given command on the given container in the provided working directory.
+    Executes the given command on the given sandbox in the provided working directory.
     """
     shell_safe_command = shlex.quote(command)
 
