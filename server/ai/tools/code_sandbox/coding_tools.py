@@ -12,26 +12,16 @@ def prepare_run_command_tool(ctx: AgentCtx):
     """
 
     @trace(ctx)
-    def run_command(command: str) -> tuple[int, str] | str:
+    def run_command(command: str) -> str:
         """
         Runs the given command in a secure environment. 
-        
-        If this tool returns an error, do not 
-        re-run it. Instead stop and tell the user of the error.
-
-        Args:
-            command: The Linux command to run.
-
-        Retuns:
-            A tuple where the first element represents the exit code and the second element the output of the command.
         """
-
         sandbox = get_sandbox(ctx.manager.get_chat_id())
         if sandbox is None:
-            return "Error: could not fetch sandbox environment"
+            return "Error: could not fetch sandbox environment, try again later"
 
-        exit_code, output = exec_command_on_sandbox(sandbox, command)
-        return exit_code, output
+        result = exec_command_on_sandbox(sandbox, command)
+        return str(result)
     
     return run_command
 
@@ -42,20 +32,13 @@ def prepare_create_file_tool(ctx: AgentCtx):
     """
 
     @trace(ctx)
-    def create_file(file_path: str, file_content: str) -> bool | str:
+    def create_file(file_path: str, file_content: str) -> str:
         """
         Creates a file inside of the secure Linux environment.
-
-        If this tool returns an error, do not 
-        re-run it. Instead stop and tell the user of the error.
-
-        Args:
-            file_path: The file path of the file.
-            file_content: The content of the newly created file as a string.
         """
         sandbox = get_sandbox(ctx.manager.get_chat_id())
         if sandbox is None:
-            return "Error: could not fetch sandbox environment"
+            return "Error: could not fetch sandbox environment, try again later"
 
         add_file_to_sandbox(sandbox, file_path, file_content)
         return "Added file to sandbox"
