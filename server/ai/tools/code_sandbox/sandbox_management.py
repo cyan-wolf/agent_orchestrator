@@ -3,6 +3,7 @@ This module manages the sandbox environment used by the coding tools.
 """
 
 from daytona import Daytona, DaytonaConfig, Sandbox, DaytonaError, CreateSandboxFromSnapshotParams
+from daytona.common.charts import Chart
 import shlex
 import uuid
 
@@ -70,3 +71,17 @@ def add_file_to_sandbox(
     content: str, 
 ):   
     sandbox.fs.upload_file(content.encode(), file_path)
+
+
+def exec_code_on_sandbox(sandbox: Sandbox, code: str) -> tuple[int, str, list[Chart]]:
+    """
+    Executes the given command on the given sandbox in the provided working directory.
+    """
+    response = sandbox.process.code_run(code)
+
+    charts = []
+    if response.artifacts is not None and response.artifacts.charts is not None:
+        for chart in response.artifacts.charts:
+            charts.append(chart)
+
+    return int(response.exit_code), response.result, charts

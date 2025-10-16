@@ -164,6 +164,7 @@ class RuntimeAgentManager:
             self.chat_summaries,
             [coding_tools.prepare_create_file_tool(ctx), 
              coding_tools.prepare_run_command_tool(ctx), 
+             coding_tools.prepare_run_code_snippet_tool(ctx),
              control_flow.prepare_switch_back_to_supervisor_tool(ctx), 
              control_flow.prepare_summarization_tool(ctx)],
             checkpointer=InMemorySaver(),
