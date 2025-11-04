@@ -26,7 +26,6 @@ class RuntimeAgent:
         persona: str, 
         purpose: str, 
         user: UserTable,
-        user_settings: UserSettingsTable,
         chat_summaries: dict[str, str], 
 
         tools: list, 
@@ -38,7 +37,7 @@ class RuntimeAgent:
         """
         self.name = name
 
-        self.master_prompt = self._prepare_master_prompt(persona, purpose, user, user_settings, chat_summaries)
+        self.master_prompt = self._prepare_master_prompt(persona, purpose, user, user.settings, chat_summaries)
         self.graph = self._prepare_agent_graph(tools, model, checkpointer)
 
 

@@ -12,6 +12,7 @@ from ai.agent_manager.agent_manager_store import AgentMangerInMemoryStore
 from sqlalchemy.orm import Session
 from collections import defaultdict
 
+from chat.agent_factory_for_chat import agent_factory_for_chat
 
 def chat_schema_from_db(chat: ChatTable) -> Chat:
     return Chat(
@@ -56,12 +57,16 @@ def _create_agent_manager_from_chat(db: Session, chat: ChatTable) -> IAgentManag
     
     print(f"LOG: new AM for chat {chat.id}")
 
-    return RuntimeAgentManager(
-        db=db,
+    am = RuntimeAgentManager(
         chat=chat,
         chat_summaries=_load_chat_summaries_as_default_dict(chat.summaries), 
         tracer=Tracer(chat.id), 
     )
+
+    agents = agent_factory_for_chat(am.to_ctx(db), chat.user)
+    am.initialize_agents(agents)
+
+    return am
 
 
 def _load_chat_summaries_as_default_dict(summaries: list[ChatSummaryTable]) -> defaultdict[str, str]:
