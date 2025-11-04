@@ -20,6 +20,7 @@ from datetime import datetime, timezone
 from user_settings import user_settings
 
 from auth.auth import get_user_by_username
+from chat.tables import ChatTable
 from chat.chat_summaries import chat_summaries
 
 from sqlalchemy.orm import Session
@@ -37,7 +38,7 @@ class RuntimeAgentManager:
     The runtime representation of an agent manager. 
     """
 
-    def __init__(self, db: Session, chat_id: uuid.UUID, owner_username: str, chat_summaries: defaultdict[str, str], tracer: Tracer):
+    def __init__(self, db: Session, chat: ChatTable, chat_summaries: defaultdict[str, str], tracer: Tracer):
         """
         Initializes an agent manager.
 
@@ -57,12 +58,9 @@ class RuntimeAgentManager:
 
         self.chat_summaries = chat_summaries
 
-        self.chat_id = chat_id
-        self.owner_username = owner_username
-
-        owner = get_user_by_username(db, self.owner_username)
-        assert owner
-        self.owner_user_id = owner.id
+        self.chat_id = chat.id
+        self.owner_username = chat.user.username
+        self.owner_user_id = chat.user.id
 
         self._initialize_agents(db)
 

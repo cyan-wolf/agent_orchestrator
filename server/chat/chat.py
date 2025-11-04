@@ -58,8 +58,7 @@ def _create_agent_manager_from_chat(db: Session, chat: ChatTable) -> IAgentManag
 
     return RuntimeAgentManager(
         db=db,
-        chat_id=chat.id,
-        owner_username=chat.user.username,
+        chat=chat,
         chat_summaries=_load_chat_summaries_as_default_dict(chat.summaries), 
         tracer=Tracer(chat.id), 
     )
