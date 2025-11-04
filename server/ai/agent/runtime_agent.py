@@ -1,4 +1,7 @@
 from datetime import datetime, timezone
+from langchain_core.messages import BaseMessage
+from langchain_core.runnables.config import RunnableConfig
+
 from langchain.chat_models import init_chat_model
 from langgraph.prebuilt import create_react_agent
 from langchain_core.language_models.chat_models import BaseChatModel
@@ -8,11 +11,13 @@ from langgraph.types import Checkpointer
 from auth.tables import UserTable
 from user_settings.tables import UserSettingsTable
 
-class Agent:
+class RuntimeAgent:
     """
     The runtime representation of an agent. Internally builds a chat model using `langchain` and 
     then constructs a ReAct agent using `langgraph`.
     """
+
+    CONFIG: RunnableConfig = {"configurable": {"thread_id": "1"}}
 
     def __init__(
         self, 
@@ -35,6 +40,25 @@ class Agent:
 
         self.master_prompt = self._prepare_master_prompt(persona, purpose, user, user_settings, chat_summaries)
         self.graph = self._prepare_agent_graph(tools, model, checkpointer)
+
+
+    # === `IAgent` implementation ===
+
+    def get_name(self) -> str:
+        return self.name
+    
+
+    def invoke_with_text(self, text_input: str) -> str:
+        res = self.graph.invoke(
+            {"messages": [{"role": "user", "content": text_input}]},
+            RuntimeAgent.CONFIG,
+        )
+        message = self._get_latest_agent_msg(res)
+        content = str(message.content)
+
+        return content
+
+    # === end of `IAgent` implementation
 
 
     def _prepare_master_prompt(
@@ -117,3 +141,7 @@ class Agent:
             prompt=self.master_prompt,
             checkpointer=checkpointer,
         )
+    
+
+    def _get_latest_agent_msg(self, agent_response: dict) -> BaseMessage:
+        return agent_response["messages"][-1]

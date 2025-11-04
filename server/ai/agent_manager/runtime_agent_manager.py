@@ -13,7 +13,8 @@ from ai.tools.code_sandbox import coding_tools
 from ai.tools.scheduling import scheduling_tools
 from ai.tools.math import math_tools
 from ai.tracing.trace_decorator import Tracer
-from ai.agent import Agent
+from ai.agent.runtime_agent import RuntimeAgent
+from ai.agent.agent_interface import IAgent
 
 from datetime import datetime, timezone
 
@@ -49,7 +50,7 @@ class RuntimeAgentManager:
             chat_summaries: The current chat summaries present when this manager was created.
             tracer: The tracer associated with this manager.
         """
-        self.agents: dict[str, Agent] = {}
+        self.agents: dict[str, IAgent] = {}
 
         config: RunnableConfig = {"configurable": {"thread_id": "1"}}
         self.config = config
@@ -79,7 +80,7 @@ class RuntimeAgentManager:
     def get_tracer(self) -> Tracer:
         return self.tracer
     
-    def get_agent_dict(self) -> dict[str, Agent]:
+    def get_agent_dict(self) -> dict[str, IAgent]:
         return self.agents
     
     def get_chat_summary_dict(self) -> defaultdict[str, str]:
@@ -88,7 +89,7 @@ class RuntimeAgentManager:
     def set_chat_summary_for_current(self, db: Session, chat_summary_content: str) -> None:
         self._set_chat_summary(db, chat_summary_content)
 
-    def invoke_agent(self, agent: Agent, user_input: str, db: Session, as_main_agent: bool = False) -> str:
+    def invoke_agent(self, agent: IAgent, user_input: str, db: Session, as_main_agent: bool = False) -> str:
         """
         Invokes the given agent using the provided user input.
         """
@@ -97,18 +98,13 @@ class RuntimeAgentManager:
         prev_agent = self.agents["current_agent"]
         self.agents["current_agent"] = agent
 
-        res = agent.graph.invoke(
-            {"messages": [{"role": "user", "content": user_input}]},
-            self.config,
-        )
-        message = get_latest_agent_msg(res)
-        content = str(message.content)
-        self.tracer.add(db, AIMessageTrace(agent_name=agent.name, content=content, is_main_agent=as_main_agent))
+        content = agent.invoke_with_text(user_input)
+        self.tracer.add(db, AIMessageTrace(agent_name=agent.get_name(), content=content, is_main_agent=as_main_agent))
 
         # `agent` is no longer in control.
         # If the "main agent" did not switch during agent invocation, then it is 
         # safe to switch back to `prev_agent`.
-        if prev_agent.name == self.agents["main_agent"].name:
+        if prev_agent.get_name() == self.agents["main_agent"].get_name():
             self.agents["current_agent"] = prev_agent
 
         return content
@@ -135,7 +131,7 @@ class RuntimeAgentManager:
 
         ctx = self._to_ctx(db)
 
-        self._register_agent(Agent("math_agent", 
+        self._register_agent(RuntimeAgent("math_agent", 
             "You are a helpful math assistant.",
             """
             You can mainly use your Wolfram Alpha tool to solve math problems. 
@@ -150,7 +146,7 @@ class RuntimeAgentManager:
             checkpointer=InMemorySaver(),
         ))
 
-        self._register_agent(Agent("coding_agent", 
+        self._register_agent(RuntimeAgent("coding_agent", 
             "You are a helpful coding assistant.",
             """
             You only work with Python, no other programming language.
@@ -168,7 +164,7 @@ class RuntimeAgentManager:
             checkpointer=InMemorySaver(),
         ))
 
-        self._register_agent(Agent("research_agent",  
+        self._register_agent(RuntimeAgent("research_agent",  
             "You are a helpful research agent.",
             f"""
             Use the web search tool to look for information. 
@@ -180,7 +176,7 @@ class RuntimeAgentManager:
             checkpointer=InMemorySaver(),
         ))
 
-        self._register_agent(Agent("creator_agent", 
+        self._register_agent(RuntimeAgent("creator_agent", 
             "You are a a content generation agent.",
             f"""
             You can help the user create images using your image generation tool. 
@@ -195,7 +191,7 @@ class RuntimeAgentManager:
             checkpointer=InMemorySaver(),
         ))
 
-        self._register_agent(Agent("planner_agent", 
+        self._register_agent(RuntimeAgent("planner_agent", 
             "You are a planner agent.",
             f"""
             You help the user make a schedule along with helping them organize it. 
@@ -225,7 +221,7 @@ class RuntimeAgentManager:
             checkpointer=InMemorySaver(),
         ))
 
-        self._register_agent(Agent("supervisor_agent", 
+        self._register_agent(RuntimeAgent("supervisor_agent", 
             """
             You are a helpful assistant. 
             """,
@@ -258,7 +254,7 @@ class RuntimeAgentManager:
         return AgentCtx(manager=self, db=db)
     
 
-    def _register_agent(self, agent: Agent):
+    def _register_agent(self, agent: RuntimeAgent):
         """
         Registers the given agent to the agent manager. Allows the agent to be 
         called by other agents using its name.
@@ -278,6 +274,6 @@ class RuntimeAgentManager:
 
 
     def _get_current_agent_name(self) -> str:
-        return self.agents["current_agent"].name
+        return self.agents["current_agent"].get_name()
     
         
