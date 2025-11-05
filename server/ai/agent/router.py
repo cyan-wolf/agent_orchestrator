@@ -32,6 +32,10 @@ def get_all_agent_template_schemas(db: Session) -> Sequence[AgentTemplateSchema]
     return [agent_template_schema_from_db(template) for template in db.query(AgentTemplateTable).all()]
 
 
+def get_all_tool_schemas(db: Session) -> Sequence[ToolSchema]:
+    return [tool_schema_from_db(t) for t in db.query(ToolTable).all()]
+
+
 @router.get("/api/agent-templates/all/", tags=["agent-templates"])
 def view_all_agent_templates(
     db: Annotated[Session, Depends(get_database)],
@@ -41,3 +45,10 @@ def view_all_agent_templates(
     seed_agent_templates(db)
 
     return get_all_agent_template_schemas(db)
+
+
+@router.get("/api/agent-templates/tools/all/", tags=["agent-templates"])
+def view_all_tools(
+    db: Annotated[Session, Depends(get_database)],
+) -> Sequence[ToolSchema]:
+    return get_all_tool_schemas(db)
