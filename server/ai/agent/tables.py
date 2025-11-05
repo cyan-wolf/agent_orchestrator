@@ -1,5 +1,5 @@
 from database.database import Base
-from sqlalchemy import Text, ForeignKey, UUID
+from sqlalchemy import Text, ForeignKey, UUID, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 import uuid
 
@@ -11,6 +11,7 @@ class AgentTemplateTable(Base):
     name: Mapped[str] = mapped_column(Text)
     persona: Mapped[str] = mapped_column(Text)
     purpose: Mapped[str] = mapped_column(Text)
+    is_switchable_into: Mapped[bool] = mapped_column(Boolean)
 
     agent_tool_associations: Mapped[list["AgentTool"]] = relationship(back_populates="agent_template", cascade="all, delete-orphan")
 
