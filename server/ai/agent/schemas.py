@@ -1,0 +1,17 @@
+from pydantic import BaseModel
+import uuid
+
+class ToolSchema(BaseModel):
+    id: str
+    name: str
+    description: str
+
+
+class AgentTemplateSchema(BaseModel):
+    id: uuid.UUID
+    name: str
+    persona: str
+    purpose: str
+    is_switchable_into: bool
+    
+    tools: list[ToolSchema]
