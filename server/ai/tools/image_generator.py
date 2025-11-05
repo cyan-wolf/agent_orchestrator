@@ -4,11 +4,12 @@ Mostly used by the creator agent.
 """
 
 from dotenv import load_dotenv
+load_dotenv()
 
 from ai.tracing.schemas import ImageCreationTrace
 from ai.tracing.trace_decorator import trace
 from ai.agent_manager.agent_context import AgentCtx
-load_dotenv()
+from ai.tools.registry.tool_register_decorator import register_tool_factory
 
 from langchain_core.messages import BaseMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -16,6 +17,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 _IMAGE_LLM = ChatGoogleGenerativeAI(model="models/gemini-2.0-flash-preview-image-generation")
 
 
+@register_tool_factory(tool_id='generate_image_and_show_it_to_user')
 def prepare_image_generation_tool(ctx: AgentCtx):
     """
     Prepares a tool that generates the image specified by the query and automatically 

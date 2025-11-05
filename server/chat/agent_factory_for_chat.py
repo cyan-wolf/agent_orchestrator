@@ -12,6 +12,9 @@ from langgraph.checkpoint.memory import InMemorySaver
 
 # TODO: Read these from the database.
 def agent_factory_for_chat(ctx: AgentCtx, owner: UserTable) -> list[IAgent]:
+    # from ai.tools.registry.tool_factory_store import get_tool_factory_in_mem_store
+    # print(get_tool_factory_in_mem_store().in_memory_store)
+
     agents: list[IAgent] = []
 
     agents.append(RuntimeAgent("supervisor_agent", 

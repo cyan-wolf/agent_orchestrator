@@ -7,11 +7,13 @@ from ai.tracing.trace_decorator import trace
 from typing import Literal
 from ai.agent_manager.agent_context import AgentCtx
 import json
+from ai.tools.registry.tool_register_decorator import register_tool_factory
 
 SwitchableAgent = Literal["coding_agent", "creator_agent", "planner_agent", "math_agent"]
 VALID_SWITCHABLE_AGENT = {"coding_agent", "creator_agent", "planner_agent", "math_agent"}
 
 
+@register_tool_factory(tool_id='switch_to_more_qualified_agent')
 def prepare_switch_to_more_qualified_agent_tool(ctx: AgentCtx):
     @trace(ctx)
     def switch_to_more_qualified_agent(agent_name: SwitchableAgent, reason: str | None) -> str:
@@ -38,6 +40,7 @@ def prepare_switch_to_more_qualified_agent_tool(ctx: AgentCtx):
     return switch_to_more_qualified_agent
 
 
+@register_tool_factory(tool_id='check_helper_agent_chat_summaries')
 def prepare_check_helper_agent_summaries_tool(ctx: AgentCtx):
     @trace(ctx)
     def check_helper_agent_chat_summaries():
@@ -49,6 +52,7 @@ def prepare_check_helper_agent_summaries_tool(ctx: AgentCtx):
     return check_helper_agent_chat_summaries
 
 
+@register_tool_factory(tool_id='summarize_chat')
 def prepare_summarization_tool(ctx: AgentCtx):
     """
     Prepares a tool that stores a summary of the current current agent's chat with the user.
@@ -66,6 +70,7 @@ def prepare_summarization_tool(ctx: AgentCtx):
     return summarize_chat
 
 
+@register_tool_factory(tool_id='switch_back_to_supervisor')
 def prepare_switch_back_to_supervisor_tool(ctx: AgentCtx):
     """
     Prepares a tool that switches the current agent back to the supervisor.

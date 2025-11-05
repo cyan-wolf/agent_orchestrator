@@ -5,9 +5,11 @@ This module is for defining tools relating to web searches.
 from langchain_tavily import TavilySearch
 from ai.tracing.trace_decorator import trace
 from ai.agent_manager.agent_context import AgentCtx
+from ai.tools.registry.tool_register_decorator import register_tool_factory
 
 import json
 
+@register_tool_factory(tool_id='perform_web_search')
 def prepare_web_search_tool(ctx: AgentCtx):
     """
     Prepares a tool that looks for information on the internet with a query.
@@ -34,6 +36,7 @@ def prepare_web_search_tool(ctx: AgentCtx):
     return perform_web_search
 
 
+@register_tool_factory(tool_id='request_external_information')
 def prepare_request_external_info_tool(ctx: AgentCtx):
     """
     Prepares a tool that requests external information from the research agent.

@@ -6,7 +6,9 @@ all agents.
 from datetime import datetime, timezone
 from ai.tracing.trace_decorator import trace
 from ai.agent_manager.agent_context import AgentCtx
+from ai.tools.registry.tool_register_decorator import register_tool_factory
 
+@register_tool_factory(tool_id='get_current_date')
 def prepare_get_current_date_tool(ctx: AgentCtx):
     """
     Prepares a tool that returns the current date in ISO format.

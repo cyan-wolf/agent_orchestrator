@@ -9,6 +9,10 @@ from ai.tools.code_sandbox.sandbox_management import get_sandbox, exec_command_o
 
 from ai.tools.code_sandbox.models import RunCommandSchema, RunCodeSnippetSchema
 
+from ai.tools.registry.tool_register_decorator import register_tool_factory
+
+
+@register_tool_factory(tool_id='run_command')
 def prepare_run_command_tool(ctx: AgentCtx):
     """
     Prepares a tool that runs a given command in a secure environment.
@@ -29,6 +33,7 @@ def prepare_run_command_tool(ctx: AgentCtx):
     return run_command
 
 
+@register_tool_factory(tool_id='create_file')
 def prepare_create_file_tool(ctx: AgentCtx):
     """
     Prepares a tool that creates a file inside of the secure Linux environment.
@@ -52,6 +57,7 @@ def prepare_create_file_tool(ctx: AgentCtx):
     return create_file
 
 
+@register_tool_factory(tool_id='run_code_snippet_tool')
 def prepare_run_code_snippet_tool(ctx: AgentCtx):
     """
     Prepares a tool that runs the given code snippet in a Linux environment.

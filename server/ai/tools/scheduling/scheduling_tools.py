@@ -10,8 +10,10 @@ from ai.tools.scheduling.schemas import CreateEvent, EventBase, Event, EventModi
 import uuid
 from sqlalchemy.orm import Session
 from auth.auth import get_user_by_username
+from ai.tools.registry.tool_register_decorator import register_tool_factory
 
 
+@register_tool_factory(tool_id='view_schedule')
 def prepare_view_schedule_tool(ctx: AgentCtx):
     """
     Prepares a tool that returns a list of events on the schedule.
@@ -27,6 +29,7 @@ def prepare_view_schedule_tool(ctx: AgentCtx):
     return view_schedule
 
 
+@register_tool_factory(tool_id='add_new_event')
 def prepare_add_new_event_tool(ctx: AgentCtx):
     """
     Prepares a tool that adds a new event to the schedule.
@@ -48,6 +51,7 @@ def prepare_add_new_event_tool(ctx: AgentCtx):
     return add_new_event
 
 
+@register_tool_factory(tool_id='remove_event_with_id')
 def prepare_delete_event_tool(ctx: AgentCtx):
     """
     Prepares a tool that removes the event with the given ID from the schedule.
@@ -72,6 +76,7 @@ def prepare_delete_event_tool(ctx: AgentCtx):
     return remove_event_with_id
 
 
+@register_tool_factory(tool_id='modify_event')
 def prepare_modify_event_tool(ctx: AgentCtx):
     """
     Prepares a tool that modifies an existing event on the schedule.

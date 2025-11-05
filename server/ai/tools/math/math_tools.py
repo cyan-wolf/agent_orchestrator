@@ -8,10 +8,12 @@ import base64
 from ai.tracing.schemas import ImageCreationTrace
 from ai.tracing.trace_decorator import trace
 from ai.agent_manager.agent_context import AgentCtx
+from ai.tools.registry.tool_register_decorator import register_tool_factory
 
 _API_URL = "https://www.wolframalpha.com/api/v1/llm-api"
 
 
+@register_tool_factory(tool_id='run_wolfram_alpha_tool')
 def prepare_run_wolfram_alpha_tool(ctx: AgentCtx):
     """
     Prepares a tool that sends queries to the Wolfram Alpha API.
