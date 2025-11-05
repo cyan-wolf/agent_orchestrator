@@ -11,11 +11,8 @@ import json
 SwitchableAgent = Literal["coding_agent", "creator_agent", "planner_agent", "math_agent"]
 VALID_SWITCHABLE_AGENT = {"coding_agent", "creator_agent", "planner_agent", "math_agent"}
 
-def prepare_supervisor_agent_tools(ctx: AgentCtx, extra_tools: list):
-    """
-    Prepares the supervisor agent's main tools.
-    """
 
+def prepare_switch_to_more_qualified_agent_tool(ctx: AgentCtx):
     @trace(ctx)
     def switch_to_more_qualified_agent(agent_name: SwitchableAgent, reason: str | None) -> str:
         """
@@ -38,21 +35,18 @@ def prepare_supervisor_agent_tools(ctx: AgentCtx, extra_tools: list):
         else:
             return f"unknown agent name '{agent_name}'"
         
+    return switch_to_more_qualified_agent
+
+
+def prepare_check_helper_agent_summaries_tool(ctx: AgentCtx):
     @trace(ctx)
     def check_helper_agent_chat_summaries():
         """
         Used for checking what the helper agents have talked about with the user.
         """
         return json.dumps(ctx.manager.get_chat_summary_dict())
-
     
-    
-    return [
-        switch_to_more_qualified_agent, 
-        check_helper_agent_chat_summaries,
-        prepare_summarization_tool(ctx),
-    ] + extra_tools
-
+    return check_helper_agent_chat_summaries
 
 
 def prepare_summarization_tool(ctx: AgentCtx):

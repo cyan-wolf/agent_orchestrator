@@ -31,7 +31,10 @@ def agent_factory_for_chat(ctx: AgentCtx, owner: UserTable) -> list[IAgent]:
         """,
         owner,
         ctx.manager.get_chat_summary_dict(),
-        control_flow.prepare_supervisor_agent_tools(ctx, extra_tools=[web_searching.prepare_request_external_info_tool(ctx)]),
+        [control_flow.prepare_switch_to_more_qualified_agent_tool(ctx),
+         control_flow.prepare_check_helper_agent_summaries_tool(ctx), 
+         web_searching.prepare_request_external_info_tool(ctx),
+         control_flow.prepare_summarization_tool(ctx)],
         checkpointer=InMemorySaver(),
     ))
 
