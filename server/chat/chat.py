@@ -11,8 +11,7 @@ from auth.auth import get_user_by_username
 from ai.agent_manager.agent_manager_store import AgentMangerInMemoryStore
 from sqlalchemy.orm import Session
 from collections import defaultdict
-
-from chat.agent_factory_for_chat import agent_factory_for_chat
+from ai.agent.agent_factory import get_agents_for_user
 
 def chat_schema_from_db(chat: ChatTable) -> Chat:
     return Chat(
@@ -63,7 +62,7 @@ def _create_agent_manager_from_chat(db: Session, chat: ChatTable) -> IAgentManag
         tracer=Tracer(chat.id), 
     )
 
-    agents = agent_factory_for_chat(am.to_ctx(db), chat.user)
+    agents = get_agents_for_user(am.to_ctx(db), chat.user)
     am.initialize_agents(agents)
 
     return am
