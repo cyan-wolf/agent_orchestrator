@@ -8,20 +8,25 @@ from typing import Literal
 from ai.agent_manager.agent_context import AgentCtx
 import json
 from ai.tools.registry.tool_register_decorator import register_tool_factory
-
-SwitchableAgent = Literal["coding_agent", "creator_agent", "planner_agent", "math_agent"]
-VALID_SWITCHABLE_AGENT = {"coding_agent", "creator_agent", "planner_agent", "math_agent"}
-
+from ai.agent.agent_templates import get_all_switchable_agent_names
 
 @register_tool_factory(tool_id='switch_to_more_qualified_agent')
 def prepare_switch_to_more_qualified_agent_tool(ctx: AgentCtx):
-    @trace(ctx)
-    def switch_to_more_qualified_agent(agent_name: SwitchableAgent, reason: str | None) -> str:
-        """
+    # Dynamically build the doc-comment for this tool since we don't know what the 
+    # valid switchable agents are at build time.
+    valid_switchable_agents = get_all_switchable_agent_names(ctx.db)
+    switch_tool_doc_for_agent = f"""
         Switches to the given agent. A reason for the switch can optionally be passed to this tool. 
         The reason is passed on to the new agent so that it has context on what it's supposed to do.
+        The agents that you can switch to are: {valid_switchable_agents}
+
+        Note that you cannot switch into yourself.
         """
-        if agent_name in VALID_SWITCHABLE_AGENT:
+
+    @trace(ctx)
+    def switch_to_more_qualified_agent(agent_name: str, reason: str | None) -> str:
+        
+        if agent_name in valid_switchable_agents:
             ctx.manager.queue_agent_handoff(
                 agent_name_prev=ctx.manager.get_agent_dict()["main_agent"].get_name(), 
                 agent_name_new=agent_name, 
@@ -31,6 +36,10 @@ def prepare_switch_to_more_qualified_agent_tool(ctx: AgentCtx):
         
         else:
             return f"unknown agent name '{agent_name}'"
+        
+    # Modify the doc-comment for the tool, this is important for the agent so that it knows 
+    # how to call the tool.
+    switch_to_more_qualified_agent.__doc__ = switch_tool_doc_for_agent
         
     return switch_to_more_qualified_agent
 
