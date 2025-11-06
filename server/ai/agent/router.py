@@ -13,7 +13,7 @@ def view_all_agent_templates(
     db: Annotated[Session, Depends(get_database)],
 ) -> Sequence[AgentTemplateSchema]:
     # TEMP: default data seeding
-    from ai.agent.seed_agent_templates import seed_agent_templates
+    from ai.agent.db_seeding.seed_agent_templates import seed_agent_templates
     seed_agent_templates(db)
 
     return get_all_agent_template_schemas(db)

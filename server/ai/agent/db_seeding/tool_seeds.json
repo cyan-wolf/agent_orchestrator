@@ -1,0 +1,82 @@
+[
+  {
+    "id": "switch_to_more_qualified_agent",
+    "name": "Switch to more Qualified Agent",
+    "description": "Switches to a more qualified agent."
+  },
+  {
+    "id": "check_helper_agent_chat_summaries",
+    "name": "Check Helper Agent Chat Summaries",
+    "description": "Checks the helper agent chat summaries."
+  },
+  {
+    "id": "summarize_chat",
+    "name": "Summarize Chat",
+    "description": "Summarizes current chat."
+  },
+  {
+    "id": "switch_back_to_supervisor",
+    "name": "Switch back to Supervisor Agent",
+    "description": "Switches back to the supervisor agent."
+  },
+  {
+    "id": "run_wolfram_alpha_tool",
+    "name": "Run Wolfram Alpha API Tool",
+    "description": "Connects to the Wolfram Alpha API. "
+  },
+  {
+    "id": "create_file",
+    "name": "Create File in Linux Environment",
+    "description": "Creates a file in the agent's Linux environment."
+  },
+  {
+    "id": "run_command",
+    "name": "Run Command in Linux Environment",
+    "description": "Runs a command in the agent's Linux environment."
+  },
+  {
+    "id": "run_code_snippet_tool",
+    "name": "Run Code Snippet in Linux Environment",
+    "description": "Runs a code snippet in the agent's Linux environment."
+  },
+  {
+    "id": "request_external_information",
+    "name": "Request External Information",
+    "description": "Requests external information."
+  },
+  {
+    "id": "get_current_date",
+    "name": "Get Current Date",
+    "description": "Gets the current (UTC) date as an ISO formatted string."
+  },
+  {
+    "id": "perform_web_search",
+    "name": "Perform Web Search",
+    "description": "Performs a web search."
+  },
+  {
+    "id": "generate_image_and_show_it_to_user",
+    "name": "Generate Image and Show it to User",
+    "description": "Generates an image and shows it to the user."
+  },
+  {
+    "id": "view_schedule",
+    "name": "View Schedule",
+    "description": "View the events in the user's schedule."
+  },
+  {
+    "id": "add_new_event",
+    "name": "Add New Event to Schedule",
+    "description": "Adds a new event to the user's schedule."
+  },
+  {
+    "id": "remove_event_with_id",
+    "name": "Remove Event with ID from Schedule",
+    "description": "Removes the event with the given ID from the user's schedule."
+  },
+  {
+    "id": "modify_event",
+    "name": "Modify Event in Schedule",
+    "description": "Modifies an event in the user's schedule."
+  }
+]
