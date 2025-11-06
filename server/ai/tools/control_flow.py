@@ -72,13 +72,18 @@ def prepare_switch_back_to_supervisor_tool(ctx: AgentCtx):
     """
 
     @trace(ctx)
-    def switch_back_to_supervisor():
+    def switch_back_to_supervisor(reason: str | None):
         """
-        Switches back to the supervisor. 
+        Switches back to the supervisor agent. 
+        The reason is passed on to the supervisor agent so that it has context on why the switch happened.
         """
         _run_agent_specific_cleanup(ctx)
 
-        ctx.manager.get_agent_dict()["main_agent"] = ctx.manager.get_agent_dict()["supervisor_agent"]
+        ctx.manager.queue_agent_handoff(
+            agent_name_prev=ctx.manager.get_agent_dict()["main_agent"].get_name(),
+            agent_name_new="supervisor_agent",
+            handoff_reason=str(reason),
+        )
         return "switched back to supervisor"
     
     return switch_back_to_supervisor
