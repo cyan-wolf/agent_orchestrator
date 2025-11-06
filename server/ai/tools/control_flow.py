@@ -22,16 +22,11 @@ def prepare_switch_to_more_qualified_agent_tool(ctx: AgentCtx):
         The reason is passed on to the new agent so that it has context on what it's supposed to do.
         """
         if agent_name in VALID_SWITCHABLE_AGENT:
-            # Switch the 'main_agent' (i.e. the agent actually in control).
-            ctx.manager.get_agent_dict()["main_agent"] = ctx.manager.get_agent_dict()[agent_name]
-
-            # Tell the new 'main_agent' what it's supposed to do.
-            ctx.manager.invoke_agent(
-                ctx.manager.get_agent_dict()["main_agent"], 
-                f"The supervisor agent handed off the user to you! Do your best. This was its reason: {reason}",
-                ctx.db,
+            ctx.manager.queue_agent_handoff(
+                agent_name_prev=ctx.manager.get_agent_dict()["main_agent"].get_name(), 
+                agent_name_new=agent_name, 
+                handoff_reason=str(reason),
             )
-
             return f"switched to {agent_name}!"
         
         else:

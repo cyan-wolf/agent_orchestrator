@@ -36,3 +36,6 @@ class IAgentManager(Protocol):
 
     def invoke_main_agent_with_text(self, username: str, user_input: str, db: Session) -> str:
         ...
+
+    def queue_agent_handoff(self, agent_name_prev: str, agent_name_new: str, handoff_reason: str):
+        ...
