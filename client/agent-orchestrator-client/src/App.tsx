@@ -16,6 +16,7 @@ import ChatBox from './pages/chat/components/chat_drawer/components/ChatBox';
 import Register from './pages/register/Register';
 import Manual from './pages/manual/Manual';
 import NoChatSelectedDisplay from './pages/chat/components/chat_drawer/components/NoChatSelectedDisplay';
+import AgentTemplates from './pages/agent-templates/AgentTemplates';
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
           { to: "/login", title: "Login" },
           { to: "/logout", title: "Logout" },
           { to: "/register", title: "Register" },
+          { to: "/agent-templates", title: "Agent Templates" },
           { to: "/manual", title: "Manual" },
         ]} />
       </nav>
@@ -46,6 +48,8 @@ export default function App() {
         <Route path="/login" element={<Login/>} />
         <Route path="/logout" element={<Logout />} />
         <Route path="/register" element={<Register />} />
+
+        <Route path="/agent-templates" element={<AgentTemplates />} />
         
         <Route path="/manual" element={<Manual />} />
       </Routes>
