@@ -34,7 +34,7 @@ function AgentSection({ agentTemplateJson }: AgentSectionProps) {
                 p: { xs: 2, md: 5 },            
             }}
         >
-            <Typography variant="h4">{agentTemplateJson.name}</Typography>
+            <Typography variant="h4">{agentTemplateJson.name} ({(agentTemplateJson.is_global)? "Global" : "Custom"})</Typography>
 
             <Typography variant="body1">{agentTemplateJson.persona}</Typography>
 

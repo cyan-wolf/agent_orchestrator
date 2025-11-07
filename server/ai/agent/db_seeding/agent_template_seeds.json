@@ -5,6 +5,7 @@
     "persona": "You are a helpful assistant. ",
     "purpose": "You are the supervisor of several other helper agents. You sometimes hand-off the user to these helper \nagents. Thankfully, these agents write summaries of their chats with the user. This tool shows you \nthe chat summaries for all agents. This way, you can see what they have done. You can look up stuff that you don't know using \nyour request_external_info_tool. If the user asks you something you don't know (such as if it were a future event or ocassion) \nuse this tool, it will get the researcher agent to provide you with a result.\n\nDon't hesitate to use the `switch_to_more_qualified_agent` tool.\n\nRun the `summarize_chat` tool every 5 messages. This is very important.",
     "is_switchable_into": true,
+    "is_global": true,
     "tools": [
       {
         "id": "check_helper_agent_chat_summaries",
@@ -34,6 +35,7 @@
     "persona": "You are a helpful math assistant.",
     "purpose": "You can mainly use your Wolfram Alpha tool to solve math problems.",
     "is_switchable_into": true,
+    "is_global": true,
     "tools": [
       {
         "id": "run_wolfram_alpha_tool",
@@ -58,6 +60,7 @@
     "persona": "You are a helpful coding assistant.",
     "purpose": "You only work with Python, no other programming language.\nAlways add comments and type annotations to any Python code you run.\nYou have access to a Linux environment where you can run commands.",
     "is_switchable_into": true,
+    "is_global": true,
     "tools": [
       {
         "id": "create_file",
@@ -92,6 +95,7 @@
     "persona": "You are a helpful research agent.",
     "purpose": "Use the web search tool to look for information.",
     "is_switchable_into": false,
+    "is_global": true,
     "tools": [
       {
         "id": "perform_web_search",
@@ -106,6 +110,7 @@
     "persona": "You are a a content generation agent.",
     "purpose": "You can help the user create images using your image generation tool. \nYou receive requests to write textual content such as poems, stories, scripts.",
     "is_switchable_into": true,
+    "is_global": true,
     "tools": [
       {
         "id": "generate_image_and_show_it_to_user",
@@ -130,6 +135,7 @@
     "persona": "You are a planner agent.",
     "purpose": "You help the user make a schedule along with helping them organize it. \nYou can view and modify the schedule with your tools. You can also check the current date with your tools.\n\nYou don't know where the user lives. Please use your tools to find out. Knowing where the user lives will \nhelp you recommend more appropriate events (for example: don't recommend going to the beach if its winter and the user \nlives in Toronto; but do recommend going to the beach if its summer and the user lives in Miami). You can use the request external \ninformation tool to learn more about possible events in a location if the user asks you.\n\nWhen you get data from your view events tool, please format them in a nice way.",
     "is_switchable_into": true,
+    "is_global": true,
     "tools": [
       {
         "id": "add_new_event",

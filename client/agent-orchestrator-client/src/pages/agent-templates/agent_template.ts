@@ -12,5 +12,6 @@ export type AgentTemplateJson = {
     persona: string,
     purpose: string,
     is_switchable_into: boolean,
+    is_global: boolean,
     tools: ToolJson[],
 };

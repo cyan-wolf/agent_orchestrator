@@ -13,6 +13,9 @@ class AgentTemplateTable(Base):
     purpose: Mapped[str] = mapped_column(Text)
     is_switchable_into: Mapped[bool] = mapped_column(Boolean)
 
+    # If this FK is null, then the template is global and immutable.
+    user_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete='CASCADE'), nullable=True)
+
     agent_tool_associations: Mapped[list["AgentToolAssociationTable"]] = relationship(back_populates="agent_template", cascade="all, delete-orphan")
 
     tools: Mapped[list["ToolTable"]] = relationship(secondary="agent_tool", back_populates="agent_templates", overlaps="agent_tool_associations")

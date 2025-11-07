@@ -18,6 +18,7 @@ def agent_template_schema_from_db(template_in_db: AgentTemplateTable) -> AgentTe
         persona=template_in_db.persona,
         purpose=template_in_db.purpose,
         is_switchable_into=template_in_db.is_switchable_into,
+        is_global=template_in_db.user_id is None, # a template is global if it has no associated user
         tools=[tool_schema_from_db(t) for t in template_in_db.tools]
     )
 

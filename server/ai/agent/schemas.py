@@ -13,5 +13,7 @@ class AgentTemplateSchema(BaseModel):
     persona: str
     purpose: str
     is_switchable_into: bool
+
+    is_global: bool
     
     tools: list[ToolSchema]

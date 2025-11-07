@@ -8,6 +8,7 @@ from ai.agent.tables import AgentTemplateTable, ToolTable
 from typing import Any
 import json
 from pathlib import Path
+from uuid import UUID
 
 TOOL_SEED_FILE_PATH = Path(__file__).parent / "tool_seeds.json"
 AGENT_TEMPLATE_SEED_FILE_PATH = Path(__file__).parent / "agent_template_seeds.json"
@@ -47,7 +48,10 @@ def seed_agent_templates(db: Session):
         return
 
     for agent_template_data in load_agent_template_seeds():
-        del agent_template_data["id"] # removes the DB UUID
+        agent_template_data["id"] = UUID(agent_template_data["id"]) # use same GUID
+
+        del agent_template_data["is_global"] # remove `is_global` attribute
+
         needed_tools: list[dict[str, str]] = agent_template_data.pop("tools")
 
         agent_template = AgentTemplateTable(**agent_template_data)
