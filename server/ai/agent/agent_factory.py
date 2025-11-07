@@ -3,7 +3,7 @@ from ai.agent_manager.agent_context import AgentCtx
 from ai.tools.registry.tool_factory_store import get_tool_factory_in_mem_store, ToolFactoryInMememoryStore, ToolFactory
 from ai.agent.schemas import AgentTemplateSchema
 from ai.agent.runtime_agent import RuntimeAgent
-from ai.agent.agent_templates import get_all_agent_template_schemas
+from ai.agent.agent_templates import get_all_agent_template_schemas_for_user
 from auth.tables import UserTable
 from langgraph.checkpoint.memory import InMemorySaver
 from typing import Callable
@@ -56,7 +56,7 @@ def runtime_agent_from_agent_template(
 
 def get_agents_for_user(ctx: AgentCtx, owner: UserTable) -> list[IAgent]:
     tool_factory_registry = get_tool_factory_in_mem_store()
-    agent_templates = get_all_agent_template_schemas(ctx.db)
+    agent_templates = get_all_agent_template_schemas_for_user(ctx.db, owner)
 
     agents: list[IAgent] = [
         runtime_agent_from_agent_template(ctx, owner, tool_factory_registry, template) 

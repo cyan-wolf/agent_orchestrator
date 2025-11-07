@@ -9,12 +9,15 @@ from ai.agent_manager.agent_context import AgentCtx
 import json
 from ai.tools.registry.tool_register_decorator import register_tool_factory
 from ai.agent.agent_templates import get_all_switchable_agent_names
+from auth.auth import get_user_by_username
 
 @register_tool_factory(tool_id='switch_to_more_qualified_agent')
 def prepare_switch_to_more_qualified_agent_tool(ctx: AgentCtx):
     # Dynamically build the doc-comment for this tool since we don't know what the 
     # valid switchable agents are at build time.
-    valid_switchable_agents = get_all_switchable_agent_names(ctx.db)
+    owner = get_user_by_username(ctx.db, ctx.manager.get_owner_username())
+
+    valid_switchable_agents = get_all_switchable_agent_names(ctx.db, owner)
     switch_tool_doc_for_agent = f"""
         Switches to the given agent. A reason for the switch can optionally be passed to this tool. 
         The reason is passed on to the new agent so that it has context on what it's supposed to do.

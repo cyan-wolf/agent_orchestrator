@@ -49,7 +49,7 @@ export default function App() {
         <Route path="/logout" element={<Logout />} />
         <Route path="/register" element={<Register />} />
 
-        <Route path="/agent-templates" element={<AgentTemplates />} />
+        <Route path="/agent-templates" element={<ProtectedRoute children={<AgentTemplates />} />} />
         
         <Route path="/manual" element={<Manual />} />
       </Routes>

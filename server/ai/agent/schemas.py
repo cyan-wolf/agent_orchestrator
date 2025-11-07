@@ -17,3 +17,12 @@ class AgentTemplateSchema(BaseModel):
     is_global: bool
     
     tools: list[ToolSchema]
+
+
+class CreateCustomAgentSchema(BaseModel):
+    name: str
+    persona: str
+    purpose: str
+    is_switchable_into: bool
+
+    tool_id_list: list[str]
