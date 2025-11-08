@@ -6,15 +6,15 @@ ToolFactory = Callable[[AgentCtx], Callable]
 class ToolFactoryInMememoryStore:
     def __init__(self):
         # tool ID -> tool factory
-        self.in_memory_store: dict[str, ToolFactory] = {}
+        self._in_memory_store: dict[str, ToolFactory] = {}
 
 
     def get(self, tool_id: str) -> ToolFactory | None:
-        return self.in_memory_store.get(tool_id)
+        return self._in_memory_store.get(tool_id)
     
 
     def register_factory(self, tool_id: str, factory: ToolFactory):
-        self.in_memory_store[tool_id] = factory
+        self._in_memory_store[tool_id] = factory
 
 
 _SINGLETON_MEM_STORE = ToolFactoryInMememoryStore()
