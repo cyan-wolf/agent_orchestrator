@@ -5,6 +5,7 @@ from ai.agent.schemas import AgentTemplateSchema, CreateCustomAgentSchema, ToolS
 from ai.agent.tables import AgentTemplateTable, ToolTable
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
+from ai.tools.registry.tool_factory_store import ToolFactoryInMememoryStore
 
 from auth.tables import UserTable
 
@@ -59,6 +60,19 @@ def try_create_custom_agent_for_user(
     )
 
     db.add(new_agent_template)
+    db.flush()
+
+    for tool_id in create_agent_template_schema.tool_id_list:
+        tool = get_tool_by_id(db, tool_id)
+
+        if tool is not None:
+            new_agent_template.tools.append(tool)
+
+        else:
+            # TODO: This should probably raise `HTTPException`.
+            # That should not affect the DB as we only commit after this loop.
+            print(f"WARNING: tool '{tool_id}' was not found in database, cannot add tool to custom agent '{create_agent_template_schema.name}'")
+
     db.commit()
 
 
@@ -75,3 +89,7 @@ def get_all_switchable_agent_names(db: Session, owner: UserTable) -> Sequence[st
 
 def get_all_tool_schemas(db: Session) -> Sequence[ToolSchema]:
     return [tool_schema_from_db(t) for t in db.query(ToolTable).all()]
+
+
+def get_tool_by_id(db: Session, tool_id: str) -> ToolTable | None:
+    return db.query(ToolTable).filter(ToolTable.id == tool_id).first()
