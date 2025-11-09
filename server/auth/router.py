@@ -32,7 +32,7 @@ async def auth_check(
     return auth_check
 
 
-@router.post("/api/register/")
+@router.post("/api/register/", tags=["auth"])
 async def register(
     response: Response,
     new_user: CreateNewUser,
@@ -48,7 +48,7 @@ async def logout(response: Response):
     return { "message": "Successful logout" }
 
 
-@router.get("/api/users/me/", response_model=User)
+@router.get("/api/users/me/", response_model=User, tags=["auth"])
 async def read_users_me(
     current_user: Annotated[UserTable, Depends(get_current_user)],
 ) -> User:
