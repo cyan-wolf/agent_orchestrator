@@ -1,6 +1,7 @@
-import { Card, CardContent, Container, Typography, Paper, Box, Collapse, Button, TextField, FormControlLabel, Checkbox, Stack } from "@mui/material";
+import { Card, CardContent, Container, Typography, Paper, Box, Collapse, Button, TextField, FormControlLabel, Checkbox, Stack, Alert } from "@mui/material";
 import { useEffect, useState } from "react";
-import type { AgentTemplateJson, ToolJson } from "./agent_template";
+import type { AgentTemplateJson, AgentTemplateModificationJson, ToolJson } from "./agent_template";
+import { apiErrorToMessage } from "../../api_errors/api_errors";
 
 type AgentToolSectionProps = {
     tool: ToolJson,
@@ -102,6 +103,9 @@ function AgentSection({ agentTemplateJson }: AgentSectionProps) {
 
     const [tools, setTools] = useState<ToolJson[]>([]);
 
+    const [gotServerError, setGotServerError] = useState(false);
+    const [serverMessage, setServerMessage] = useState<string | null>(null);
+
     useEffect(() => {
         setName(agentTemplateJson.name);
         setPersona(agentTemplateJson.persona);
@@ -110,6 +114,38 @@ function AgentSection({ agentTemplateJson }: AgentSectionProps) {
 
         setTools(agentTemplateJson.tools);
     }, []);
+
+    async function submitAgentModification(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+
+        // TODO: validate data
+
+        const modificationJson: AgentTemplateModificationJson = {
+            name, persona, purpose,
+            id: agentTemplateJson.id,
+            is_switchable_into: isSwitchableInto,
+            tool_id_list: tools.map(t => t.id),
+        };
+
+        const resp = await fetch("/api/agent-templates/custom/modify/", {
+            method: "POST",
+            headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(modificationJson),
+        });
+
+        if (!resp.ok) {
+            const errJson = await resp.json();
+            
+            setGotServerError(true);
+            setServerMessage(apiErrorToMessage(errJson, "Could not modify agent template."));
+            return;
+        }
+
+        setGotServerError(false);
+        setServerMessage("Successfully modified agent.");
+    }
 
     return (
         <Paper
@@ -143,7 +179,7 @@ function AgentSection({ agentTemplateJson }: AgentSectionProps) {
             </Button>
 
             <Collapse in={contentVisible}>
-                <form>
+                <form onSubmit={submitAgentModification}>
                     <TextField
                         label="Name"
                         type="text"
@@ -208,7 +244,9 @@ function AgentSection({ agentTemplateJson }: AgentSectionProps) {
                         tools={tools}
                         isEditing={isEditing}
                         onAddTool={(tool) => console.log(`adding tool ${tool.id}`)}
-                        onRemoveTool={(tool) => console.log(`removing tool ${tool.id}`)}
+                        onRemoveTool={(tool) => {
+                            setTools(prev => prev.filter(t => t.id != tool.id))
+                        }}
                     />
 
                     {(isEditing)? (
@@ -221,6 +259,12 @@ function AgentSection({ agentTemplateJson }: AgentSectionProps) {
                         </Button>
                     ) : <></>}
                 </form>
+
+                {(serverMessage !== null)? (
+                    <Alert severity={(gotServerError)? "error" : "success"}>
+                        {serverMessage}
+                    </Alert>
+                ) : <></>}
             </Collapse>
         </Paper>
     );
