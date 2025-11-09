@@ -1,8 +1,8 @@
 from typing import Annotated, Sequence
 from fastapi import APIRouter, Depends
 
-from ai.agent.schemas import AgentTemplateSchema, ToolSchema, CreateCustomAgentSchema
-from ai.agent.agent_templates import get_all_agent_template_schemas_for_user, get_all_tool_schemas, try_create_custom_agent_for_user
+from ai.agent.schemas import AgentTemplateSchema, ToolSchema, CreateCustomAgentSchema, ModifyCustomAgentSchema
+from ai.agent.agent_templates import get_all_agent_template_schemas_for_user, get_all_tool_schemas, try_create_custom_agent_for_user, try_modify_custom_agent_for_user
 from sqlalchemy.orm import Session
 from auth.auth import get_current_user
 from auth.tables import UserTable
@@ -30,6 +30,16 @@ def create_custom_agent_template(
 ):
     try_create_custom_agent_for_user(db, current_user, create_agent_template_schema)
     return { "message": "Successfully created custom agent" }
+
+
+@router.post("/api/agent-templates/custom/modify/", tags=["agent-templates"])
+def modify_custom_agent_template(
+    db: Annotated[Session, Depends(get_database)],
+    current_user: Annotated[UserTable, Depends(get_current_user)],
+    modify_agent_template_schema: ModifyCustomAgentSchema,
+):
+    try_modify_custom_agent_for_user(db, current_user, modify_agent_template_schema)
+    return { "message": "Successfully modified custom agent" }
 
 
 @router.get("/api/agent-templates/tools/all/", tags=["agent-templates"])

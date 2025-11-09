@@ -19,10 +19,17 @@ class AgentTemplateSchema(BaseModel):
     tools: list[ToolSchema]
 
 
-class CreateCustomAgentSchema(BaseModel):
+class BaseAgentTemplateSchema(BaseModel):
     name: str
     persona: str
     purpose: str
     is_switchable_into: bool
 
     tool_id_list: list[str]
+
+
+class CreateCustomAgentSchema(BaseAgentTemplateSchema): pass
+
+
+class ModifyCustomAgentSchema(BaseAgentTemplateSchema):
+    id: uuid.UUID
