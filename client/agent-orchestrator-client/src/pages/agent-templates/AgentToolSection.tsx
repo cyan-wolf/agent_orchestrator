@@ -85,7 +85,7 @@ export default function AgentToolsSection({ tools, isEditing, onAddTool, onRemov
         <Box>
             <Stack>
                 {Object.keys(tools).map(toolId => (
-                    <AgentToolSection tool={tools[toolId]} isEditing={isEditing} onRemoveTool={onRemoveTool} />
+                    <AgentToolSection key={toolId} tool={tools[toolId]} isEditing={isEditing} onRemoveTool={onRemoveTool} />
                 ))}
             </Stack>
 
