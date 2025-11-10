@@ -1,6 +1,6 @@
 import { Card, CardContent, Container, Typography, Paper, Box, Collapse, Button, TextField, FormControlLabel, Checkbox, Alert } from "@mui/material";
 import { useEffect, useState } from "react";
-import type { AgentTemplateJson, AgentTemplateModificationJson, ToolJson } from "./agent_template";
+import type { AgentTemplateCreationJson, AgentTemplateJson, AgentTemplateModificationJson, ToolJson } from "./agent_template";
 import { apiErrorToMessage } from "../../api_errors/api_errors";
 import AgentToolsSection from "./AgentToolSection";
 import Loading from "../../components/loading/Loading";
@@ -9,9 +9,10 @@ import Loading from "../../components/loading/Loading";
 type AgentSectionProps = {
     agentTemplateJson: AgentTemplateJson | null,
     allTools: Record<string, ToolJson>,
+    onAgentCreationSuccess: () => void,
 };
 
-function AgentSection({ agentTemplateJson, allTools }: AgentSectionProps) {
+function AgentSection({ agentTemplateJson, allTools, onAgentCreationSuccess }: AgentSectionProps) {
     const [contentVisible, setContentVisible] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     
@@ -27,8 +28,12 @@ function AgentSection({ agentTemplateJson, allTools }: AgentSectionProps) {
     const [gotServerError, setGotServerError] = useState(false);
     const [serverMessage, setServerMessage] = useState<string | null>(null);
 
+    const isInAgentCreationMode = agentTemplateJson === null;
+
     useEffect(() => {
         if (agentTemplateJson === null) {
+            setContentVisible(true);
+            setIsEditing(true);
             return;
         }
 
@@ -42,11 +47,49 @@ function AgentSection({ agentTemplateJson, allTools }: AgentSectionProps) {
         setAgentIsGlobal(agentTemplateJson.is_global);
     }, []);
 
-    async function submitAgentModification(e: React.FormEvent<HTMLFormElement>) {
+
+    function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
         // TODO: validate data
 
+        if (isInAgentCreationMode) {
+            postAgentCreation();
+        }
+        else {
+            postAgentModification();
+        }
+    }
+
+    async function postAgentCreation() {
+        const modificationJson: AgentTemplateCreationJson = {
+            name, persona, purpose,
+            is_switchable_into: isSwitchableInto,
+            tool_id_list: Object.keys(tools),
+        };
+
+        const resp = await fetch("/api/agent-templates/custom/create/", {
+            method: "POST",
+            headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(modificationJson),
+        });
+
+        if (!resp.ok) {
+            const errJson = await resp.json();
+            
+            setGotServerError(true);
+            setServerMessage(apiErrorToMessage(errJson, "Could not create agent template."));
+            return;
+        }
+
+        setGotServerError(false);
+        setServerMessage("Successfully created agent.");
+        onAgentCreationSuccess();
+    }
+
+    async function postAgentModification() {
         const modificationJson: AgentTemplateModificationJson = {
             name, persona, purpose,
             id: agentTemplateJson!.id,
@@ -95,18 +138,24 @@ function AgentSection({ agentTemplateJson, allTools }: AgentSectionProps) {
                     {name} ({(agentIsGlobal)? "Global" : "Custom"})
                 </Typography>
                 {(agentIsGlobal) ? <></> : (
-                    <Button onClick={() => setIsEditing(prev => !prev)}>
+                    <Button 
+                        onClick={() => setIsEditing(prev => !prev)}
+                        disabled={isInAgentCreationMode}
+                    >
                         {(isEditing)? "Stop Editing" : "Edit Template"}
                     </Button>
                 )}
             </Box>
 
-            <Button onClick={() => setContentVisible(prev => !prev)}>
+            <Button 
+                onClick={() => setContentVisible(prev => !prev)}
+                disabled={isInAgentCreationMode}
+            >
                 {(contentVisible) ? "Hide Template" : "Show Template"}
             </Button>
 
             <Collapse in={contentVisible}>
-                <form onSubmit={submitAgentModification}>
+                <form onSubmit={handleSubmit}>
                     <TextField
                         label="Name"
                         type="text"
@@ -195,7 +244,7 @@ function AgentSection({ agentTemplateJson, allTools }: AgentSectionProps) {
                             variant="contained"
                             fullWidth
                         >
-                            Modify Template
+                            {(agentTemplateJson === null)? "Add New Template" : "Modify Template"}
                         </Button>
                     ) : <></>}
                 </form>
@@ -215,6 +264,10 @@ export default function AgentTemplates() {
     const [allTools, setAllTools] = useState<Record<string, ToolJson>>({});
 
     const [waitingForServer, setWaitingForServer] = useState(true);
+
+    const [addingNewAgent, setAddingNewAgent] = useState(false);
+
+    const [refreshToggle, setRefreshToggle] = useState(false);
 
     useEffect(() => {
         const fetchAgentTemplates = async () => {
@@ -240,7 +293,7 @@ export default function AgentTemplates() {
         };
 
         fetchAgentTemplatesAndTools();
-    }, []);
+    }, [refreshToggle]);
 
     return (
         <Container>
@@ -255,10 +308,31 @@ export default function AgentTemplates() {
                                     key={t.id} 
                                     agentTemplateJson={t} 
                                     allTools={allTools} 
+                                    onAgentCreationSuccess={() => {}} // unreachable
                                 />
                             ))}
                         </Box>
                     )}
+
+                    {(addingNewAgent)? (
+                        <AgentSection 
+                            agentTemplateJson={null} 
+                            allTools={allTools} 
+                            onAgentCreationSuccess={() => {
+                                setAddingNewAgent(false);
+                                setRefreshToggle(prev => !prev);
+                            }}
+                        />
+                    ) : <></>}
+
+                    <Button 
+                        variant="contained" 
+                        fullWidth
+                        onClick={() => setAddingNewAgent(true)}
+                        disabled={addingNewAgent}
+                    >
+                        Add New Agent
+                    </Button>
                 </CardContent>
             </Card>
         </Container>

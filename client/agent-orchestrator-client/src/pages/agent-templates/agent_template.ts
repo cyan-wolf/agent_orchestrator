@@ -16,6 +16,15 @@ export type AgentTemplateJson = {
     tools: ToolJson[],
 };
 
+export type AgentTemplateCreationJson = {
+    name: string,
+    persona: string,
+    purpose: string,
+    is_switchable_into: boolean,
+
+    tool_id_list: string[],
+};
+
 export type AgentTemplateModificationJson = {
     id: string,
     name: string,
