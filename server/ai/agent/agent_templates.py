@@ -5,9 +5,10 @@ from ai.agent.schemas import AgentTemplateSchema, CreateCustomAgentSchema, Modif
 from ai.agent.tables import AgentTemplateTable, ToolTable
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
-from ai.tools.registry.tool_factory_store import ToolFactoryInMememoryStore
 
 from auth.tables import UserTable
+
+import uuid
 
 def tool_schema_from_db(tool_in_db: ToolTable) -> ToolSchema:
     return ToolSchema(
@@ -122,6 +123,29 @@ def try_modify_custom_agent_for_user(
 
     agent_template_from_db.tools = list(tool_id_list_to_tool_objs(db, modify_agent_template_schema.tool_id_list))
 
+    db.commit()
+
+
+def try_delete_custom_agent_for_user(
+    db: Session,
+    current_user: UserTable,
+    agent_template_id: uuid.UUID,
+):
+    agent_template_from_db = db.query(AgentTemplateTable)\
+        .filter(
+            AgentTemplateTable.user_id.is_not(None),                    # the template is not global
+            AgentTemplateTable.user_id == current_user.id,              # the template belongs to the current user
+            AgentTemplateTable.id == agent_template_id,                 # template ID matches requested ID
+        )\
+        .first()
+    
+    if agent_template_from_db is None:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"agent template with ID '{agent_template_id}' did not exist",
+        )
+    
+    db.delete(agent_template_from_db)
     db.commit()
 
 

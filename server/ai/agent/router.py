@@ -2,11 +2,13 @@ from typing import Annotated, Sequence
 from fastapi import APIRouter, Depends
 
 from ai.agent.schemas import AgentTemplateSchema, ToolSchema, CreateCustomAgentSchema, ModifyCustomAgentSchema
-from ai.agent.agent_templates import get_all_agent_template_schemas_for_user, get_all_tool_schemas, try_create_custom_agent_for_user, try_modify_custom_agent_for_user
+from ai.agent.agent_templates import get_all_agent_template_schemas_for_user, get_all_tool_schemas, try_create_custom_agent_for_user, try_modify_custom_agent_for_user, try_delete_custom_agent_for_user
 from sqlalchemy.orm import Session
 from auth.auth import get_current_user
 from auth.tables import UserTable
 from database.database import get_database
+
+import uuid
 
 router = APIRouter()
 
@@ -40,6 +42,16 @@ def modify_custom_agent_template(
 ):
     try_modify_custom_agent_for_user(db, current_user, modify_agent_template_schema)
     return { "message": "Successfully modified custom agent" }
+
+
+@router.delete("/api/agent-templates/custom/{agent_template_id}/", tags=["agent-templates"])
+def delete_custom_agent_template(
+    db: Annotated[Session, Depends(get_database)],
+    current_user: Annotated[UserTable, Depends(get_current_user)],
+    agent_template_id: uuid.UUID,
+):
+    try_delete_custom_agent_for_user(db, current_user, agent_template_id)
+    return { "message": "Successfully deleted custom agent" }
 
 
 @router.get("/api/agent-templates/tools/all/", tags=["agent-templates"])

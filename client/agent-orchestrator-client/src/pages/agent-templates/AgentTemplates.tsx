@@ -10,9 +10,10 @@ type AgentSectionProps = {
     agentTemplateJson: AgentTemplateJson | null,
     allTools: Record<string, ToolJson>,
     onAgentCreationSuccess: () => void,
+    onAgentDeletionSuccess: () => void,
 };
 
-function AgentSection({ agentTemplateJson, allTools, onAgentCreationSuccess }: AgentSectionProps) {
+function AgentSection({ agentTemplateJson, allTools, onAgentCreationSuccess, onAgentDeletionSuccess }: AgentSectionProps) {
     const [contentVisible, setContentVisible] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     
@@ -117,6 +118,23 @@ function AgentSection({ agentTemplateJson, allTools, onAgentCreationSuccess }: A
         setServerMessage("Successfully modified agent.");
     }
 
+    async function handleTemplateDeletion() {
+        // TODO: show a confirmation modal before doing this vvvvvvvvvvvvvvvvvvvvvvvv
+
+        const resp = await fetch(`/api/agent-templates/custom/${agentTemplateJson!.id}/`, {
+            method: "DELETE"
+        });
+
+        if (!resp.ok) {
+            const errJson = await resp.json();
+            
+            setGotServerError(true);
+            setServerMessage(apiErrorToMessage(errJson, "Could not delete agent template."));
+            return;
+        }
+        onAgentDeletionSuccess();
+    }
+
     return (
         <Paper
             elevation={8}
@@ -129,22 +147,37 @@ function AgentSection({ agentTemplateJson, allTools, onAgentCreationSuccess }: A
             }}
         >
             <Box 
-            sx={{
-                display: "flex",
-                justifyContent: 'space-between',
-            }}
-        >
-            <Typography variant="h4">
+                sx={{
+                    display: "flex",
+                    justifyContent: 'space-between',
+                }}
+            >
+                <Typography variant="h4">
                     {name} ({(agentIsGlobal)? "Global" : "Custom"})
                 </Typography>
-                {(agentIsGlobal) ? <></> : (
+
+                <Box>
+                    {(agentIsGlobal) ? <></> : (
                     <Button 
-                        onClick={() => setIsEditing(prev => !prev)}
+                        onClick={() => {
+                            setIsEditing(prev => !prev);
+                            setContentVisible(true);
+                        }}
                         disabled={isInAgentCreationMode}
                     >
                         {(isEditing)? "Stop Editing" : "Edit Template"}
                     </Button>
                 )}
+
+                {(agentIsGlobal) ? <></> : (
+                    <Button 
+                        onClick={() => handleTemplateDeletion()}
+                        disabled={isInAgentCreationMode}
+                    >
+                        Delete
+                    </Button>
+                )}
+                </Box>
             </Box>
 
             <Button 
@@ -309,6 +342,9 @@ export default function AgentTemplates() {
                                     agentTemplateJson={t} 
                                     allTools={allTools} 
                                     onAgentCreationSuccess={() => {}} // unreachable
+                                    onAgentDeletionSuccess={() => {
+                                        setRefreshToggle(prev => !prev);
+                                    }}
                                 />
                             ))}
                         </Box>
@@ -322,6 +358,7 @@ export default function AgentTemplates() {
                                 setAddingNewAgent(false);
                                 setRefreshToggle(prev => !prev);
                             }}
+                            onAgentDeletionSuccess={() => {}} // unreachable
                         />
                     ) : <></>}
 
