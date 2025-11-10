@@ -1,98 +1,16 @@
-import { Card, CardContent, Container, Typography, Paper, Box, Collapse, Button, TextField, FormControlLabel, Checkbox, Stack, Alert } from "@mui/material";
+import { Card, CardContent, Container, Typography, Paper, Box, Collapse, Button, TextField, FormControlLabel, Checkbox, Alert } from "@mui/material";
 import { useEffect, useState } from "react";
 import type { AgentTemplateJson, AgentTemplateModificationJson, ToolJson } from "./agent_template";
 import { apiErrorToMessage } from "../../api_errors/api_errors";
+import AgentToolsSection from "./AgentToolSection";
 
-type AgentToolSectionProps = {
-    tool: ToolJson,
-    isEditing: boolean,
-    onRemoveTool: (tool: ToolJson) => void,
-};
-
-type AgentToolsSectionProps = {
-    tools: ToolJson[],
-    isEditing: boolean,
-    onAddTool: (tool: ToolJson) => void,
-    onRemoveTool: (tool: ToolJson) => void,
-};
-
-function AgentToolSection({ tool, isEditing, onRemoveTool }: AgentToolSectionProps) {
-    const [contentVisible, setContentVisible] = useState(false);
-
-    return (
-        <Paper 
-            key={tool.id}
-        >
-            <Box
-                sx={{
-                    display: "flex",
-                    justifyContent: 'space-between',
-                }}
-            >
-                <Typography variant="h6">
-                    {tool.name}
-                </Typography>
-                {(isEditing)? (
-                    <Button onClick={() => onRemoveTool(tool)}>
-                        Remove Tool
-                    </Button>
-                ) : <></>}
-            </Box>
-            <Button onClick={() => setContentVisible(prev => !prev)}>
-                {(contentVisible) ? "Hide Tool Information" : "Show Tool Information"}
-            </Button>
-
-            <Collapse in={contentVisible}>
-                <TextField
-                    label="ID"
-                    type="text"
-                    value={tool.id}
-                    slotProps={{
-                        input: {
-                            readOnly: true
-                        }
-                    }}
-                    fullWidth
-                    multiline
-                    sx={{
-                        m: 1
-                    }}
-                />
-                <TextField
-                    label="Description"
-                    type="text"
-                    value={tool.description}
-                    slotProps={{
-                        input: {
-                            readOnly: true
-                        }
-                    }}
-                    fullWidth
-                    multiline
-                    sx={{
-                        m: 1
-                    }}
-                />
-            </Collapse>
-        </Paper>
-    );
-}
-
-function AgentToolsSection({ tools, isEditing, onAddTool, onRemoveTool }: AgentToolsSectionProps) {    
-    return (
-        <Stack>
-            {tools.map(tool => (
-                <AgentToolSection tool={tool} isEditing={isEditing} onRemoveTool={onRemoveTool} />
-            ))}
-        </Stack>
-    );
-}
 
 type AgentSectionProps = {
     agentTemplateJson: AgentTemplateJson,
+    allTools: Record<string, ToolJson>,
 };
 
-function AgentSection({ agentTemplateJson }: AgentSectionProps) {
+function AgentSection({ agentTemplateJson, allTools }: AgentSectionProps) {
     const [contentVisible, setContentVisible] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     
@@ -101,7 +19,7 @@ function AgentSection({ agentTemplateJson }: AgentSectionProps) {
     const [purpose, setPurpose] = useState("");
     const [isSwitchableInto, setIsSwitchableInto] = useState(true);
 
-    const [tools, setTools] = useState<ToolJson[]>([]);
+    const [tools, setTools] = useState<Record<string, ToolJson>>({});
 
     const [gotServerError, setGotServerError] = useState(false);
     const [serverMessage, setServerMessage] = useState<string | null>(null);
@@ -112,7 +30,7 @@ function AgentSection({ agentTemplateJson }: AgentSectionProps) {
         setPurpose(agentTemplateJson.purpose);
         setIsSwitchableInto(agentTemplateJson.is_switchable_into);
 
-        setTools(agentTemplateJson.tools);
+        setTools(Object.fromEntries(agentTemplateJson.tools.map(t => [t.id, t])));
     }, []);
 
     async function submitAgentModification(e: React.FormEvent<HTMLFormElement>) {
@@ -124,7 +42,7 @@ function AgentSection({ agentTemplateJson }: AgentSectionProps) {
             name, persona, purpose,
             id: agentTemplateJson.id,
             is_switchable_into: isSwitchableInto,
-            tool_id_list: tools.map(t => t.id),
+            tool_id_list: Object.keys(tools),
         };
 
         const resp = await fetch("/api/agent-templates/custom/modify/", {
@@ -243,10 +161,23 @@ function AgentSection({ agentTemplateJson }: AgentSectionProps) {
                     <AgentToolsSection 
                         tools={tools}
                         isEditing={isEditing}
-                        onAddTool={(tool) => console.log(`adding tool ${tool.id}`)}
-                        onRemoveTool={(tool) => {
-                            setTools(prev => prev.filter(t => t.id != tool.id))
+                        onAddTool={(tool) => {
+                            if (Object.hasOwn(tools, tool.id)) {
+                                return; // duplicate tool
+                            }
+                            setTools(prev => {
+                                // Add the new tool along with the rest of the previous state.
+                                return { [tool.id]: tool, ...prev }
+                            });
                         }}
+                        onRemoveTool={(tool) => {
+                            setTools(prev => {
+                                // Extract out the rest of the tools from the previous state.
+                                const { [tool.id]: _, ...rest } = prev;
+                                return rest;
+                            })
+                        }}
+                        allTools={allTools}
                     />
 
                     {(isEditing)? (
@@ -272,6 +203,7 @@ function AgentSection({ agentTemplateJson }: AgentSectionProps) {
 
 export default function AgentTemplates() {
     const [templates, setTemplates] = useState<AgentTemplateJson[]>([]);
+    const [allTools, setAllTools] = useState<Record<string, ToolJson>>({});
 
     useEffect(() => {
         const fetchAgentTemplates = async () => {
@@ -281,7 +213,15 @@ export default function AgentTemplates() {
 
             setTemplates(json);
         };
+        const fetchAllTools = async () => {
+            const resp = await fetch("/api/agent-templates/tools/all/");
+
+            const json: ToolJson[] = await resp.json();
+
+            setAllTools(Object.fromEntries(json.map(t => [t.id, t])));
+        };
         fetchAgentTemplates();
+        fetchAllTools();
     }, []);
 
     return (
@@ -291,7 +231,7 @@ export default function AgentTemplates() {
                     <Typography variant="h1" align="center">Agent Templates</Typography>
 
                     <Box>
-                        {templates.map(t => <AgentSection key={t.id} agentTemplateJson={t} />)}
+                        {templates.map(t => <AgentSection key={t.id} agentTemplateJson={t} allTools={allTools} />)}
                     </Box>
                 </CardContent>
             </Card>
