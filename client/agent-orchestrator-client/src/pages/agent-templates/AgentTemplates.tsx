@@ -3,10 +3,11 @@ import { useEffect, useState } from "react";
 import type { AgentTemplateJson, AgentTemplateModificationJson, ToolJson } from "./agent_template";
 import { apiErrorToMessage } from "../../api_errors/api_errors";
 import AgentToolsSection from "./AgentToolSection";
+import Loading from "../../components/loading/Loading";
 
 
 type AgentSectionProps = {
-    agentTemplateJson: AgentTemplateJson,
+    agentTemplateJson: AgentTemplateJson | null,
     allTools: Record<string, ToolJson>,
 };
 
@@ -14,23 +15,31 @@ function AgentSection({ agentTemplateJson, allTools }: AgentSectionProps) {
     const [contentVisible, setContentVisible] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     
-    const [name, setName] = useState("");
-    const [persona, setPersona] = useState("");
-    const [purpose, setPurpose] = useState("");
+    const [name, setName] = useState(agentTemplateJson?.name ?? "new_agent");
+    const [persona, setPersona] = useState(agentTemplateJson?.persona ?? "");
+    const [purpose, setPurpose] = useState(agentTemplateJson?.purpose ?? "");
     const [isSwitchableInto, setIsSwitchableInto] = useState(true);
 
     const [tools, setTools] = useState<Record<string, ToolJson>>({});
+
+    const [agentIsGlobal, setAgentIsGlobal] = useState(agentTemplateJson?.is_global ?? false);
 
     const [gotServerError, setGotServerError] = useState(false);
     const [serverMessage, setServerMessage] = useState<string | null>(null);
 
     useEffect(() => {
+        if (agentTemplateJson === null) {
+            return;
+        }
+
         setName(agentTemplateJson.name);
         setPersona(agentTemplateJson.persona);
         setPurpose(agentTemplateJson.purpose);
         setIsSwitchableInto(agentTemplateJson.is_switchable_into);
 
         setTools(Object.fromEntries(agentTemplateJson.tools.map(t => [t.id, t])));
+
+        setAgentIsGlobal(agentTemplateJson.is_global);
     }, []);
 
     async function submitAgentModification(e: React.FormEvent<HTMLFormElement>) {
@@ -40,7 +49,7 @@ function AgentSection({ agentTemplateJson, allTools }: AgentSectionProps) {
 
         const modificationJson: AgentTemplateModificationJson = {
             name, persona, purpose,
-            id: agentTemplateJson.id,
+            id: agentTemplateJson!.id,
             is_switchable_into: isSwitchableInto,
             tool_id_list: Object.keys(tools),
         };
@@ -83,9 +92,9 @@ function AgentSection({ agentTemplateJson, allTools }: AgentSectionProps) {
             }}
         >
             <Typography variant="h4">
-                    {agentTemplateJson.name} ({(agentTemplateJson.is_global)? "Global" : "Custom"})
+                    {name} ({(agentIsGlobal)? "Global" : "Custom"})
                 </Typography>
-                {(agentTemplateJson.is_global) ? <></> : (
+                {(agentIsGlobal) ? <></> : (
                     <Button onClick={() => setIsEditing(prev => !prev)}>
                         {(isEditing)? "Stop Editing" : "Edit Template"}
                     </Button>
@@ -205,6 +214,8 @@ export default function AgentTemplates() {
     const [templates, setTemplates] = useState<AgentTemplateJson[]>([]);
     const [allTools, setAllTools] = useState<Record<string, ToolJson>>({});
 
+    const [waitingForServer, setWaitingForServer] = useState(true);
+
     useEffect(() => {
         const fetchAgentTemplates = async () => {
             const resp = await fetch("/api/agent-templates/all/");
@@ -220,8 +231,15 @@ export default function AgentTemplates() {
 
             setAllTools(Object.fromEntries(json.map(t => [t.id, t])));
         };
-        fetchAgentTemplates();
-        fetchAllTools();
+
+        const fetchAgentTemplatesAndTools = async () => {
+            await fetchAgentTemplates();
+            await fetchAllTools();
+
+            setWaitingForServer(false);
+        };
+
+        fetchAgentTemplatesAndTools();
     }, []);
 
     return (
@@ -230,9 +248,17 @@ export default function AgentTemplates() {
                 <CardContent>
                     <Typography variant="h1" align="center">Agent Templates</Typography>
 
-                    <Box>
-                        {templates.map(t => <AgentSection key={t.id} agentTemplateJson={t} allTools={allTools} />)}
-                    </Box>
+                    {(waitingForServer)? (<Loading />) : (
+                        <Box>
+                            {templates.map(t => (
+                                <AgentSection 
+                                    key={t.id} 
+                                    agentTemplateJson={t} 
+                                    allTools={allTools} 
+                                />
+                            ))}
+                        </Box>
+                    )}
                 </CardContent>
             </Card>
         </Container>
