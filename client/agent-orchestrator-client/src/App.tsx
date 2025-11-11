@@ -17,6 +17,7 @@ import Register from './pages/register/Register';
 import Manual from './pages/manual/Manual';
 import NoChatSelectedDisplay from './pages/chat/components/chat_drawer/components/NoChatSelectedDisplay';
 import AgentTemplates from './pages/agent-templates/AgentTemplates';
+import Themes from './pages/themes/Themes';
 
 export default function App() {
   return (
@@ -30,6 +31,7 @@ export default function App() {
           { to: "/logout", title: "Logout" },
           { to: "/register", title: "Register" },
           { to: "/agent-templates", title: "Agent Templates" },
+          { to: "/themes", title: "Themes" },
           { to: "/manual", title: "Manual" },
         ]} />
       </nav>
@@ -50,6 +52,8 @@ export default function App() {
         <Route path="/register" element={<Register />} />
 
         <Route path="/agent-templates" element={<ProtectedRoute children={<AgentTemplates />} />} />
+
+        <Route path="/themes" element={<Themes />} />
         
         <Route path="/manual" element={<Manual />} />
       </Routes>
