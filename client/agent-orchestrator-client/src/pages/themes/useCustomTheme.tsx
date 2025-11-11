@@ -1,6 +1,6 @@
 import { ThemeProvider } from "@emotion/react";
 import { createTheme, responsiveFontSizes } from "@mui/material";
-import { blue, purple, red, yellow } from "@mui/material/colors";
+import { blue, brown, green, purple, red, yellow } from "@mui/material/colors";
 import type { Theme } from "@mui/material/styles";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
@@ -11,7 +11,14 @@ type CustomTheme = {
     mode?: 'light' | 'dark',
 };
 
-export type CustomThemeKind = "gold-crimson" | "light-blue" | "dark-purple";
+export type CustomThemeKind = 
+    | "gold-crimson" 
+    | "light-blue" 
+    | "light-monochrome" 
+    | "dark-purple" 
+    | "dark-green" 
+    | "dark-red"
+    | "nature"
 
 export const CUSTOM_THEMES: Record<CustomThemeKind, CustomTheme> = {
     "gold-crimson": {
@@ -24,12 +31,36 @@ export const CUSTOM_THEMES: Record<CustomThemeKind, CustomTheme> = {
         paperColor: "#e0e0e0ff",
         backgroundColor: "#ffffff",
     },
+    "light-monochrome": {
+        mainColor: "#3a3a3aff",
+        paperColor: "#f5f5f5ff",
+        backgroundColor: "#ffffff",
+    },
     "dark-purple": {
         mainColor: purple[300],
         paperColor: "#161616ff",
         backgroundColor: "#000000",
         
         mode: 'dark',
+    },
+    "dark-green": {
+        mainColor: green[300],
+        paperColor: "#161616ff",
+        backgroundColor: "#000000",
+        
+        mode: 'dark',
+    },
+    "dark-red": {
+        mainColor: red[300],
+        paperColor: "#161616ff",
+        backgroundColor: "#000000",
+        
+        mode: 'dark',
+    },
+    "nature": {
+        mainColor: brown[400],
+        paperColor: green[100],
+        backgroundColor: green[50],
     },
 };
 
