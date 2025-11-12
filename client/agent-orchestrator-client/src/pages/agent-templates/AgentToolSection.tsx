@@ -1,6 +1,7 @@
 import { Typography, Paper, Box, Collapse, Button, TextField, Stack, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import {  useState } from "react";
 import type { ToolJson } from "./agent_template";
+import { useIsOnMobile } from "../../util/isOnMobile";
 
 type AgentToolSectionProps = {
     tool: ToolJson,
@@ -19,6 +20,8 @@ type AgentToolsSectionProps = {
 function AgentToolSection({ tool, isEditing, onRemoveTool }: AgentToolSectionProps) {
     const [contentVisible, setContentVisible] = useState(false);
 
+    const isMobile = useIsOnMobile();
+
     return (
         <Paper 
             key={tool.id}
@@ -26,6 +29,8 @@ function AgentToolSection({ tool, isEditing, onRemoveTool }: AgentToolSectionPro
             <Box
                 sx={{
                     display: "flex",
+                    flexDirection: (isMobile)? "column" : "row",
+                    alignItems: (isMobile)? "flex-start" : "baseline",
                     justifyContent: 'space-between',
                 }}
             >

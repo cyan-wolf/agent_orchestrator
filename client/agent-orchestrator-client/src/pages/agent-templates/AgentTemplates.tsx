@@ -4,6 +4,7 @@ import type { AgentTemplateCreationJson, AgentTemplateJson, AgentTemplateModific
 import { apiErrorToMessage } from "../../api_errors/api_errors";
 import AgentToolsSection from "./AgentToolSection";
 import Loading from "../../components/loading/Loading";
+import { useIsOnMobile } from "../../util/isOnMobile";
 
 
 type AgentSectionProps = {
@@ -28,6 +29,8 @@ function AgentSection({ agentTemplateJson, allTools, onAgentCreationSuccess, onA
 
     const [gotServerError, setGotServerError] = useState(false);
     const [serverMessage, setServerMessage] = useState<string | null>(null);
+    
+    const isMobile = useIsOnMobile();
 
     const isInAgentCreationMode = agentTemplateJson === null;
 
@@ -149,6 +152,7 @@ function AgentSection({ agentTemplateJson, allTools, onAgentCreationSuccess, onA
             <Box 
                 sx={{
                     display: "flex",
+                    flexDirection: (isMobile)? "column" : "row",
                     justifyContent: 'space-between',
                 }}
             >
