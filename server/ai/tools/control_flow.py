@@ -8,7 +8,7 @@ from typing import Literal
 from ai.agent_manager.agent_context import AgentCtx
 import json
 from ai.tools.registry.tool_register_decorator import register_tool_factory
-from ai.agent.agent_templates import get_all_switchable_agent_names
+from ai.agent.templates.agent_templates import get_all_switchable_agent_names
 from auth.auth import get_user_by_username
 
 @register_tool_factory(tool_id='switch_to_more_qualified_agent')

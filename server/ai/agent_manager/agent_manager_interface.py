@@ -1,6 +1,6 @@
 from typing import Protocol
 from ai.tracing.tracer import Tracer
-from ai.agent.agent_interface import IAgent
+from ai.agent.runtime.agent_interface import IAgent
 from sqlalchemy.orm import Session
 import uuid
 from collections import defaultdict

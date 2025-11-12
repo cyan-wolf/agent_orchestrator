@@ -6,7 +6,7 @@ load_dotenv()
 from fastapi import FastAPI
 
 from auth.router import router as auth_router
-from ai.agent.router import router as agent_router
+from ai.agent.templates.router import router as agent_router
 from chat.router import router as chat_router
 from user_settings.router import router as user_settings_router
 
@@ -18,7 +18,7 @@ from database.database import Base, engine
 # Side-effect import all the tables to make sure they are loaded.
 import auth.tables as _
 import user_settings.tables as _
-import ai.agent.tables as _
+import ai.agent.templates.tables as _
 import ai.tools.scheduling.tables as _
 import chat.tables as _
 import chat.chat_summaries.tables as _

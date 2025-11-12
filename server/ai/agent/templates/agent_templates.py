@@ -1,8 +1,8 @@
 from typing import Sequence
 
 from sqlalchemy import or_
-from ai.agent.schemas import AgentTemplateSchema, CreateCustomAgentSchema, ModifyCustomAgentSchema, ToolSchema
-from ai.agent.tables import AgentTemplateTable, ToolTable
+from ai.agent.templates.schemas import AgentTemplateSchema, CreateCustomAgentSchema, ModifyCustomAgentSchema, ToolSchema
+from ai.agent.templates.tables import AgentTemplateTable, ToolTable
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 

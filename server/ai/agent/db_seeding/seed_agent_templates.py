@@ -4,7 +4,7 @@ This module exports a helper function of the same name that seeds the database w
 
 from sqlalchemy.orm import Session
 from sqlalchemy import select
-from ai.agent.tables import AgentTemplateTable, ToolTable
+from ai.agent.templates.tables import AgentTemplateTable, ToolTable
 from typing import Any
 import json
 from pathlib import Path

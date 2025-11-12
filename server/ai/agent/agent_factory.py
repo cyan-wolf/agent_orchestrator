@@ -1,9 +1,9 @@
-from ai.agent.agent_interface import IAgent
+from ai.agent.runtime.agent_interface import IAgent
 from ai.agent_manager.agent_context import AgentCtx
 from ai.tools.registry.tool_factory_store import get_tool_factory_in_mem_store, ToolFactoryInMememoryStore, ToolFactory
-from ai.agent.schemas import AgentTemplateSchema
-from ai.agent.runtime_agent import RuntimeAgent
-from ai.agent.agent_templates import get_all_agent_template_schemas_for_user
+from ai.agent.templates.schemas import AgentTemplateSchema
+from ai.agent.runtime.runtime_agent import RuntimeAgent
+from ai.agent.templates.agent_templates import get_all_agent_template_schemas_for_user
 from auth.tables import UserTable
 from langgraph.checkpoint.memory import InMemorySaver
 from typing import Callable

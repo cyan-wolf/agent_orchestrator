@@ -1,8 +1,8 @@
 from typing import Annotated, Sequence
 from fastapi import APIRouter, Depends
 
-from ai.agent.schemas import AgentTemplateSchema, ToolSchema, CreateCustomAgentSchema, ModifyCustomAgentSchema
-from ai.agent.agent_templates import get_all_agent_template_schemas_for_user, get_all_tool_schemas, try_create_custom_agent_for_user, try_modify_custom_agent_for_user, try_delete_custom_agent_for_user
+from ai.agent.templates.schemas import AgentTemplateSchema, ToolSchema, CreateCustomAgentSchema, ModifyCustomAgentSchema
+from ai.agent.templates.agent_templates import get_all_agent_template_schemas_for_user, get_all_tool_schemas, try_create_custom_agent_for_user, try_modify_custom_agent_for_user, try_delete_custom_agent_for_user
 from sqlalchemy.orm import Session
 from auth.auth import get_current_user
 from auth.tables import UserTable

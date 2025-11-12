@@ -4,7 +4,7 @@ load_dotenv()
 
 from ai.tracing.schemas import AIMessageTrace, HumanMessageTrace
 from ai.tracing.trace_decorator import Tracer
-from ai.agent.agent_interface import IAgent
+from ai.agent.runtime.agent_interface import IAgent
 from chat.tables import ChatTable
 from chat.chat_summaries import chat_summaries
 from sqlalchemy.orm import Session
