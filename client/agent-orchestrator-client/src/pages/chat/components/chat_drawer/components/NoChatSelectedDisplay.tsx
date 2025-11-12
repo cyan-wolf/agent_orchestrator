@@ -1,15 +1,11 @@
-import { Alert, Card, CardContent, Container, Typography, useMediaQuery, useTheme } from "@mui/material";
+import { Alert, Card, CardContent, Container, Typography } from "@mui/material";
 import TryIcon from '@mui/icons-material/Try';
+import { useIsOnMobile } from "../../../../../util/isOnMobile";
 
 export default function NoChatSelectedDisplay() {
-    const theme = useTheme();
+    const isMobile = useIsOnMobile();
+    const chatDrawerOpenByDefault = !isMobile;
 
-    function chatDrawerIsOpenByDefault(): boolean {
-        const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-        return !isMobile;
-    }
-
-    const chatDrawerOpenByDefault = chatDrawerIsOpenByDefault();
     const extraMessageContentWhenModalNotVisibleByDefault = (chatDrawerOpenByDefault) ? <></> :
         <Alert severity="info">
             You must open the drawer on the left hand side first. Click the 
