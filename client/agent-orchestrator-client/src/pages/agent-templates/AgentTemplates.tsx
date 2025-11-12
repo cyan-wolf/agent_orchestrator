@@ -206,7 +206,8 @@ function AgentSection({ agentTemplateJson, allTools, onAgentCreationSuccess, onA
                         fullWidth
                         multiline
                         sx={{
-                            m: 1
+                            mt: 1,
+                            mb: 1,
                         }}
                     />
                     <TextField
@@ -222,7 +223,8 @@ function AgentSection({ agentTemplateJson, allTools, onAgentCreationSuccess, onA
                         fullWidth
                         multiline
                         sx={{
-                            m: 1
+                            mt: 1,
+                            mb: 1,
                         }}
                     />
                     <TextField
@@ -238,7 +240,8 @@ function AgentSection({ agentTemplateJson, allTools, onAgentCreationSuccess, onA
                         fullWidth
                         multiline
                         sx={{
-                            m: 1
+                            mt: 1,
+                            mb: 1,
                         }}
                     />
 

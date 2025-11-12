@@ -25,6 +25,9 @@ function AgentToolSection({ tool, isEditing, onRemoveTool }: AgentToolSectionPro
     return (
         <Paper 
             key={tool.id}
+            sx={{
+                p: 1,
+            }}
         >
             <Box
                 sx={{
@@ -47,7 +50,9 @@ function AgentToolSection({ tool, isEditing, onRemoveTool }: AgentToolSectionPro
                 {(contentVisible) ? "Hide Tool Information" : "Show Tool Information"}
             </Button>
 
-            <Collapse in={contentVisible}>
+            <Collapse
+                in={contentVisible}
+            >
                 <TextField
                     label="ID"
                     type="text"
@@ -60,7 +65,8 @@ function AgentToolSection({ tool, isEditing, onRemoveTool }: AgentToolSectionPro
                     fullWidth
                     multiline
                     sx={{
-                        m: 1
+                        mt: 1,
+                        mb: 1,
                     }}
                 />
                 <TextField
@@ -75,7 +81,8 @@ function AgentToolSection({ tool, isEditing, onRemoveTool }: AgentToolSectionPro
                     fullWidth
                     multiline
                     sx={{
-                        m: 1
+                        mt: 1,
+                        mb: 1,
                     }}
                 />
             </Collapse>
