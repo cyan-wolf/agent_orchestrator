@@ -20,6 +20,23 @@ def prepare_run_command_tool(ctx: AgentCtx):
     def run_command(command_schema: RunCommandSchema) -> str:
         """
         Runs the given command in a Linux environment. 
+
+        Note: The Linux environment has a few caveats to consider:
+
+        - You have access to a user with `sudo` permissions. 
+        You can run privileged commands by prepending them with sudo, no password needed.
+        
+        -The environment's package lists may be outdated. Running `sudo apt update` helps. 
+        
+        -The user cannot interact with the environment directly. if you run a command that needs STDIN you should 
+        write a file and pipe it in to the command since the user cannot directly input to the environment's STDIN. 
+        For installation/setup commands for `apt`, you can pass the -y flag to avoid the issue of the user not being 
+        able to access STDIN. 
+        
+        -The environment doesn't have open network access it only allows it for a few things such as the `apt` manager. 
+        
+        -You can install additional tools as long as they're in the environment's package manager. For example, you 
+        can install Rust with `sudo apt install cargo -y` and COBOL with `sudo apt install gnucobol -y`. 
         """
         sandbox = get_sandbox(ctx.manager.get_chat_id())
         if sandbox is None:
@@ -41,8 +58,11 @@ def prepare_create_file_tool(ctx: AgentCtx):
         """
         Creates a file inside of the secure Linux environment.
 
-        Note: If you cannot find the file after creating it, don't hesitate to use the 
+        Note: 
+        - If you cannot find the file after creating it, don't hesitate to use the 
         ls command to look for the file.
+
+        - Files can only be created under the `/tmp/` directory.
         """
         sandbox = get_sandbox(ctx.manager.get_chat_id())
         if sandbox is None:
@@ -64,7 +84,10 @@ def prepare_run_code_snippet_tool(ctx: AgentCtx):
 
     def run_code_snippet_tool(run_schema: RunCodeSnippetSchema) -> str:
         """
-        Runs the given code snippet in a Linux environment.
+        Runs the given Python code snippet in a Linux environment.
+
+        Note: When using this tool, code snippets may use numpy and matplotlib. Any 
+        charts 'shown' (i.e. with plt.show()) in the snippet are automatically shown to the user.
         """
         sandbox = get_sandbox(ctx.manager.get_chat_id())
         if sandbox is None:
