@@ -3,7 +3,6 @@ This module defines tools mainly used by the supervisor agent
 to switch the identity of the current agent.
 """
 
-from ai.tracing.trace_decorator import trace
 from typing import Literal
 from ai.agent_manager.agent_context import AgentCtx
 import json
@@ -26,7 +25,6 @@ def prepare_switch_to_more_qualified_agent_tool(ctx: AgentCtx):
         Note that you cannot switch into yourself.
         """
 
-    @trace(ctx)
     def switch_to_more_qualified_agent(agent_name: str, reason: str | None) -> str:
         
         if agent_name in valid_switchable_agents:
@@ -49,7 +47,6 @@ def prepare_switch_to_more_qualified_agent_tool(ctx: AgentCtx):
 
 @register_tool_factory(tool_id='check_helper_agent_chat_summaries')
 def prepare_check_helper_agent_summaries_tool(ctx: AgentCtx):
-    @trace(ctx)
     def check_helper_agent_chat_summaries():
         """
         Used for checking what the helper agents have talked about with the user.
@@ -65,7 +62,6 @@ def prepare_summarization_tool(ctx: AgentCtx):
     Prepares a tool that stores a summary of the current current agent's chat with the user.
     """
 
-    @trace(ctx)
     def summarize_chat(chat_summary: str):
         """
         Stores a summary of the current chat.
@@ -83,7 +79,6 @@ def prepare_switch_back_to_supervisor_tool(ctx: AgentCtx):
     Prepares a tool that switches the current agent back to the supervisor.
     """
 
-    @trace(ctx)
     def switch_back_to_supervisor(reason: str | None):
         """
         Switches back to the supervisor agent. 

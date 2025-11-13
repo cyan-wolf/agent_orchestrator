@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from ai.tracing.schemas import AIMessageTrace, HumanMessageTrace
-from ai.tracing.trace_decorator import Tracer
+from ai.tracing.tracer import Tracer
 from ai.agent.runtime.agent_interface import IAgent
 from chat.tables import ChatTable
 from chat.chat_summaries import chat_summaries

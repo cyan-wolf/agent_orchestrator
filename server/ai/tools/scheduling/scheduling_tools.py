@@ -3,7 +3,6 @@ This module defines tools for managing events. These tools are meant for use by 
 """
 
 from datetime import datetime, timezone
-from ai.tracing.trace_decorator import trace
 from ai.agent_manager.agent_context import AgentCtx
 from ai.tools.scheduling.tables import EventTable
 from ai.tools.scheduling.schemas import CreateEvent, EventBase, Event, EventModification
@@ -18,8 +17,7 @@ def prepare_view_schedule_tool(ctx: AgentCtx):
     """
     Prepares a tool that returns a list of events on the schedule.
     """
-
-    @trace(ctx)
+    
     def view_schedule() -> list[Event]:
         """
         Returns a list of events on the schedule.
@@ -34,8 +32,7 @@ def prepare_add_new_event_tool(ctx: AgentCtx):
     """
     Prepares a tool that adds a new event to the schedule.
     """
-
-    @trace(ctx)
+    
     def add_new_event(event_creation: CreateEvent):
         """
         Adds a new event to the schedule. Note that the start_time and end_time parameters are 
@@ -56,8 +53,7 @@ def prepare_delete_event_tool(ctx: AgentCtx):
     """
     Prepares a tool that removes the event with the given ID from the schedule.
     """
-
-    @trace(ctx)
+    
     def remove_event_with_id(event_id: uuid.UUID) -> str:
         """
         Removes the event with the given ID from the schedule.
@@ -81,8 +77,7 @@ def prepare_modify_event_tool(ctx: AgentCtx):
     """
     Prepares a tool that modifies an existing event on the schedule.
     """
-
-    @trace(ctx)
+    
     def modify_event(event_modification: EventModification):
         """
         Modifies an existing event on the schedule. Uses the given EventModification object to 

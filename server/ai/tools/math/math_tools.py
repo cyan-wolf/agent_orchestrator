@@ -6,7 +6,6 @@ import os
 import requests
 import base64
 from ai.tracing.schemas import ImageCreationTrace
-from ai.tracing.trace_decorator import trace
 from ai.agent_manager.agent_context import AgentCtx
 from ai.tools.registry.tool_register_decorator import register_tool_factory
 
@@ -19,7 +18,7 @@ def prepare_run_wolfram_alpha_tool(ctx: AgentCtx):
     Prepares a tool that sends queries to the Wolfram Alpha API.
     """
 
-    @trace(ctx)
+    
     def run_wolfram_alpha_tool(query: str) -> str:
         """
         Invokes Wolfram Alpha with the given query. Only use when necessary, 

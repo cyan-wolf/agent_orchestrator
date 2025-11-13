@@ -3,7 +3,6 @@ This module defines coding-related tools for the coding agent.
 """
 
 from ai.tracing.schemas import ImageCreationTrace
-from ai.tracing.trace_decorator import trace
 from ai.agent_manager.agent_context import AgentCtx
 from ai.tools.code_sandbox.sandbox_management import get_sandbox, exec_command_on_sandbox, add_file_to_sandbox, exec_code_on_sandbox
 
@@ -18,7 +17,6 @@ def prepare_run_command_tool(ctx: AgentCtx):
     Prepares a tool that runs a given command in a secure environment.
     """
 
-    @trace(ctx)
     def run_command(command_schema: RunCommandSchema) -> str:
         """
         Runs the given command in a Linux environment. 
@@ -39,7 +37,6 @@ def prepare_create_file_tool(ctx: AgentCtx):
     Prepares a tool that creates a file inside of the secure Linux environment.
     """
 
-    @trace(ctx)
     def create_file(file_path: str, file_content: str) -> str:
         """
         Creates a file inside of the secure Linux environment.
@@ -65,7 +62,6 @@ def prepare_run_code_snippet_tool(ctx: AgentCtx):
     charts created in the snippet are automatically shown to the user.
     """
 
-    @trace(ctx)
     def run_code_snippet_tool(run_schema: RunCodeSnippetSchema) -> str:
         """
         Runs the given code snippet in a Linux environment.

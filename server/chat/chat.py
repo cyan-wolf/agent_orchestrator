@@ -2,7 +2,7 @@ import uuid
 from fastapi import HTTPException
 from ai.agent_manager.runtime_agent_manager import RuntimeAgentManager
 from ai.agent_manager.agent_manager_interface import IAgentManager
-from ai.tracing.trace_decorator import Tracer
+from ai.tracing.tracer import Tracer
 from chat.tables import ChatTable
 from chat.chat_summaries.tables import ChatSummaryTable
 from chat.schemas import Chat

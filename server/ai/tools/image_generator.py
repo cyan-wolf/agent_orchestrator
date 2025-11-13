@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from ai.tracing.schemas import ImageCreationTrace
-from ai.tracing.trace_decorator import trace
 from ai.agent_manager.agent_context import AgentCtx
 from ai.tools.registry.tool_register_decorator import register_tool_factory
 
@@ -24,7 +23,6 @@ def prepare_image_generation_tool(ctx: AgentCtx):
     shows the image to the user.
     """
 
-    @trace(ctx)
     def generate_image_and_show_it_to_user(query: str) -> str:
         """
         Generates the image specified by the query. This tool automatically 
