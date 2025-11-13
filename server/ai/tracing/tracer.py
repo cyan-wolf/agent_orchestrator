@@ -21,6 +21,25 @@ class Tracer:
         Initializes the given tracer with the ID of the chat that it is associated with.
         """
         self.chat_id = chat_id
+        self.pending_traces: list[Trace] = []
+
+
+    # This is for adding traces in scenarios where we don't have a DB context.
+    def add_pending(self, trace: Trace):
+        self.pending_traces.append(trace)
+
+
+    def commit_all_pending(self, db: Session):
+        # Removed in reverse order, but that doesn't matter since all the APIs 
+        # return the traces sorted by timestamp.
+        while len(self.pending_traces) > 0:
+            trace = self.pending_traces.pop()
+            trace_for_db = _trace_schema_to_table(trace)
+            trace_for_db.chat_id = self.chat_id
+            db.add(trace_for_db)
+
+        # Only commit at the end (no need to commit in the loop).
+        db.commit()
 
 
     def add(self, db: Session, trace: Trace):

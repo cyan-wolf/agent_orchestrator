@@ -4,6 +4,8 @@ from ai.tools.registry.tool_factory_store import get_tool_factory_in_mem_store, 
 from ai.agent.templates.schemas import AgentTemplateSchema
 from ai.agent.runtime.runtime_agent import RuntimeAgent
 from ai.agent.templates.agent_templates import get_all_agent_template_schemas_for_user
+from ai.agent.runtime.agent_tool_callback_logger import AgentToolCallbackLogger
+from ai.tracing.tracer import Tracer
 from auth.tables import UserTable
 from langgraph.checkpoint.memory import InMemorySaver
 from typing import Callable
@@ -36,6 +38,7 @@ def runtime_agent_from_agent_template(
     owner: UserTable, 
     tool_factory_store: ToolFactoryInMememoryStore, 
     agent_template: AgentTemplateSchema,
+    tracer: Tracer,
 ) -> RuntimeAgent:
     
     tools: list[Callable] = [
@@ -50,16 +53,17 @@ def runtime_agent_from_agent_template(
         user=owner,
         chat_summaries=ctx.manager.get_chat_summary_dict(),
         tools=tools,
+        callbacks=[AgentToolCallbackLogger(tracer, agent_template.name)],
         checkpointer=InMemorySaver(),
     )
 
 
-def get_agents_for_user(ctx: AgentCtx, owner: UserTable) -> list[IAgent]:
+def get_agents_for_user(ctx: AgentCtx, owner: UserTable, tracer: Tracer) -> list[IAgent]:
     tool_factory_registry = get_tool_factory_in_mem_store()
     agent_templates = get_all_agent_template_schemas_for_user(ctx.db, owner)
 
     agents: list[IAgent] = [
-        runtime_agent_from_agent_template(ctx, owner, tool_factory_registry, template) 
+        runtime_agent_from_agent_template(ctx, owner, tool_factory_registry, template, tracer) 
         for template in agent_templates
     ]
 

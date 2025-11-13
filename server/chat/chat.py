@@ -56,13 +56,15 @@ def _create_agent_manager_from_chat(db: Session, chat: ChatTable) -> IAgentManag
     
     print(f"LOG: new AM for chat {chat.id}")
 
+    tracer = Tracer(chat.id)
+
     am = RuntimeAgentManager(
         chat=chat,
         chat_summaries=_load_chat_summaries_as_default_dict(chat.summaries), 
-        tracer=Tracer(chat.id), 
+        tracer=tracer, 
     )
 
-    agents = get_agents_for_user(am.to_ctx(db), chat.user)
+    agents = get_agents_for_user(am.to_ctx(db), chat.user, tracer)
     am.initialize_agents(agents)
 
     return am

@@ -103,7 +103,12 @@ class RuntimeAgentManager:
         self.curr_db_session = db
         self.tracer.add(db, HumanMessageTrace(username=username, content=user_input))
 
-        return self.invoke_agent(self.agents["main_agent"], user_input, db, as_main_agent=True)
+        main_agent_output = self.invoke_agent(self.agents["main_agent"], user_input, db, as_main_agent=True)
+
+        # The agents may have generated pending tool traces, which need to be commited.
+        self.tracer.commit_all_pending(db)
+
+        return main_agent_output
 
 
     def queue_agent_handoff(self, agent_name_prev: str, agent_name_new: str, handoff_reason: str):

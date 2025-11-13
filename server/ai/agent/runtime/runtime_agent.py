@@ -8,6 +8,9 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langgraph.graph.graph import CompiledGraph
 from langgraph.types import Checkpointer
 
+from typing import Callable
+from langchain.callbacks.base import BaseCallbackHandler
+
 from auth.tables import UserTable
 from user_settings.tables import UserSettingsTable
 
@@ -16,8 +19,6 @@ class RuntimeAgent:
     The runtime representation of an agent. Internally builds a chat model using `langchain` and 
     then constructs a ReAct agent using `langgraph`.
     """
-
-    CONFIG: RunnableConfig = {"configurable": {"thread_id": "1"}}
 
     def __init__(
         self, 
@@ -28,7 +29,9 @@ class RuntimeAgent:
         user: UserTable,
         chat_summaries: dict[str, str], 
 
-        tools: list, 
+        tools: list[Callable], 
+        callbacks: list[BaseCallbackHandler],
+
         model: BaseChatModel | None = None, 
         checkpointer: Checkpointer = None,
     ):
@@ -36,6 +39,11 @@ class RuntimeAgent:
         Initializes an agent.
         """
         self.name = name
+
+        self.config: RunnableConfig = {
+            "configurable": {"thread_id": "1"},
+            "callbacks": callbacks,
+        }
 
         self.master_prompt = self._prepare_master_prompt(persona, purpose, user, user.settings, chat_summaries)
         self.graph = self._prepare_agent_graph(tools, model, checkpointer)
@@ -50,7 +58,7 @@ class RuntimeAgent:
     def invoke_with_text(self, text_input: str) -> str:
         res = self.graph.invoke(
             {"messages": [{"role": "user", "content": text_input}]},
-            RuntimeAgent.CONFIG,
+            self.config,
         )
         message = self._get_latest_agent_msg(res)
         content = str(message.content)
