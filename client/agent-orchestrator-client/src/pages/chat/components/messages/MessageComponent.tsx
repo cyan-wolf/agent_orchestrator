@@ -1,6 +1,7 @@
 import { Alert, AlertTitle, Box, Paper, Typography } from "@mui/material";
 import type { Message } from "./message";
 import Markdown from "react-markdown";
+import { useIsOnMobile } from "../../../../util/isOnMobile";
 
 type MessageComponentProps = {
     message: Message
@@ -10,6 +11,8 @@ type MessageComponentProps = {
  * Component for rendering a message from the API.
  */
 export default function MessageComponent({ message }: MessageComponentProps) {
+    const isMobile = useIsOnMobile();
+
     let msgContent;
 
     if (message.kind === "ai_message") {
@@ -48,7 +51,12 @@ export default function MessageComponent({ message }: MessageComponentProps) {
     else if (message.kind === "human_message") {
         msgContent = (
             <Box display="flex" justifyContent="flex-end">
-                <Paper style={{ maxWidth: "40%", padding: "8px" }}>
+                <Paper 
+                    style={{
+                        maxWidth: (isMobile)? '100%' : "40%", 
+                        padding: "8px",
+                    }}
+                >
                     <Typography style={{ wordBreak: "break-word" }}>
                         <Typography style={{fontWeight: "bold"}} component="span">
                             {message.username}
@@ -60,7 +68,12 @@ export default function MessageComponent({ message }: MessageComponentProps) {
     }
     else if (message.kind === "image") {
         msgContent = (
-            <Box sx={{ width: '50%', textAlign: 'center' }}>
+            <Box 
+                sx={{
+                    width: (isMobile)? '100%' : '50%', 
+                    textAlign: 'center',
+                }}
+            >
                 <img src={`data:image/jpeg;base64,${message.base64_encoded_image}`} alt={message.caption} style={{ maxWidth: '100%' }} />
                 <Typography variant="caption" display="block" sx={{ color: 'text.secondary', marginTop: '4px' }}>
                     {message.caption}
