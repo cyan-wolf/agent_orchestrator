@@ -6,6 +6,7 @@ import type { Message } from "../../messages/message";
 import MessageList from "../../messages/MessageList";
 import { useChatContext } from "../../../Chat";
 import type { ChatJson } from "../chat";
+import { apiErrorToMessage, type ApiErrorJson } from "../../../../../api_errors/api_errors";
 
 type ChatBoxProps = {
     chat: ChatJson
@@ -21,6 +22,8 @@ function ChatBoxDisplay({ chat }: ChatBoxProps) {
     const [messages, setMessages] = useState<Message[]>([]);
 
     const [waitingForServer, setWaitingForServer] = useState(true); 
+
+    const [serverErrorMessage, setServerErrorMessage] = useState("");
 
     const { excludeFilters, currentChatRefreshToggle } = useChatContext()!;
 
@@ -98,6 +101,8 @@ function ChatBoxDisplay({ chat }: ChatBoxProps) {
 
     async function submitUserMessage() {
         setWaitingForServer(true);
+        setServerErrorMessage("");
+        
         const resp = await fetch(`/api/chat/${chat.id}/send-message/`, {
             method: "POST",
             headers: {
@@ -107,16 +112,25 @@ function ChatBoxDisplay({ chat }: ChatBoxProps) {
                 user_message: userMessage,
             }),
         });
+
         if (!resp.ok) {
             if (resp.statusText === "Unauthorized") {
                 // Force redirect to the login page, since the user's authentication expired.
                 navigate("/login");
+                return;
             }
+
+            const errJson: ApiErrorJson = await resp.json();
+            const errMessage = apiErrorToMessage(errJson, "Unknown error while sending chat message.");
+
+            setWaitingForServer(false);
+            setServerErrorMessage(errMessage);
             return;
         }
 
         setUserMessage("");
         setWaitingForServer(false);
+        setServerErrorMessage("");
 
         const respJson = await resp.json();
         console.log(respJson);  // this response does not contain useful info
@@ -172,6 +186,13 @@ function ChatBoxDisplay({ chat }: ChatBoxProps) {
                 >
                     <MessageList messages={messages} />
                 </Box>
+
+                {(serverErrorMessage.length === 0)? <></> : (
+                    <Alert severity="error">
+                        {serverErrorMessage}
+                    </Alert>
+                )}
+
                 <Box aria-live="polite">
                     {(waitingForServer) ? <Loading /> : <></>}
                     <TextField 
