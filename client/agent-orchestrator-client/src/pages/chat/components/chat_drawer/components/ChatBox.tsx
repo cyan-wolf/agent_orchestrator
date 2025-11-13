@@ -102,7 +102,7 @@ function ChatBoxDisplay({ chat }: ChatBoxProps) {
     async function submitUserMessage() {
         setWaitingForServer(true);
         setServerErrorMessage("");
-        
+
         const resp = await fetch(`/api/chat/${chat.id}/send-message/`, {
             method: "POST",
             headers: {
@@ -125,6 +125,10 @@ function ChatBoxDisplay({ chat }: ChatBoxProps) {
 
             setWaitingForServer(false);
             setServerErrorMessage(errMessage);
+
+            // Still (oportunistically) fetch any partially sent messages.
+            await fetchNewestChatMessages(latestMsgTimestamp);
+
             return;
         }
 
