@@ -10,8 +10,6 @@ from chat.schemas import CreateNewChat, Chat, UserTextRequest, ChatModification
 from pydantic import ValidationError
 from fastapi.exceptions import RequestValidationError
 
-from langchain_google_genai.chat_models import ChatGoogleGenerativeAIError
-
 from sqlalchemy.orm import Session
 
 def get_all_user_chat_schemas(user: UserTable) -> Sequence[Chat]:
@@ -103,23 +101,13 @@ def invoke_agent_manager_for_chat_with_text(
     contents of the provided :py:attr:`user_request` to generate traces from the agent manager.
     """
     chat = get_chat_by_id_from_user_throwing(db, current_user, chat_id)
-    agent_manager = get_or_init_agent_manager_for_chat(db, manager_store, current_user, chat)
-
-    try: 
+    
+    try:
+        agent_manager = get_or_init_agent_manager_for_chat(db, manager_store, current_user, chat)
         _ = agent_manager.invoke_main_agent_with_text(current_user.username, user_request.user_message, db)
 
-    except ChatGoogleGenerativeAIError as ex:
+    except Exception as ex:
         raise HTTPException(
             status_code=400,
             detail=str(ex),
-        )
-
-    except Exception as ex:
-        print(f"ERROR: caught exception {ex} while getting latest messages")
-        print(repr(ex))
-        print(type(ex))
-
-        raise HTTPException(
-            status_code=400,
-            detail="Unknown error while sending message, try again later.",
         )

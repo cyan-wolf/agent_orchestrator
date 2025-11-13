@@ -8,6 +8,8 @@ from ai.agent.runtime.agent_interface import IAgent
 from chat.tables import ChatTable
 from chat.chat_summaries import chat_summaries
 from sqlalchemy.orm import Session
+from langchain_google_genai.chat_models import ChatGoogleGenerativeAIError
+from langgraph.errors import GraphRecursionError
 from ai.agent_manager.agent_context import AgentCtx
 import uuid
 
@@ -100,13 +102,26 @@ class RuntimeAgentManager:
         """
         Invokes the agent that is currently designated to be the main agent.
         """
-        self.curr_db_session = db
-        self.tracer.add(db, HumanMessageTrace(username=username, content=user_input))
+        try:
+            self.curr_db_session = db
+            self.tracer.add(db, HumanMessageTrace(username=username, content=user_input))
 
-        main_agent_output = self.invoke_agent(self.agents["main_agent"], user_input, db, as_main_agent=True)
+            main_agent_output = self.invoke_agent(self.agents["main_agent"], user_input, db, as_main_agent=True)
 
-        # The agents may have generated pending tool traces, which need to be commited.
-        self.tracer.commit_all_pending(db)
+        # Re-raise known exceptions.
+        except ChatGoogleGenerativeAIError: raise
+
+        except GraphRecursionError:
+            raise Exception(f"Agent '{self.agents["main_agent"].get_name()}' timed out.")
+
+        # Log and wrap known exceptions with a generic error message.
+        except Exception as ex:
+            print(f"ERROR: caught exception [{type(ex)}] {ex} while generating latest message")
+            raise Exception("Unknown error while sending message, try again later.")
+
+        finally:
+            # The agents may have generated pending tool traces, which need to be commited.
+            self.tracer.commit_all_pending(db)
 
         return main_agent_output
 
