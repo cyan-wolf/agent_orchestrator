@@ -1,5 +1,5 @@
 import { ThemeProvider } from "@emotion/react";
-import { createTheme, responsiveFontSizes } from "@mui/material";
+import { alpha, createTheme, CssBaseline, GlobalStyles, responsiveFontSizes } from "@mui/material";
 import { blue, brown, green, purple, red, yellow } from "@mui/material/colors";
 import type { Theme } from "@mui/material/styles";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
@@ -120,11 +120,36 @@ export function CustomThemeProvider({ children }: { children: ReactNode }) {
         setCustomThemeKind,
     };
 
+    const globalSelectionStyles = (
+        <GlobalStyles
+            styles={(theme) => {
+                // Adjust selection color for dark mode as dark mode themes tend to have 
+                // brigher main colors.
+                const selectionBgColor = (theme.palette.mode === 'dark') ? 
+                    alpha(theme.palette.primary.main, 0.5) : theme.palette.primary.main;
+
+                return {
+                    '::selection': {
+                        backgroundColor: selectionBgColor, 
+                        color: theme.palette.common.white, 
+                    },
+                    // For Firefox.
+                    '::-moz-selection': { 
+                        backgroundColor: selectionBgColor,
+                        color: theme.palette.common.white,
+                    },
+                };
+            }}
+        />
+    );
+
     return (
         <CustomThemeContext.Provider value={value}>
             <ThemeProvider
                 theme={createMUIThemeFromCustomTheme(CUSTOM_THEMES[customThemeKind])}
             >
+                <CssBaseline />
+                {globalSelectionStyles}
                 {children}
             </ThemeProvider>
         </CustomThemeContext.Provider>

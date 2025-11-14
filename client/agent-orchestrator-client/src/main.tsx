@@ -13,7 +13,6 @@ import App from './App.tsx';
 
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './auth/useAuth.tsx';
-import { CssBaseline } from '@mui/material';
 import { CustomThemeProvider } from './pages/themes/useCustomTheme.tsx';
 
 createRoot(document.getElementById('root')!).render(
@@ -21,7 +20,6 @@ createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <AuthProvider>
         <CustomThemeProvider>
-          <CssBaseline />
           <App />
         </CustomThemeProvider>
       </AuthProvider>
