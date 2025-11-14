@@ -10,6 +10,7 @@ from chat.chat_summaries import chat_summaries
 from sqlalchemy.orm import Session
 from langchain_google_genai.chat_models import ChatGoogleGenerativeAIError
 from langgraph.errors import GraphRecursionError
+from google.api_core.exceptions import ResourceExhausted as GeminiResourceExhausted
 from ai.agent_manager.agent_context import AgentCtx
 import uuid
 
@@ -110,6 +111,9 @@ class RuntimeAgentManager:
 
         # Re-raise known exceptions.
         except ChatGoogleGenerativeAIError: raise
+
+        except GeminiResourceExhausted:
+            raise Exception(f"Gemini quota exceeded. Agent '{self.agents["main_agent"].get_name()}' could not generate its message. For more information, read: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor usage, read: https://ai.dev/usage?tab=rate-limit.")
 
         except GraphRecursionError:
             raise Exception(f"Agent '{self.agents["main_agent"].get_name()}' timed out.")
