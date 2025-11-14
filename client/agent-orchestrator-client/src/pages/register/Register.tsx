@@ -104,9 +104,7 @@ export default function Register() {
             <Paper>
                 <Alert severity="error">
                     <AlertTitle>Already Logged In</AlertTitle>
-                    Cannot login as you are already logged in as user 
-                    <Typography component="span" fontWeight="bold">{` ${user?.username}`}.</Typography>
-                    Try <Link href="/logout">logging out</Link> if you meant to register as another user.
+                    Cannot login as you are already logged in as user <Typography component="span" fontWeight="bold">{` ${user?.username}`}.</Typography> Try <Link href="/logout">logging out</Link> if you meant to register as another user.
                 </Alert>
             </Paper>
         </Container>
