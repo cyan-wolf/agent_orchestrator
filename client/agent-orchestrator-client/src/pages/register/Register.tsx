@@ -2,8 +2,7 @@ import { useState } from "react";
 import { getCurrentUser, type User } from "../../auth/user";
 import { useAuth } from "../../auth/useAuth";
 import Loading from "../../components/loading/Loading";
-import { Alert, AlertTitle, Button, Card, CardContent, Container, Paper, TextField, Typography } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Alert, AlertTitle, Button, Card, CardContent, Container, Link, Paper, TextField, Typography } from "@mui/material";
 import { apiErrorToMessage } from "../../api_errors/api_errors";
 
 export default function Register() {
@@ -107,7 +106,7 @@ export default function Register() {
                     <AlertTitle>Already Logged In</AlertTitle>
                     Cannot login as you are already logged in as user 
                     <Typography component="span" fontWeight="bold">{` ${user?.username}`}.</Typography>
-                    Try <Link to="/logout">logging out</Link> if you meant to register as another user.
+                    Try <Link href="/logout">logging out</Link> if you meant to register as another user.
                 </Alert>
             </Paper>
         </Container>

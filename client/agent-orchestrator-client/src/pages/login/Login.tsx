@@ -2,8 +2,7 @@ import { useState } from "react";
 import { getCurrentUser } from "../../auth/user";
 import { useAuth } from "../../auth/useAuth";
 import Loading from "../../components/loading/Loading";
-import { Alert, AlertTitle, Button, Card, CardContent, Container, Paper, TextField, Typography } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Alert, AlertTitle, Button, Card, CardContent, Container, Link, Paper, TextField, Typography } from "@mui/material";
 import { apiErrorToMessage } from "../../api_errors/api_errors";
 
 const Login = () => {
@@ -86,9 +85,7 @@ const Login = () => {
             <Paper>
                 <Alert severity="error">
                     <AlertTitle>Already Logged In</AlertTitle>
-                    Cannot login as you are already logged in as user 
-                    <Typography component="span" fontWeight="bold">{` ${user?.username}`}.</Typography>
-                    Try <Link to="/logout">logging out</Link> if you meant to login as another user.
+                    Cannot login as you are already logged in as user <Typography component="span" fontWeight="bold">{` ${user?.username}`}.</Typography> Try <Link href="/logout">logging out</Link> if you meant to login as another user.
                 </Alert>
             </Paper>
         </Container>

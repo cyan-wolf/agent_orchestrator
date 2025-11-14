@@ -1,6 +1,5 @@
-import { Box, Card, CardContent, Container, Paper, Stack, Typography } from "@mui/material";
+import { Box, Card, CardContent, Container, Link, Paper, Stack, Typography } from "@mui/material";
 import type { ReactNode } from "react";
-import { Link } from "react-router-dom";
 
 function BoldSpan(props: { children: ReactNode }) {
     return <Typography fontWeight="bold" component="span">{props.children}</Typography>
@@ -17,10 +16,10 @@ export default function Manual() {
                     <Box>
                         <ol>
                             <li>
-                                <Link to="#section-terms">Terms</Link>
+                                <Link href="#section-terms">Terms</Link>
                             </li>
                             <li>
-                                <Link to="#section-agents">Agents</Link>
+                                <Link href="#section-agents">Agents</Link>
                             </li>
                         </ol>
                     </Box>

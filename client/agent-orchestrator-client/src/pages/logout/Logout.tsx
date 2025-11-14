@@ -1,7 +1,6 @@
-import { Link } from "react-router-dom";
 import { useAuth } from "../../auth/useAuth";
 import Loading from "../../components/loading/Loading";
-import { Alert, AlertTitle, Button, Card, CardContent, Container, Paper, Typography } from "@mui/material";
+import { Alert, AlertTitle, Button, Card, CardContent, Container, Link, Paper, Typography } from "@mui/material";
 
 export default function Logout() {
     const { user, logout, isLoading } = useAuth()!;
@@ -39,7 +38,7 @@ export default function Logout() {
             <Paper>
                 <Alert severity="error">
                     <AlertTitle>Already Logged Out</AlertTitle>
-                    Cannot logout as you are not currently logged in. Please click <Link to="/login">here</Link> to login.
+                    Cannot logout as you are not currently logged in. Please click <Link href="/login">here</Link> to login.
                 </Alert>
             </Paper>
         </Container>
