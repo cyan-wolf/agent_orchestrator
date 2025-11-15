@@ -138,6 +138,11 @@ export function CustomThemeProvider({ children }: { children: ReactNode }) {
                         backgroundColor: selectionBgColor,
                         color: theme.palette.common.white,
                     },
+                    // Change default HTML links to look like MUI links (which 
+                    // use the theme's main color).
+                    'a': {
+                        color: theme.palette.primary.main,
+                    }
                 };
             }}
         />
