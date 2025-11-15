@@ -17,6 +17,7 @@ import Register from './pages/register/Register';
 import NoChatSelectedDisplay from './pages/chat/components/chat_drawer/components/NoChatSelectedDisplay';
 import AgentTemplates from './pages/agent-templates/AgentTemplates';
 import Themes from './pages/themes/Themes';
+import NotFound from './pages/not-found/NotFound';
 
 export default function App() {
   return (
@@ -52,6 +53,8 @@ export default function App() {
         <Route path="/agent-templates" element={<ProtectedRoute children={<AgentTemplates />} />} />
 
         <Route path="/themes" element={<Themes />} />
+
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </div>
   );
