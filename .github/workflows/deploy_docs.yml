@@ -61,7 +61,7 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           # The contents of this directory will be uploaded as the deployment artifact
-          path: ./docs/_build/html
+          path: ./server/docs/_build/html
 
   # Job 2: Deploy the artifact to GitHub Pages
   deploy:
