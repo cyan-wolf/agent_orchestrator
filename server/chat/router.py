@@ -9,6 +9,7 @@ from auth.tables import UserTable
 from auth.auth import get_current_user
 from chat.schemas import ChatModification, CreateNewChat, Chat, UserTextRequest
 from chat import services
+from chat import chat
 
 from sqlalchemy.orm import Session
 from database.database import get_database
@@ -72,6 +73,16 @@ async def modify_chat(
     else:
         return { "response": "could not modify chat" }
     
+
+@router.post("/api/chat/reset-agent-managers/all/")
+async def reset_all_chat_agent_managers(
+    current_user: Annotated[UserTable, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_database)],
+    manager_store: Annotated[AgentMangerInMemoryStore, Depends(get_manager_in_mem_store)],
+):
+    chat.reset_all_agent_managers_for_user(db, manager_store, current_user)
+    return { "response": "successfully reset agent managers user in all chats" }
+
 
 @router.get("/api/chat/{chat_id}/get-latest-messages/{latest_timestamp}/", tags=["chat"])
 async def get_latest_messages(

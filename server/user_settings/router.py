@@ -43,7 +43,4 @@ def set_settings(
 
     db.commit()
 
-    # Resets all the user's agents so that they can properly adapt to the new settings.
-    chat.reset_all_agent_managers_for_user(db, manager_store, current_user)
-
     return { "result": "Successfully modified settings." }

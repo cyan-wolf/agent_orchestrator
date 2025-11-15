@@ -2,6 +2,7 @@ import { Alert, Box, Button, Card, CardContent, Container, FormControl, InputLab
 import { useEffect, useRef, useState } from "react";
 import { getTimeZones } from '@vvo/tzdb';
 import Loading from "../../components/loading/Loading";
+import { resetAgentManagersForChat } from "../../util/utils";
 
 // Get the list of time zones and sort them alphabetically.
 const timezones = getTimeZones({ includeUtc: true }).sort((a, b) => {
@@ -132,6 +133,9 @@ export default function Settings() {
         setConfirmationMessage(confirmationMsgJson['result']);
 
         setWaitingForServer(false);
+
+        // Settings changed, so we reset the agent managers for the chats.
+        await resetAgentManagersForChat();
     }
 
     return (

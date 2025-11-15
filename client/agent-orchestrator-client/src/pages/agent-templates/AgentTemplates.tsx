@@ -5,6 +5,7 @@ import { apiErrorToMessage } from "../../api_errors/api_errors";
 import AgentToolsSection from "./AgentToolSection";
 import Loading from "../../components/loading/Loading";
 import { useIsOnMobile } from "../../util/isOnMobile";
+import { resetAgentManagersForChat } from "../../util/utils";
 
 
 type AgentSectionProps = {
@@ -153,6 +154,9 @@ function AgentSection({ agentTemplateJson, allTools, onAgentCreationSuccess, onA
 
         setGotServerError(false);
         setServerMessage("Successfully modified agent.");
+
+        // A template was modified, so we reset all the chat agent managers.
+        await resetAgentManagersForChat();
     }
 
     async function handleTemplateDeletion() {
@@ -389,8 +393,11 @@ export default function AgentTemplates() {
                                     agentTemplateJson={t} 
                                     allTools={allTools} 
                                     onAgentCreationSuccess={() => {}} // unreachable
-                                    onAgentDeletionSuccess={() => {
+                                    onAgentDeletionSuccess={async () => {
                                         setRefreshToggle(prev => !prev);
+
+                                        // A template was deleted, so we reset all the chat agent managers.
+                                        await resetAgentManagersForChat();
                                     }}
                                 />
                             ))}
@@ -401,9 +408,12 @@ export default function AgentTemplates() {
                         <AgentSection 
                             agentTemplateJson={null} 
                             allTools={allTools} 
-                            onAgentCreationSuccess={() => {
+                            onAgentCreationSuccess={async () => {
                                 setAddingNewAgent(false);
                                 setRefreshToggle(prev => !prev);
+
+                                // A new template was added, so we reset all the chat agent managers.
+                                await resetAgentManagersForChat();
                             }}
                             onAgentDeletionSuccess={() => {}} // unreachable
                         />
