@@ -23,6 +23,10 @@ function AgentSection({ agentTemplateJson, allTools, onAgentCreationSuccess, onA
     const [purpose, setPurpose] = useState(agentTemplateJson?.purpose ?? "");
     const [isSwitchableInto, setIsSwitchableInto] = useState(true);
 
+    const [nameErrMsg, setNameErrMsg] = useState("");
+    const [personaErrMsg, setPersonaErrMsg] = useState("");
+    const [purposeErrMsg, setPurposeErrMsg] = useState("");
+
     const [tools, setTools] = useState<Record<string, ToolJson>>({});
 
     const [agentIsGlobal, setAgentIsGlobal] = useState(agentTemplateJson?.is_global ?? false);
@@ -51,11 +55,41 @@ function AgentSection({ agentTemplateJson, allTools, onAgentCreationSuccess, onA
         setAgentIsGlobal(agentTemplateJson.is_global);
     }, []);
 
+    function validateName(): boolean {
+        if (name.trim().length === 0) {
+            setNameErrMsg("name cannot be empty");
+            return false;
+        }
+        setNameErrMsg("");
+        return true;
+    }
+
+    function validatePersona(): boolean {
+        if (persona.trim().length === 0) {
+            setPersonaErrMsg("persona cannot be empty");
+            return false;
+        }
+        setPersonaErrMsg("");
+        return true;
+    }
+
+    function validatePurpose(): boolean {
+        if (purpose.trim().length === 0) {
+            setPurposeErrMsg("purpose cannot be empty");
+            return false;
+        }
+        setPurposeErrMsg("");
+        return true;
+    }
+
 
     function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
-        // TODO: validate data
+        const isValid = validateName() && validatePersona() && validatePurpose();
+        if (!isValid) {
+            return;
+        }
 
         if (isInAgentCreationMode) {
             postAgentCreation();
@@ -209,6 +243,8 @@ function AgentSection({ agentTemplateJson, allTools, onAgentCreationSuccess, onA
                             mt: 1,
                             mb: 1,
                         }}
+                        helperText={nameErrMsg}
+                        error={!!nameErrMsg}
                     />
                     <TextField
                         label="Persona"
@@ -226,6 +262,8 @@ function AgentSection({ agentTemplateJson, allTools, onAgentCreationSuccess, onA
                             mt: 1,
                             mb: 1,
                         }}
+                        helperText={personaErrMsg}
+                        error={!!personaErrMsg}
                     />
                     <TextField
                         label="Purpose"
@@ -243,6 +281,8 @@ function AgentSection({ agentTemplateJson, allTools, onAgentCreationSuccess, onA
                             mt: 1,
                             mb: 1,
                         }}
+                        helperText={purposeErrMsg}
+                        error={!!purposeErrMsg}
                     />
 
                     <FormControlLabel 
