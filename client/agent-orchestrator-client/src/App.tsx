@@ -14,7 +14,6 @@ import Chat from './pages/chat/Chat';
 import NavBar from './components/nav/NavBar';
 import ChatBox from './pages/chat/components/chat_drawer/components/ChatBox';
 import Register from './pages/register/Register';
-import Manual from './pages/manual/Manual';
 import NoChatSelectedDisplay from './pages/chat/components/chat_drawer/components/NoChatSelectedDisplay';
 import AgentTemplates from './pages/agent-templates/AgentTemplates';
 import Themes from './pages/themes/Themes';
@@ -32,7 +31,6 @@ export default function App() {
           { to: "/register", title: "Register" },
           { to: "/agent-templates", title: "Agent Templates" },
           { to: "/themes", title: "Themes" },
-          { to: "/manual", title: "Manual" },
         ]} />
       </nav>
       
@@ -54,8 +52,6 @@ export default function App() {
         <Route path="/agent-templates" element={<ProtectedRoute children={<AgentTemplates />} />} />
 
         <Route path="/themes" element={<Themes />} />
-        
-        <Route path="/manual" element={<Manual />} />
       </Routes>
     </div>
   );
