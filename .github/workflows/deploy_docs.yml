@@ -24,6 +24,9 @@ jobs:
   # Job 1: Build the Sphinx HTML documentation
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./server
     steps:
       - name: ⬇️ Checkout Repository
         uses: actions/checkout@v4
