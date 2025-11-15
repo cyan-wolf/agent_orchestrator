@@ -11,6 +11,8 @@ export default function Register() {
     const [fullName, setFullName] = useState("");
     const [password, setPassword] = useState("");
 
+    const [retypedPassword, setRetypedPassword] = useState("");
+
     const { isLoading, user, login } = useAuth()!;
 
     const [usernameErrMsg, setUsernameErrMsg] = useState("");
@@ -59,10 +61,25 @@ export default function Register() {
         return true;
     }
 
+    function validatePasswordAndRetypedAreSame(): boolean {
+        if (password.trim() !== retypedPassword.trim()) {
+            setPasswordErrMsg("Passwords do not match.");
+            return false;
+        }
+        setPasswordErrMsg("");
+        return true;
+    }
+
     async function handleFormSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
-        if (!validateUsername() || !validateEmail() || !validateFullname() || !validatePassword()) {
+        const isValid = validateUsername() 
+            && validateEmail() 
+            && validateFullname() 
+            && validatePassword() 
+            && validatePasswordAndRetypedAreSame();
+
+        if (!isValid) {
             return;
         }
 
@@ -132,7 +149,7 @@ export default function Register() {
                         />
                         <TextField 
                             label="Email"
-                            type="text"
+                            type="email"
                             value={email}
                             sx={{ display: "block" }}
                             margin="normal"
@@ -158,6 +175,15 @@ export default function Register() {
                             margin="normal"
                             onChange={e => setPassword(e.target.value)}
                             helperText={passwordErrMsg}
+                            error={!!passwordErrMsg}
+                        />
+                        <TextField 
+                            label="Retype Password"
+                            type="password"
+                            value={retypedPassword}
+                            sx={{ display: "block" }}
+                            margin="normal"
+                            onChange={e => setRetypedPassword(e.target.value)}
                             error={!!passwordErrMsg}
                         />
                         <Button
