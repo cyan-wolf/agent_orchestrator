@@ -1,7 +1,7 @@
 # Agent Orchestrator Server
 
 The root directory for the server is `agent_orchestrator/server`. This is where the `uv.lock` file is, which is important 
-for the `uv` tool which manages dependencies and scripts.
+for the `uv` tool which manages dependencies and scripts. For information on the Agent Orchestrator project as whole, read the main project [README](../README.md).
 
 ## Running the Server
 The server can be run using the following command while in the `server` directory: `uv run uvicorn main:app --reload`.
