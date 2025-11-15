@@ -1,0 +1,74 @@
+# Simple workflow for deploying static content (Sphinx Docs) to GitHub Pages
+name: Deploy Sphinx Docs to Pages
+
+on:
+  # Runs on pushes targeting the default branch
+  push:
+    branches: ["main"]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write # Required for the new deploy-pages action
+  id-token: write # Required for the new deploy-pages action
+
+# Allow only one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # Job 1: Build the Sphinx HTML documentation
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout Repository
+        uses: actions/checkout@v4
+
+      # --- Setup Python and uv ---
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install Sphinx and Dependencies
+        # This step should install all dependencies required by your project AND Sphinx/ReadTheDocs.
+        run: uv sync
+
+      # --- Build the Documentation ---
+      - name: Build API Documentation
+        run: |
+          uv run sphinx-apidoc -o docs/ai_module_docs --implicit-namespaces --module-first ai
+          uv run sphinx-apidoc -o docs/auth_module_docs --implicit-namespaces --module-first auth
+          uv run sphinx-apidoc -o docs/chat_module_docs --implicit-namespaces --module-first chat
+          uv run sphinx-apidoc -o docs/database_module_docs --implicit-namespaces --module-first database
+          uv run sphinx-apidoc -o docs/user_settings_module_docs --implicit-namespaces --module-first user_settings
+
+      - name: Build HTML Documentation
+        # This builds the final HTML files into the 'docs/_build/html' directory
+        run: uv run sphinx-build -M html docs docs/_build/html
+      
+      - name: Upload artifact for GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # The contents of this directory will be uploaded as the deployment artifact
+          path: ./docs/_build/html
+
+  # Job 2: Deploy the artifact to GitHub Pages
+  deploy:
+    # Requires the 'build' job to complete successfully
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
