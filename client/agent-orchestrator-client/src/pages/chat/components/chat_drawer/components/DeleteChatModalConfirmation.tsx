@@ -21,6 +21,7 @@ export default function DeleteChatConfirmationModal({ chatId, isOpen, onChatDele
         onClose={onClose}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
+        fullWidth
       >
         <DialogTitle id="alert-dialog-title">
           {"Delete Chat Confirmation"}

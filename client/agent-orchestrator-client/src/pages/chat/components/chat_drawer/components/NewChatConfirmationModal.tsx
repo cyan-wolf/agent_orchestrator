@@ -30,6 +30,7 @@ export default function NewChatConfirmationFormModal({ isOpen, onSubmit, onClose
         onClose={onClose}
         aria-labelledby="new-chat-dialog-title" 
         aria-describedby="new-chat-dialog-description"
+        fullWidth
       >
         <DialogTitle id="new-chat-dialog-title">Create New Chat</DialogTitle>
         <DialogContent sx={{ paddingBottom: 0 }}>
