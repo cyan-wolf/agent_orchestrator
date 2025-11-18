@@ -12,6 +12,7 @@ from langchain_google_genai.chat_models import ChatGoogleGenerativeAIError
 from langgraph.errors import GraphRecursionError
 from google.api_core.exceptions import ResourceExhausted as GeminiResourceExhausted
 from ai.agent_manager.agent_context import AgentCtx
+from ai.agent_manager.errors import AgentManagerException
 import uuid
 
 from dataclasses import dataclass
@@ -85,7 +86,11 @@ class RuntimeAgentManager:
         self.agents["current_agent"] = agent
 
         content = agent.invoke_with_text(user_input)
-        self.tracer.add(db, AIMessageTrace(agent_name=agent.get_name(), content=content, is_main_agent=as_main_agent))
+
+        had_err_generating_content = len(content) == 0
+
+        if not had_err_generating_content:
+            self.tracer.add(db, AIMessageTrace(agent_name=agent.get_name(), content=content, is_main_agent=as_main_agent))
 
         if self.queued_handoff is not None:
             handoff = self.queued_handoff
@@ -96,6 +101,9 @@ class RuntimeAgentManager:
         else:
             # If no hand-off occured, then we can safely restore the 'current_agent' back to its original value.
             self.agents["current_agent"] = prev_agent
+
+        if had_err_generating_content:
+            raise AgentManagerException(f"Agent '{agent.get_name()}' could not generate its response. Try again.")
 
         return content
 
@@ -109,19 +117,19 @@ class RuntimeAgentManager:
 
             main_agent_output = self.invoke_agent(self.agents["main_agent"], user_input, db, as_main_agent=True)
 
-        # Re-raise known exceptions.
-        except ChatGoogleGenerativeAIError: raise
+        except ChatGoogleGenerativeAIError as ex:
+            raise AgentManagerException(str(ex))
 
         except GeminiResourceExhausted:
-            raise Exception(f"Gemini quota exceeded. Agent '{self.agents["main_agent"].get_name()}' could not generate its message. For more information, read: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor usage, read: https://ai.dev/usage?tab=rate-limit.")
+            raise AgentManagerException(f"Gemini quota exceeded. Agent '{self.agents["main_agent"].get_name()}' could not generate its message. For more information, read: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor usage, read: https://ai.dev/usage?tab=rate-limit.")
 
         except GraphRecursionError:
-            raise Exception(f"Agent '{self.agents["main_agent"].get_name()}' timed out.")
+            raise AgentManagerException(f"Agent '{self.agents["main_agent"].get_name()}' timed out.")
 
         # Log and wrap known exceptions with a generic error message.
         except Exception as ex:
             print(f"ERROR: caught exception [{type(ex)}] {ex} while generating latest message")
-            raise Exception("Unknown error while sending message, try again later.")
+            raise AgentManagerException("Unknown error while sending message, try again later.")
 
         finally:
             # The agents may have generated pending tool traces, which need to be commited.

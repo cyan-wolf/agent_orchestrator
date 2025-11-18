@@ -1,0 +1,5 @@
+
+class AgentManagerException(Exception): 
+    pass
+
+

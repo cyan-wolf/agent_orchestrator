@@ -1,6 +1,7 @@
 from typing import Sequence
 import uuid
 
+from ai.agent_manager.errors import AgentManagerException
 from ai.tracing.schemas import Trace, TraceKind
 from ai.agent_manager.agent_manager_store import AgentMangerInMemoryStore
 from auth.tables import UserTable
@@ -106,7 +107,7 @@ def invoke_agent_manager_for_chat_with_text(
         agent_manager = get_or_init_agent_manager_for_chat(db, manager_store, current_user, chat)
         _ = agent_manager.invoke_main_agent_with_text(current_user.username, user_request.user_message, db)
 
-    except Exception as ex:
+    except AgentManagerException as ex:
         raise HTTPException(
             status_code=400,
             detail=str(ex),
