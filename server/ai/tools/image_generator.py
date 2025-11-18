@@ -3,6 +3,9 @@ This module defines tools and helper functions relating to image generation.
 Mostly used by the creator agent.
 """
 
+import base64
+import io
+import os
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -11,10 +14,15 @@ from ai.agent_manager.agent_context import AgentCtx
 from ai.tools.registry.tool_register_decorator import register_tool_factory
 
 from langchain_core.messages import BaseMessage
-from langchain_google_genai import ChatGoogleGenerativeAI
+from huggingface_hub import InferenceClient
 
-_IMAGE_LLM = ChatGoogleGenerativeAI(model="models/gemini-2.5-flash-image")
+from PIL import Image
 
+HUGGINGFACE_IMAGE_MODEL = "stabilityai/stable-diffusion-xl-base-1.0" 
+
+_HF_TOKEN = os.environ.get("HUGGINGFACEHUB_API_TOKEN")
+
+client = InferenceClient(api_key=_HF_TOKEN)
 
 @register_tool_factory(tool_id='generate_image_and_show_it_to_user')
 def prepare_image_generation_tool(ctx: AgentCtx):
@@ -38,28 +46,18 @@ def prepare_image_generation_tool(ctx: AgentCtx):
     return generate_image_and_show_it_to_user
 
 
-def _get_image_base64(response: BaseMessage):
-    image_block = next(
-        block
-        for block in response.content
-        if isinstance(block, dict) and block.get("image_url")
-    )
-    return image_block["image_url"].get("url").split(",")[-1]
-
-
 def _generate_image_impl(query: str) -> str:
     """
     Generates an image based on the specified query. Returns the base64 encoded image.
     """
-    message = {
-        "role": "user",
-        "content": query,
-    }
-
-    response = _IMAGE_LLM.invoke(
-        [message],
-        generation_config=dict(response_modalities=["TEXT", "IMAGE"]),
+    image: Image.Image = client.text_to_image(
+        prompt=query, 
+        model=HUGGINGFACE_IMAGE_MODEL,
     )
-
-    image_base64: str = _get_image_base64(response)
+    
+    # Save the PIL image to an in-memory buffer and encode to base64.
+    buffered = io.BytesIO()
+    image.save(buffered, format="JPEG") 
+    image_base64: str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+    
     return image_base64
