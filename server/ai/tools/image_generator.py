@@ -13,7 +13,7 @@ from ai.tools.registry.tool_register_decorator import register_tool_factory
 from langchain_core.messages import BaseMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
 
-_IMAGE_LLM = ChatGoogleGenerativeAI(model="models/gemini-2.0-flash-preview-image-generation")
+_IMAGE_LLM = ChatGoogleGenerativeAI(model="models/gemini-2.5-flash-image")
 
 
 @register_tool_factory(tool_id='generate_image_and_show_it_to_user')
