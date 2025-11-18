@@ -6,16 +6,17 @@ import AgentToolsSection from "./AgentToolSection";
 import Loading from "../../components/loading/Loading";
 import { useIsOnMobile } from "../../util/isOnMobile";
 import { resetAgentManagersForChat } from "../../util/utils";
+import AgentTemplateDeletionModal from "./components/AgentTemplateDeletionModal";
 
 
 type AgentSectionProps = {
     agentTemplateJson: AgentTemplateJson | null,
     allTools: Record<string, ToolJson>,
     onAgentCreationSuccess: () => void,
-    onAgentDeletionSuccess: () => void,
+    openDeleteModal: (templateId: string) => void,
 };
 
-function AgentSection({ agentTemplateJson, allTools, onAgentCreationSuccess, onAgentDeletionSuccess }: AgentSectionProps) {
+function AgentSection({ agentTemplateJson, allTools, onAgentCreationSuccess, openDeleteModal }: AgentSectionProps) {
     const [contentVisible, setContentVisible] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     
@@ -159,23 +160,6 @@ function AgentSection({ agentTemplateJson, allTools, onAgentCreationSuccess, onA
         await resetAgentManagersForChat();
     }
 
-    async function handleTemplateDeletion() {
-        // TODO: show a confirmation modal before doing this vvvvvvvvvvvvvvvvvvvvvvvv
-
-        const resp = await fetch(`/api/agent-templates/custom/${agentTemplateJson!.id}/`, {
-            method: "DELETE"
-        });
-
-        if (!resp.ok) {
-            const errJson = await resp.json();
-            
-            setGotServerError(true);
-            setServerMessage(apiErrorToMessage(errJson, "Could not delete agent template."));
-            return;
-        }
-        onAgentDeletionSuccess();
-    }
-
     return (
         <Paper
             elevation={8}
@@ -213,7 +197,7 @@ function AgentSection({ agentTemplateJson, allTools, onAgentCreationSuccess, onA
 
                 {(agentIsGlobal) ? <></> : (
                     <Button 
-                        onClick={() => handleTemplateDeletion()}
+                        onClick={() => openDeleteModal(agentTemplateJson!.id)}
                         disabled={isInAgentCreationMode}
                     >
                         Delete
@@ -353,6 +337,9 @@ export default function AgentTemplates() {
 
     const [refreshToggle, setRefreshToggle] = useState(false);
 
+    const [deleteModalTemplateId, setDeleteTemplateModalId] = useState<string | null>(null);
+    const [deleteModalIsOpen, setDeleteModalIsOpen] = useState(false);
+
     useEffect(() => {
         const fetchAgentTemplates = async () => {
             const resp = await fetch("/api/agent-templates/all/");
@@ -379,6 +366,37 @@ export default function AgentTemplates() {
         fetchAgentTemplatesAndTools();
     }, [refreshToggle]);
 
+    async function actuallyDeleteTemplate(templateId: string) {
+        const resp = await fetch(`/api/agent-templates/custom/${templateId}/`, {
+            method: "DELETE"
+        });
+
+        if (!resp.ok) {
+            const errJson = await resp.json();
+            console.error(errJson);
+            return;
+        }
+
+        // Close the modal.
+        closeDeleteModal();
+
+        // Refresh the UI.
+        setRefreshToggle(prev => !prev);
+
+        // A template was deleted, so we reset all the chat agent managers.
+        await resetAgentManagersForChat();
+    }
+
+    function openDeleteModal(templateId: string) {
+        setDeleteTemplateModalId(templateId);
+        setDeleteModalIsOpen(true);
+    }
+
+    function closeDeleteModal() {
+        setDeleteModalIsOpen(false);
+        setDeleteTemplateModalId(null);
+    }
+
     return (
         <Container>
             <Card>
@@ -393,12 +411,7 @@ export default function AgentTemplates() {
                                     agentTemplateJson={t} 
                                     allTools={allTools} 
                                     onAgentCreationSuccess={() => {}} // unreachable
-                                    onAgentDeletionSuccess={async () => {
-                                        setRefreshToggle(prev => !prev);
-
-                                        // A template was deleted, so we reset all the chat agent managers.
-                                        await resetAgentManagersForChat();
-                                    }}
+                                    openDeleteModal={openDeleteModal}
                                 />
                             ))}
                         </Box>
@@ -415,7 +428,7 @@ export default function AgentTemplates() {
                                 // A new template was added, so we reset all the chat agent managers.
                                 await resetAgentManagersForChat();
                             }}
-                            onAgentDeletionSuccess={() => {}} // unreachable
+                            openDeleteModal={openDeleteModal} // unreachable
                         />
                     ) : <></>}
 
@@ -429,6 +442,13 @@ export default function AgentTemplates() {
                     </Button>
                 </CardContent>
             </Card>
+
+            <AgentTemplateDeletionModal 
+                templateId={deleteModalTemplateId!}
+                isOpen={deleteModalIsOpen}
+                onTemplateDelete={actuallyDeleteTemplate}
+                onClose={closeDeleteModal}
+            />
         </Container>
     );
 }
