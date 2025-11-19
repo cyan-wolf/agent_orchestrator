@@ -9,12 +9,21 @@ from dataclasses import dataclass
 
 @dataclass
 class AgentToolCallStart:
+    """
+    Helper class for representing pending tool calls. If the tool associated with this 
+    object returns successfully, it is added as a tool trace.
+    """
     name: str
     description: str
     call_args: dict[str, Any]
 
 
 class AgentToolCallbackLogger(BaseCallbackHandler):
+    """
+    This callback handler extends LangChain's :py:class:`BaseCallbackHandler` by adding logs 
+    to the runtime agent's tools.
+    """
+
     def __init__(self, tracer: Tracer, agent_name: str):
         self.tracer = tracer
         self.agent_name = agent_name

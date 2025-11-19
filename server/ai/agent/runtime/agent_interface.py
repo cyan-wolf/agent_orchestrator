@@ -1,6 +1,10 @@
 from typing import Protocol
 
 class IAgent(Protocol):
+    """
+    Abstract interface for a runtime agent.
+    """
+
     def get_name(self) -> str:
         ...
 

@@ -16,8 +16,9 @@ from user_settings.tables import UserSettingsTable
 
 class RuntimeAgent:
     """
-    The runtime representation of an agent. Internally builds a chat model using `langchain` and 
-    then constructs a ReAct agent using `langgraph`.
+    The runtime representation of an agent. Internally builds a chat model using LangChain and 
+    then constructs a ReAct agent using LangGraph. This class should not be used directly in interfaces, 
+    please use the :py:class:`ai.agent.runtime.agent_interface.IAgent` abstract interface instead.
     """
 
     def __init__(

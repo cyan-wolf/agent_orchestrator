@@ -20,6 +20,9 @@ import ai.tools.math.math_tools as _
 import ai.tools.scheduling.scheduling_tools as _
 
 def assert_tool_factory_exists(tool_factory_store: ToolFactoryInMememoryStore, tool_id: str) -> ToolFactory:
+    """
+    Asserts that the tool factory associated with the given tool ID was registered to the tool factory in-memory store.
+    """
     tool_factory = tool_factory_store.get(tool_id)
 
     if tool_factory is None:
@@ -29,6 +32,9 @@ def assert_tool_factory_exists(tool_factory_store: ToolFactoryInMememoryStore, t
 
 
 def extract_tool_from_factory(tool_factory_store: ToolFactoryInMememoryStore, ctx: AgentCtx, tool_id: str) -> Callable:
+    """
+    Extracts the Python callable (usable by the runtime agents) from the tool factory associated with the given tool ID.
+    """
     tool_factory = assert_tool_factory_exists(tool_factory_store, tool_id)
     return tool_factory(ctx)
 
@@ -40,6 +46,9 @@ def runtime_agent_from_agent_template(
     agent_template: AgentTemplateSchema,
     tracer: Tracer,
 ) -> RuntimeAgent:
+    """
+    Loads a runtime agent from an agent template schema.
+    """
     
     tools: list[Callable] = [
         extract_tool_from_factory(tool_factory_store, ctx, tool_schema.id) 
@@ -59,6 +68,11 @@ def runtime_agent_from_agent_template(
 
 
 def get_agents_for_user(ctx: AgentCtx, owner: UserTable, tracer: Tracer) -> list[IAgent]:
+    """
+    This function converts the agent templates associated with the given user to a list 
+    of runtime agents.
+    """
+
     tool_factory_registry = get_tool_factory_in_mem_store()
     agent_templates = get_all_agent_template_schemas_for_user(ctx.db, owner)
 

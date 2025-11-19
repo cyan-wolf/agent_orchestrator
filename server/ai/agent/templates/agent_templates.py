@@ -11,6 +11,9 @@ from auth.tables import UserTable
 import uuid
 
 def tool_schema_from_db(tool_in_db: ToolTable) -> ToolSchema:
+    """
+    Converts the tool in from DB to schema format.
+    """
     return ToolSchema(
         id=tool_in_db.id,
         name=tool_in_db.name,
@@ -19,6 +22,9 @@ def tool_schema_from_db(tool_in_db: ToolTable) -> ToolSchema:
 
 
 def agent_template_schema_from_db(template_in_db: AgentTemplateTable) -> AgentTemplateSchema:
+    """
+    Converts the agent template from DB to schema format.
+    """
     return AgentTemplateSchema(
         id=template_in_db.id,
         name=template_in_db.name,
@@ -31,6 +37,10 @@ def agent_template_schema_from_db(template_in_db: AgentTemplateTable) -> AgentTe
 
 
 def get_all_agent_template_schemas_for_user(db: Session, user: UserTable) -> Sequence[AgentTemplateSchema]:
+    """
+    Returns all the agent templates in schema format that are accessible to the given user. Note that 
+    this includes immutable global templates and custom agents made by the user.
+    """
     # This query shows both global (`user_id ==  None`) and custom (`user_id == user.id`) templates
     templates = db.query(AgentTemplateTable)\
         .filter(or_(AgentTemplateTable.user_id.is_(None), AgentTemplateTable.user_id == user.id))\
@@ -40,6 +50,11 @@ def get_all_agent_template_schemas_for_user(db: Session, user: UserTable) -> Seq
 
 
 def get_agent_template_by_name_for_user(db: Session, user: UserTable, agent_name: str) -> AgentTemplateTable | None:
+    """
+    Gets the agent template with the given name that is accessible to the given user. Note that agent names are not 
+    globally unique, but are unique to a given user, i.e. two users may have a `supervisor_agent`, but a single user 
+    cannot have two templates called `supervisor_agent`.
+    """
     return db.query(AgentTemplateTable)\
         .filter(
             or_(AgentTemplateTable.user_id.is_(None), AgentTemplateTable.user_id == user.id),
@@ -49,6 +64,9 @@ def get_agent_template_by_name_for_user(db: Session, user: UserTable, agent_name
 
 
 def tool_id_list_to_tool_objs(db: Session, tool_ids: list[str]):
+    """
+    Turns the given list of tool IDs to tools objects in DB format.
+    """
     for tool_id in tool_ids:
         tool = get_tool_by_id(db, tool_id)
 
@@ -67,6 +85,9 @@ def try_create_custom_agent_for_user(
     current_user: UserTable,
     create_agent_template_schema: CreateCustomAgentSchema,
 ):
+    """
+    Attempts to create a new custom agent template for the user.
+    """
     # If any of the user's agent templates already has the same name as the new agent schema, then throw.
     if get_agent_template_by_name_for_user(db, current_user, create_agent_template_schema.name) is not None:
         raise HTTPException(status_code=400, detail=f"agent template with name '{create_agent_template_schema.name}' already exists")
@@ -93,6 +114,9 @@ def try_modify_custom_agent_for_user(
     current_user: UserTable,
     modify_agent_template_schema: ModifyCustomAgentSchema,
 ):
+    """
+    Tries to modify the given custom agent for the given user.
+    """
     agent_template_from_db = db.query(AgentTemplateTable)\
         .filter(
             AgentTemplateTable.user_id.is_not(None),                    # the template is not global
@@ -131,6 +155,9 @@ def try_delete_custom_agent_for_user(
     current_user: UserTable,
     agent_template_id: uuid.UUID,
 ):
+    """
+    Tries to delete the given custom agent for the given user.
+    """
     agent_template_from_db = db.query(AgentTemplateTable)\
         .filter(
             AgentTemplateTable.user_id.is_not(None),                    # the template is not global
@@ -150,6 +177,10 @@ def try_delete_custom_agent_for_user(
 
 
 def get_all_switchable_agent_names(db: Session, owner: UserTable) -> Sequence[str]:
+    """
+    Returns a list of all the names of the agents that are both accessible to the given user and 
+    are switchable into.
+    """
     templates = db.query(AgentTemplateTable)\
         .filter(
             AgentTemplateTable.is_switchable_into == True, 
@@ -161,8 +192,14 @@ def get_all_switchable_agent_names(db: Session, owner: UserTable) -> Sequence[st
 
 
 def get_all_tool_schemas(db: Session) -> Sequence[ToolSchema]:
+    """
+    Gets all the tools from the DB in schema format.
+    """
     return [tool_schema_from_db(t) for t in db.query(ToolTable).all()]
 
 
 def get_tool_by_id(db: Session, tool_id: str) -> ToolTable | None:
+    """
+    Gets a tool object by its ID in DB format.
+    """
     return db.query(ToolTable).filter(ToolTable.id == tool_id).first()

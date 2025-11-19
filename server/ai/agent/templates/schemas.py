@@ -2,12 +2,18 @@ from pydantic import BaseModel, field_validator
 import uuid
 
 class ToolSchema(BaseModel):
+    """
+    A tool held by an agent template.
+    """
     id: str
     name: str
     description: str
 
 
 class AgentTemplateSchema(BaseModel):
+    """
+    An agent template. Used for loading agents at runtime.
+    """
     id: uuid.UUID
     name: str
     persona: str
@@ -46,8 +52,15 @@ class BaseAgentTemplateSchema(BaseModel):
         return value
 
 
-class CreateCustomAgentSchema(BaseAgentTemplateSchema): pass
+class CreateCustomAgentSchema(BaseAgentTemplateSchema): 
+    """
+    Creates the given custom agent template with the fields from this DTO.
+    """
+    pass
 
 
 class ModifyCustomAgentSchema(BaseAgentTemplateSchema):
+    """
+    Modifies the given custom agent template with the fields from this DTO.
+    """
     id: uuid.UUID
