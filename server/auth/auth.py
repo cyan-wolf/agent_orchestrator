@@ -7,26 +7,16 @@ from fastapi.security.utils import get_authorization_scheme_param
 from fastapi.openapi.models import OAuthFlows
 from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
-import os
 from auth.schemas import AuthCheck, CreateNewUser, UserWithPass
 from auth.tables import UserTable
 from user_settings.tables import UserSettingsTable
 from database.database import get_database
 from sqlalchemy.orm import Session
 
+from utils.utils import get_env_raise_if_none
 
-class MissingEnvVarException(Exception): pass
-
-def _get_env_raise_if_none(var_name: str) -> str:
-    value = os.getenv(var_name)
-
-    if value is None:
-        raise MissingEnvVarException(f"missing environment variable '{var_name}'")
-    else:
-        return value
-
-_SECRET_KEY = _get_env_raise_if_none("AUTH_SECRET_KEY")
-_ALGORITHM = _get_env_raise_if_none("AUTH_ALGORITHM")
+_SECRET_KEY = get_env_raise_if_none("AUTH_SECRET_KEY")
+_ALGORITHM = get_env_raise_if_none("AUTH_ALGORITHM")
 _ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 _PWD_CONTEXT = CryptContext(schemes=["bcrypt"], deprecated="auto")

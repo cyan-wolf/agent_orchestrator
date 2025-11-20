@@ -9,6 +9,8 @@ from ai.tracing.schemas import ImageCreationTrace
 from ai.agent_manager.agent_context import AgentCtx
 from ai.tools.registry.tool_register_decorator import register_tool_factory
 
+from utils.utils import get_env_raise_if_none
+
 _API_URL = "https://www.wolframalpha.com/api/v1/llm-api"
 
 
@@ -30,7 +32,7 @@ def prepare_run_wolfram_alpha_tool(ctx: AgentCtx):
         try:
             params = {
                 "input": query,
-                "appid": _get_wolfram_alpha_app_id(),
+                "appid": get_env_raise_if_none("WOLFRAM_ALPHA_APPID"),
             }
             resp = requests.get(_API_URL, params=params)
             resp.raise_for_status()
@@ -63,12 +65,6 @@ def prepare_run_wolfram_alpha_tool(ctx: AgentCtx):
             return err_msg
     
     return run_wolfram_alpha_tool
-
-
-def _get_wolfram_alpha_app_id() -> str:
-    app_id = os.getenv("WOLFRAM_ALPHA_APPID")
-    assert app_id, "Wolfram APP ID was None"
-    return app_id
 
 
 def _get_image_as_base64(url: str) -> str | None:

@@ -1,14 +1,12 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-import os
+from utils.utils import get_env_raise_if_none
 
-_URL = os.environ.get("DATABASE_URL")
-
-if _URL is None:
-    raise Exception("missing database connection string")
-
-engine = create_engine(_URL, pool_pre_ping=True)
+engine = create_engine(
+    get_env_raise_if_none("DATABASE_URL"), 
+    pool_pre_ping=True,
+)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

@@ -13,16 +13,15 @@ from ai.tracing.schemas import ImageCreationTrace
 from ai.agent_manager.agent_context import AgentCtx
 from ai.tools.registry.tool_register_decorator import register_tool_factory
 
-from langchain_core.messages import BaseMessage
 from huggingface_hub import InferenceClient
 
 from PIL import Image
 
+from utils.utils import get_env_raise_if_none
+
 HUGGINGFACE_IMAGE_MODEL = "stabilityai/stable-diffusion-xl-base-1.0" 
 
-_HF_TOKEN = os.environ.get("HUGGINGFACEHUB_API_TOKEN")
-
-client = InferenceClient(api_key=_HF_TOKEN)
+client = InferenceClient(api_key=get_env_raise_if_none("HUGGINGFACEHUB_API_TOKEN"))
 
 @register_tool_factory(tool_id='generate_image_and_show_it_to_user')
 def prepare_image_generation_tool(ctx: AgentCtx):
