@@ -1,12 +1,14 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-from pathlib import Path
+import os
 
-PATH = Path(__file__).parent.parent / "agent_orchestrator.db"
-URL = f"sqlite:///{PATH}"
+_URL = os.environ.get("DATABASE_URL")
 
-engine = create_engine(URL, connect_args={"check_same_thread": False})
+if _URL is None:
+    raise Exception("missing database connection string")
+
+engine = create_engine(_URL, pool_pre_ping=True)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
